@@ -1,0 +1,11 @@
+PREFIX="BVP-"
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+if [[ ! "$COMMIT_MSG" =~ ^$PREFIX ]]; then
+  echo "❌ Invalid commit message. Must start with '$PREFIX'<STORY_ID>"
+  exit 1
+fi
+
+echo "✅ Passed commit message validation."
+exit 0
