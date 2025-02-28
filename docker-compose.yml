@@ -1,0 +1,39 @@
+services:
+  database:
+    image: postgres:17.1
+    ports:
+      - '5432:5432'
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_KEY}
+    volumes:
+      - bevpro-data:/var/lib/postgresql/data
+    container_name: bevpro_db
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bevpro_server
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT}
+      - DATABASE_HOST=database
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_KEY=${DATABASE_KEY}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_NAME=${DATABASE_NAME}
+    ports:
+      - '8000:${PORT}'
+    depends_on:
+      - database
+    volumes:
+      - ./src:/app/src
+volumes:
+  bevpro-data:
+
