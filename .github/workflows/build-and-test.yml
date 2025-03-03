@@ -19,6 +19,8 @@ jobs:
         run: npm ci  # Ensures clean install from package-lock.json
       - name: 🎨 Run Linting
         run: npm run lint
+      - name: ⚙️ Create Build
+        run: npm run build
       - name: 🧪 Run Unit Tests
         run: npm run test
 
