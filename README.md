@@ -3,30 +3,21 @@
 </p>
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+  <p align="center">Backend application for BevPro built with <a href="https://github.com/nestjs/nest"> NestJS</a>, featuring REST APIs, database integration, authentication, and microservices support. <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
     <p align="center">
 <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
 <a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
 <a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The Back Office for the BevPro system. Serves as a REST client which talks to a database and serves requests.
 
-## Project setup
+## Installing Dependencies
 
 ```bash
 $ npm install
@@ -58,42 +49,56 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Deployment
+## Guidelines
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+All pull requests must adhere to the following guidelines.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Branching Rules:
+
+- Branches are categorized into feature, task, bug, and release.
+  Every branch must be created from the latest main branch.
+  Branch names must follow the format:
+  `feature/<JIRA_ID>/some-feature`, `task/<JIRA_ID>/some-task`, or `bug/<JIRA_ID>/some-bug`.
+- Commit messages must begin with the JIRA Ticket ID, followed by a brief description. Example:
+    - `JIRA-123: fix-login-issue`
+    - `JIRA-456: add-user-profile-feature`
+- Ensure pre-commit hooks are working
+
+### Making Database Changes:
+
+To make any changes to the database, you must create
+a [migration](https://docs.nestjs.com/techniques/database#migrations). A migration is just a single file
+with sql queries to update a database schema and apply new changes to an existing database.
+
+- All migrations must be included with the corresponding feature changes and committed to version control.
+- To modify the database, create a migration script using the `migration:create` script in `package.json`. You need to
+  pass a name for your migration when you run this script, like:
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+npm run migration:create --migration_name=<JIRA-ID>__AddingNewColumnForABC
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- This will create a migration file named: `<TIMESTAMP>-<JIRA-ID>__AddingNewColumnForABC.ts`
+- Ensure the generated migration script is located in the `/migrations` directory.
+- Once generated, add the necessary changes to the migration file.
+
+### Running the Migrations:
+
+Migrations can be applied in two ways:
+
+- Manually: Run the migration script from `package.json`:
+
+``` bash
+npm run migrations:run
+```
+
+- Automatically: Restart the application, which executes all migrations in the `/migrations` directory in their creation
+  order when the back office loads.
 
 ## Resources
 
 Check out a few resources that may come in handy when working with NestJS:
 
 - Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Checkout the [TypeORM Documentation](https://typeorm.io/) for information on writing CRUD routines.
+- Migrations with [TypeORM](https://typeorm.io/migrations#how-migrations-work)
