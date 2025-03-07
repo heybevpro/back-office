@@ -6,7 +6,7 @@
     "ts"
   ],
   "rootDir": "src",
-  "testRegex": ".*\\.spec\\.ts$",
+  "testRegex": ".*\\.test\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
@@ -21,9 +21,12 @@
   "coveragePathIgnorePatterns": [
     "/src/main.ts",
     "/src/app.module.ts",
+    "/src/modules\/.+\\.module\\.ts$",
     "/src/config/",
     "/src/utils/constants/",
-    "/src/utils/validations/environment.validation.ts"
+    "/src/utils/validations/environment.validation.ts",
+    "/src/migrations/*",
+    "/src/entities/"
   ],
   "coverageDirectory": "../coverage",
   "testEnvironment": "node"

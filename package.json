@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "migrations:create": "",
-    "migration:run": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/config/database/database.configuration.ts",
+    "migration:create": "typeorm migration:create ./src/migrations/$npm_config_migration_name",
+    "migrations:run": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/config/database/database.configuration.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -66,5 +66,9 @@
   },
   "lint-staged": {
     "*.ts": "eslint --fix"
+  },
+  "engines": {
+    "node": ">=23.0.0",
+    "yarn": "Please use NPM"
   }
 }
