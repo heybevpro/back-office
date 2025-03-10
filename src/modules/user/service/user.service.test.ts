@@ -67,9 +67,7 @@ describe('UserService', () => {
         updated_at: new Date(),
       };
       jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(user);
-      expect(
-        await service.findOneByEmailAndPassword('<_EMAIL_>', '<_PASSWORD_>'),
-      ).toEqual(user);
+      expect(await service.findOneByEmail('<_EMAIL_>')).toEqual(user);
     });
 
     it('should throw a Not Found Exception if user is not found', async () => {
@@ -77,10 +75,7 @@ describe('UserService', () => {
         .spyOn(userRepository, 'findOneOrFail')
         .mockRejectedValue(new NotFoundException());
       await expect(
-        service.findOneByEmailAndPassword(
-          '<_INVALID-CREDENTIALS_>',
-          '<_INVALID-CREDENTIALS_>',
-        ),
+        service.findOneByEmail('<_INVALID-CREDENTIALS_>'),
       ).rejects.toThrow(NotFoundException);
     });
   });

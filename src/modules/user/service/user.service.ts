@@ -13,10 +13,7 @@ export class UserService {
     return this.userRepository.findOneOrFail({ where: { id } });
   }
 
-  async findOneByEmailAndPassword(
-    email: string,
-    password: string,
-  ): Promise<User> {
-    return this.userRepository.findOneOrFail({ where: { email, password } });
+  async findOneByEmail(email: string): Promise<User> {
+    return this.userRepository.findOneOrFail({ where: { email } });
   }
 }
