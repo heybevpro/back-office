@@ -31,6 +31,10 @@ describe('UserController', () => {
     controller = module.get<UserController>(UserController);
   });
 
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
   describe('find user by ID', () => {
     it('should return the user if found', async () => {
       expect(await controller.findById('VALID_ID')).toEqual(mockUser);
