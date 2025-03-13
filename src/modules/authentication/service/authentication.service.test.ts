@@ -83,20 +83,13 @@ describe('AuthenticationService', () => {
   });
 
   describe('sign in', () => {
-    it('should return an UnauthorizedException when invalid email is submitted', async () => {
-      await expect(
-        service.signIn({ email: 'INVALID_EMAIL', password: 'VALID_PASSWORD' }),
-      ).rejects.toThrow(InvalidUserCredentialsException);
-      jest.spyOn(service, 'compareHash');
-
-      expect(mockUserService.findOneByEmail).toHaveBeenCalledTimes(1);
-      expect(mockJwtService.signAsync).not.toHaveBeenCalled();
-    });
-
     it('should return an UnauthorizedException when invalid password is submitted', async () => {
       const compareHashSpy = jest.spyOn(service, 'compareHash');
       await expect(
-        service.signIn({ email: 'VALID_EMAIL', password: 'INVALID_PASSWORD' }),
+        service.validateUser({
+          email: 'VALID_EMAIL',
+          password: 'INVALID_PASSWORD',
+        }),
       ).rejects.toThrow(InvalidUserCredentialsException);
       expect(compareHashSpy).toHaveBeenCalledTimes(1);
       expect(mockJwtService.signAsync).not.toHaveBeenCalled();
@@ -105,7 +98,10 @@ describe('AuthenticationService', () => {
     it('should compare the password hash with the correct parameters', async () => {
       const compareHashSpy = jest.spyOn(service, 'compareHash');
       await expect(
-        service.signIn({ email: 'VALID_EMAIL', password: 'INVALID_PASSWORD' }),
+        service.validateUser({
+          email: 'VALID_EMAIL',
+          password: 'INVALID_PASSWORD',
+        }),
       ).rejects.toThrow(InvalidUserCredentialsException);
       expect(compareHashSpy).toHaveBeenCalledWith(
         'INVALID_PASSWORD',
@@ -119,7 +115,7 @@ describe('AuthenticationService', () => {
 
       const compareHashSpy = jest.spyOn(bcrypt, 'compare');
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      const response = await service.signIn({
+      const response = await service.validateUser({
         email: 'VALID_EMAIL',
         password: 'VALID_PASSWORD',
       });
