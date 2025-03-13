@@ -9,6 +9,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { LoginRequestDto } from '../dto/login-request.dto';
+import { User } from '../../user/entity/user.entity';
+import { CreateUserDto } from '../../user/dto/create-user.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -51,6 +53,10 @@ export class AuthenticationService {
       }
       throw error;
     }
+  }
+
+  async register(createUserDto: CreateUserDto): Promise<User> {
+    return this.userService.create(createUserDto);
   }
 
   async compareHash(password: string, hash: string): Promise<boolean> {

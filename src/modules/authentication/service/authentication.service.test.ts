@@ -9,6 +9,7 @@ import {
 
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from '../../user/dto/create-user.dto';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -40,6 +41,14 @@ describe('AuthenticationService', () => {
       if (email === 'VALID_EMAIL') return Promise.resolve(mockUser);
       throw new UserNotFoundException();
     }),
+    create: jest.fn((createUserDto: CreateUserDto) =>
+      Promise.resolve({
+        id: '<_AUTO_UUID_>',
+        first_name: createUserDto.first_name,
+        last_name: createUserDto.last_name,
+        email: createUserDto.email,
+      }),
+    ),
   };
 
   const mockJwtService = {
@@ -120,6 +129,23 @@ describe('AuthenticationService', () => {
         mockUser.password,
       );
       expect(mockJwtService.signAsync).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('register', () => {
+    const createUserMockData: CreateUserDto = {
+      first_name: 'Jane',
+      last_name: 'Doe',
+      password: '<_PASSWORD_>',
+      email: 'newuser@email.com',
+    };
+    it('should return the created user', async () => {
+      expect(await service.register(createUserMockData)).toEqual({
+        id: '<_AUTO_UUID_>',
+        first_name: createUserMockData.first_name,
+        last_name: createUserMockData.last_name,
+        email: createUserMockData.email,
+      });
     });
   });
 });

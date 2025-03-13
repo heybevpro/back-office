@@ -4,6 +4,7 @@ import { AuthenticationController } from './authentication.controller';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { InvalidUserCredentialsException } from '../../../excpetions/credentials.exception';
+import { CreateUserDto } from '../../user/dto/create-user.dto';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -26,6 +27,14 @@ describe('AuthenticationController', () => {
         return Promise.resolve(mockedLoginResponse);
       }
       throw new InvalidUserCredentialsException();
+    }),
+    register: jest.fn((createUserDto: CreateUserDto) => {
+      return Promise.resolve({
+        id: '<_AUTO_UUID_>',
+        first_name: createUserDto.first_name,
+        last_name: createUserDto.last_name,
+        email: createUserDto.email,
+      });
     }),
   };
 
@@ -78,6 +87,26 @@ describe('AuthenticationController', () => {
 
       await expect(controller.login(loginRequestDto)).rejects.toThrow(
         InvalidUserCredentialsException,
+      );
+    });
+  });
+
+  describe('create user', () => {
+    const mockCreateUserDto: CreateUserDto = {
+      first_name: 'Jane',
+      last_name: 'Doe',
+      email: 'newuser@example.com',
+      password: '<_PASSWORD_>',
+    };
+    it('should return the created user', async () => {
+      expect(await controller.register(mockCreateUserDto)).toEqual({
+        id: '<_AUTO_UUID_>',
+        first_name: mockCreateUserDto.first_name,
+        last_name: mockCreateUserDto.last_name,
+        email: mockCreateUserDto.email,
+      });
+      expect(mockAuthenticationService.register).toHaveBeenCalledWith(
+        mockCreateUserDto,
       );
     });
   });
