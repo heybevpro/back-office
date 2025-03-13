@@ -95,6 +95,26 @@ npm run migrations:run
 - Automatically: Restart the application, which executes all migrations in the `/migrations` directory in their creation
   order when the back office loads.
 
+## Local Testing Setup
+
+We use `docker compose` to run the application locally. Follow the steps below to run the application for QA and
+integration testing.
+
+- Based on your system and environment install [Docker Desktop](https://docs.docker.com/desktop/): v4.37.2+
+- Ensure Docker Daemon is running
+- Make sure you have the .env file in the root directory of the project. If not, create one with the content provided in
+  `.env.example`:
+
+- Run the following command to start the application and spawn the database:
+
+```bash
+docker compose up
+```
+
+- Verify the following 2 services are running on Docker Desktop:
+    1. bevpro_server
+    2. bevpro_db
+
 ## Resources
 
 Check out a few resources that may come in handy when working with NestJS:
