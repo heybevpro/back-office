@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Local Docker Environment",
+      "Group": "BevPro Servers",
+      "Host": "database",
+      "Port": 5432,
+      "MaintenanceDB": "bevpro",
+      "Username": "postgres",
+      "PassFile": "/pgpass",
+      "SSLMode": "prefer"
+    }
+  }
+}
