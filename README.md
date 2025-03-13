@@ -1,13 +1,13 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+<p style="text-align: center">
+  <a href="https://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">Backend application for BevPro built with <a href="https://github.com/nestjs/nest"> NestJS</a>, featuring REST APIs, database integration, authentication, and microservices support. <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
+  <p style="text-align: center">Backend application for BevPro built with <a href="https://github.com/nestjs/nest"> NestJS</a>, featuring REST APIs, database integration, authentication, and microservices support. <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p style="text-align: center">
 <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
 <a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
 <a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
@@ -104,16 +104,44 @@ integration testing.
 - Ensure Docker Daemon is running
 - Make sure you have the .env file in the root directory of the project. If not, create one with the content provided in
   `.env.example`:
+- Create a file called `pgpass` in the root directory of the project. This file is used to store the password for the
+  database. The file should contain the following content:
+
+```
+database:5432:bevpro:postgres:admin
+```
+
+where `database` is the hostname of the database, `5432` is the port number, `bevpro` is the database name, `postgres`
+is the username, and `admin` is the password.
 
 - Run the following command to start the application and spawn the database:
 
 ```bash
-docker compose up
+npm run environment:start
 ```
 
 - Verify the following 2 services are running on Docker Desktop:
     1. bevpro_server
     2. bevpro_db
+    3. pgadmin
+
+- To stop the services, run the following command:
+
+```bash
+npm run environment:stop
+```
+
+- If you want to create a build without using locally cached images and data, use:
+
+```bash
+npm run environment:build-no-cache 
+```
+
+Once Running the following services are available on the following port:
+
+1. bevpro-back-office: http://localhost:8000
+2. pgadmin: http://localhost:5050
+3. bevpro_db: http://localhost:5432
 
 ## Resources
 
