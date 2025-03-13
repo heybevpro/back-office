@@ -2,10 +2,10 @@
 FROM node:23-alpine AS base
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
-
+ENV HUSKY=0
 # ---- Dependencies ----
 FROM base AS dependencies
-RUN npm install --only=production
+RUN npm install --omit=dev
 
 # ---- Build ----
 FROM base AS build

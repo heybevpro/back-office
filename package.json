@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migration:create": "typeorm migration:create ./src/migrations/$npm_config_migration_name",
     "migrations:run": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/config/database/database.configuration.ts",
-    "prepare": "husky"
+    "prepare": "[[ \"$HUSKY\" != \"0\" ]] && husky install || true"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
