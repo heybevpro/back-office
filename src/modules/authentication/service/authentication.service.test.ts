@@ -24,7 +24,11 @@ describe('AuthenticationService', () => {
     updated_at: new Date(),
   };
 
-  const sanitizedUserData = {
+  const userByEmailQueryResponse: Omit<User, 'updated_at'> = {
+    ...mockUser,
+  };
+
+  const sanitizedUserData: Omit<User, 'password' | 'updated_at'> = {
     id: mockUser.id,
     first_name: mockUser.first_name,
     last_name: mockUser.last_name,
@@ -34,11 +38,12 @@ describe('AuthenticationService', () => {
 
   const mockUserService = {
     findOneById: jest.fn((id: string) => {
-      if (id === 'VALID_ID') return Promise.resolve(mockUser);
+      if (id === 'VALID_ID') return Promise.resolve(sanitizedUserData);
       throw new UserNotFoundException();
     }),
     findOneByEmail: jest.fn((email: string) => {
-      if (email === 'VALID_EMAIL') return Promise.resolve(mockUser);
+      if (email === 'VALID_EMAIL')
+        return Promise.resolve(userByEmailQueryResponse);
       throw new UserNotFoundException();
     }),
     create: jest.fn((createUserDto: CreateUserDto) =>
@@ -113,7 +118,6 @@ describe('AuthenticationService', () => {
       jest.mock('bcrypt');
 
       const compareHashSpy = jest.spyOn(bcrypt, 'compare');
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       const response = await service.signIn({
         email: 'VALID_EMAIL',
