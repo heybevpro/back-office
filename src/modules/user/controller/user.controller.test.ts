@@ -21,6 +21,7 @@ describe('UserController', () => {
       if (id === 'VALID_ID') return Promise.resolve(mockUser);
       throw new NotFoundException();
     }),
+    findAll: jest.fn(() => Promise.resolve([mockUser])),
   };
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -46,6 +47,13 @@ describe('UserController', () => {
         NotFoundException,
       );
       expect(mockUserService.findOneById).toHaveBeenCalledWith('INVALID_ID');
+    });
+  });
+
+  describe('find all users', () => {
+    it('should return all users', async () => {
+      expect(await controller.findAll()).toEqual([mockUser]);
+      expect(mockUserService.findAll).toHaveBeenCalledTimes(1);
     });
   });
 });
