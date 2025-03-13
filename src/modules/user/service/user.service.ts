@@ -4,6 +4,7 @@ import { User } from '../entity/user.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class UserService {
@@ -31,6 +32,8 @@ export class UserService {
   }
 
   async create(user: CreateUserDto): Promise<User> {
-    return await this.userRepository.save(this.userRepository.create(user));
+    return instanceToPlain(
+      await this.userRepository.save(this.userRepository.create(user)),
+    ) as User;
   }
 }
