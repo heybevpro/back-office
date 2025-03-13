@@ -19,7 +19,7 @@ describe('AuthenticationController', () => {
   };
 
   const mockAuthenticationService = {
-    signIn: jest.fn((loginRequestDto: LoginRequestDto) => {
+    validateUser: jest.fn((loginRequestDto: LoginRequestDto) => {
       if (
         loginRequestDto.email === 'test@example.com' &&
         loginRequestDto.password === 'VALID_PASSWORD'
@@ -60,7 +60,7 @@ describe('AuthenticationController', () => {
         password: 'VALID_PASSWORD',
       };
       await controller.login(loginRequestDto);
-      expect(mockAuthenticationService.signIn).toHaveBeenCalledWith(
+      expect(mockAuthenticationService.validateUser).toHaveBeenCalledWith(
         loginRequestDto,
       );
     });
@@ -70,7 +70,9 @@ describe('AuthenticationController', () => {
         email: 'test@example.com',
         password: 'VALID_PASSWORD',
       };
-      mockAuthenticationService.signIn.mockResolvedValue(mockedLoginResponse);
+      mockAuthenticationService.validateUser.mockResolvedValue(
+        mockedLoginResponse,
+      );
 
       const response = await controller.login(loginRequestDto);
       expect(response).toEqual(mockedLoginResponse);
@@ -81,7 +83,7 @@ describe('AuthenticationController', () => {
         email: 'INVALID_EMAIL',
         password: 'password',
       };
-      mockAuthenticationService.signIn.mockRejectedValue(
+      mockAuthenticationService.validateUser.mockRejectedValue(
         new InvalidUserCredentialsException(),
       );
 

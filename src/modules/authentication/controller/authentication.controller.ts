@@ -23,7 +23,7 @@ export class AuthenticationController {
   async login(
     @Body() logInRequestDto: LoginRequestDto,
   ): Promise<SuccessfulLoginResponse> {
-    return this.authenticationService.signIn(logInRequestDto);
+    return this.authenticationService.validateUser(logInRequestDto);
   }
 
   @Post('register')
