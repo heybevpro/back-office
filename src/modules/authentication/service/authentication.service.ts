@@ -14,6 +14,8 @@ import { CreateUserDto } from '../../user/dto/create-user.dto';
 
 @Injectable()
 export class AuthenticationService {
+  private static readonly SALT_ROUNDS = 13;
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
@@ -56,10 +58,14 @@ export class AuthenticationService {
   }
 
   async register(createUserDto: CreateUserDto): Promise<User> {
-    return this.userService.create(createUserDto);
+    createUserDto.password = await bcrypt.hash(
+      createUserDto.password,
+      AuthenticationService.SALT_ROUNDS,
+    );
+    return await this.userService.create(createUserDto);
   }
 
   async compareHash(password: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(password, hash);
+    return await bcrypt.compare(password, hash);
   }
 }
