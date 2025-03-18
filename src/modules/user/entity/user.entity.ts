@@ -12,14 +12,14 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Exclude()
   @Column({ select: false })
   password: string;
 
-  @Column('varchar', { length: 50, nullable: false })
+  @Column('varchar', { length: 50 })
   first_name: string;
 
   @Column('varchar', { length: 50, default: null, nullable: true })
