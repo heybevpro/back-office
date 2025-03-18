@@ -6,6 +6,7 @@ import { EnvironmentVariable } from '../../utils/constants/environmentType';
 import { UserModule } from '../user/user.module';
 import { AuthenticationController } from './controller/authentication.controller';
 import { CredentialsStrategy } from './strategy/credentials.strategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CredentialsStrategy } from './strategy/credentials.strategy';
       inject: [ConfigService],
     }),
     UserModule,
+    PassportModule,
   ],
   providers: [AuthenticationService, CredentialsStrategy],
   controllers: [AuthenticationController],

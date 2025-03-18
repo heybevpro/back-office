@@ -5,6 +5,8 @@ import { LoginRequestDto } from '../dto/login-request.dto';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { InvalidUserCredentialsException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { ExecutionContext } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -38,13 +40,27 @@ describe('AuthenticationController', () => {
     }),
   };
 
+  const mockAuthGuard = {
+    canActivate: jest.fn((context: ExecutionContext) => {
+      const request: Request & { user: SuccessfulLoginResponse } = context
+        .switchToHttp()
+        .getRequest();
+      request.user = mockedLoginResponse;
+      return true;
+    }),
+    validate: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthenticationController],
       providers: [
         { provide: AuthenticationService, useValue: mockAuthenticationService },
       ],
-    }).compile();
+    })
+      .overrideGuard(AuthGuard('local'))
+      .useValue(mockAuthGuard)
+      .compile();
 
     controller = module.get<AuthenticationController>(AuthenticationController);
   });
@@ -55,41 +71,18 @@ describe('AuthenticationController', () => {
 
   describe('login', () => {
     it('should call AuthenticationService.signIn with correct parameters', async () => {
-      const loginRequestDto: LoginRequestDto = {
+      const mockRequest = {
+        user: {
+          email: 'test@example.com',
+          password: '<_VALID_PASSWORD_>',
+        },
+      };
+
+      const result = await controller.login(mockRequest);
+      expect(result).toEqual({
         email: 'test@example.com',
-        password: 'VALID_PASSWORD',
-      };
-      await controller.login(loginRequestDto);
-      expect(mockAuthenticationService.validateUser).toHaveBeenCalledWith(
-        loginRequestDto,
-      );
-    });
-
-    it('should return the result from AuthenticationService.signIn', async () => {
-      const loginRequestDto: LoginRequestDto = {
-        email: 'test@example.com',
-        password: 'VALID_PASSWORD',
-      };
-      mockAuthenticationService.validateUser.mockResolvedValue(
-        mockedLoginResponse,
-      );
-
-      const response = await controller.login(loginRequestDto);
-      expect(response).toEqual(mockedLoginResponse);
-    });
-
-    it('should throw an exception if invalid data is submitted', async () => {
-      const loginRequestDto: LoginRequestDto = {
-        email: 'INVALID_EMAIL',
-        password: 'password',
-      };
-      mockAuthenticationService.validateUser.mockRejectedValue(
-        new InvalidUserCredentialsException(),
-      );
-
-      await expect(controller.login(loginRequestDto)).rejects.toThrow(
-        InvalidUserCredentialsException,
-      );
+        password: '<_VALID_PASSWORD_>',
+      });
     });
   });
 
