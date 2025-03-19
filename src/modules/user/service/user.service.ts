@@ -19,11 +19,13 @@ export class UserService {
   async findOneByEmail(email: string): Promise<User> {
     try {
       return await this.userRepository.findOneOrFail({
+        relations: { role: true },
         select: {
           id: true,
           first_name: true,
           last_name: true,
           email: true,
+          role: { id: true, role_name: true },
           created_at: true,
           password: true,
         },

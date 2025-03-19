@@ -3,6 +3,7 @@ import { UserService } from '../service/user.service';
 import { User } from '../entity/user.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Role } from '../../role/entity/role.entity';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -12,6 +13,7 @@ describe('UserController', () => {
     last_name: 'Doe',
     password: '<_PASSWORD_>',
     email: 'john@email.com',
+    role: 'ADMIN' as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
   };

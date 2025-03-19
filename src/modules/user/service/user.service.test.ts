@@ -6,6 +6,7 @@ import { UserService } from './user.service';
 import { ImATeapotException, NotFoundException } from '@nestjs/common';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { Role } from '../../role/entity/role.entity';
 
 describe('UserService', () => {
   let userRepository: Repository<User>;
@@ -16,6 +17,7 @@ describe('UserService', () => {
     last_name: 'Doe',
     email: 'john@email.com',
     password: '<_PASSWORD_>',
+    role: { id: 'Role-ID', role_name: 'VALID_ROLE_NAME' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
   };
