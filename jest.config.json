@@ -6,7 +6,7 @@
     "ts"
   ],
   "rootDir": "src",
-  "testRegex": ".*\\.test\\.ts$",
+  "testRegex": ".*\\.(test|spec)\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
@@ -26,7 +26,7 @@
     "/src/utils/constants/",
     "/src/utils/validations/environment.validation.ts",
     "/src/migrations/*",
-    "/src/entities/"
+    "/src/modules\/.+\\.entity\\.ts$"
   ],
   "coverageDirectory": "../coverage",
   "testEnvironment": "node"
