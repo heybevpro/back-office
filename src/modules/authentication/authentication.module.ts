@@ -5,8 +5,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EnvironmentVariable } from '../../utils/constants/environmentType';
 import { UserModule } from '../user/user.module';
 import { AuthenticationController } from './controller/authentication.controller';
-import { CredentialsStrategy } from './strategy/credentials.strategy';
+import { CredentialsStrategy } from './strategy/credentials/credentials.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategy/jwt/jwt.strategy';
 
 @Module({
   imports: [
@@ -14,14 +15,15 @@ import { PassportModule } from '@nestjs/passport';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get(EnvironmentVariable.JWT_SECRET),
-        signOptions: { expiresIn: '6h' },
+        signOptions: { expiresIn: '5m' },
       }),
       inject: [ConfigService],
     }),
+    ConfigModule,
     UserModule,
     PassportModule,
   ],
-  providers: [AuthenticationService, CredentialsStrategy],
+  providers: [AuthenticationService, CredentialsStrategy, JwtStrategy],
   controllers: [AuthenticationController],
 })
 export class AuthenticationModule {}
