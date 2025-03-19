@@ -1,11 +1,11 @@
 import {
   InvalidUserCredentialsException,
   UserNotFoundException,
-} from '../../../excpetions/credentials.exception';
+} from '../../../../excpetions/credentials.exception';
 import { CredentialsStrategy } from './credentials.strategy';
-import { LoginRequestDto } from '../dto/login-request.dto';
-import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
-import { AuthenticationService } from '../service/authentication.service';
+import { LoginRequestDto } from '../../dto/login-request.dto';
+import { SuccessfulLoginResponse } from '../../../../interfaces/api/response/api.response';
+import { AuthenticationService } from '../../service/authentication.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ImATeapotException } from '@nestjs/common';
 
