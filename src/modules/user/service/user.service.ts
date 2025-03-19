@@ -5,11 +5,13 @@ import { EntityNotFoundError, Repository } from 'typeorm';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { instanceToPlain } from 'class-transformer';
+import { RoleService } from '../../role/service/role.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly roleService: RoleService,
   ) {}
 
   async findOneById(id: string): Promise<User> {
@@ -44,8 +46,11 @@ export class UserService {
   }
 
   async create(user: CreateUserDto): Promise<User> {
+    const defaultRole = await this.roleService.findDefault();
     return instanceToPlain(
-      await this.userRepository.save(this.userRepository.create(user)),
+      await this.userRepository.save(
+        this.userRepository.create({ ...user, role: defaultRole }),
+      ),
     ) as User;
   }
 }
