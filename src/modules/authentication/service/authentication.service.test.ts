@@ -10,6 +10,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { Role } from '../../role/entity/role.entity';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -20,6 +21,7 @@ describe('AuthenticationService', () => {
     last_name: 'Doe',
     password: '<_PASSWORD_>',
     email: 'john@email.com',
+    role: { id: 'ROLE_ID', role_name: 'ADMIN' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -33,6 +35,7 @@ describe('AuthenticationService', () => {
     first_name: mockUser.first_name,
     last_name: mockUser.last_name,
     email: mockUser.email,
+    role: mockUser.role.role_name as unknown as Role,
     created_at: mockUser.created_at,
   };
 

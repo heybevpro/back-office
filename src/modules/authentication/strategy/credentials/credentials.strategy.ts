@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { AuthenticationService } from '../service/authentication.service';
-import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
+import { AuthenticationService } from '../../service/authentication.service';
+import { SuccessfulLoginResponse } from '../../../../interfaces/api/response/api.response';
 import {
   InvalidUserCredentialsException,
   UserNotFoundException,
-} from '../../../excpetions/credentials.exception';
+} from '../../../../excpetions/credentials.exception';
 import { Strategy } from 'passport-local';
 
 @Injectable()

@@ -34,6 +34,7 @@ export class AuthenticationService {
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
+      role: user.role.role_name,
       created_at: user.created_at,
     };
     return {

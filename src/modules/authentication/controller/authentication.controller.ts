@@ -13,9 +13,9 @@ import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { DatabaseClientExceptionFilter } from '../../../filters/database-client-expection.filter';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
-import { AuthGuard } from '@nestjs/passport';
 import { LoginRequestValidationGuard } from '../../../guards/forms/authentication/login-request-validation.guard';
 import { LoginRequestDto } from '../dto/login-request.dto';
+import { UserCredentialsAuthGuard } from '../../../guards/auth/user-credendtials.guard';
 
 @Controller('auth')
 @UseFilters(DatabaseClientExceptionFilter)
@@ -28,7 +28,7 @@ export class AuthenticationController {
     return this.authenticationService.register(createUserDto);
   }
 
-  @UseGuards(LoginRequestValidationGuard, AuthGuard('local'))
+  @UseGuards(LoginRequestValidationGuard, UserCredentialsAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(
