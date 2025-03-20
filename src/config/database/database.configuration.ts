@@ -5,7 +5,9 @@ import {
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService, registerAs } from '@nestjs/config';
 
-const entitiesPath = [__dirname + '/../../**/entities/*.entity{.ts,.js}'];
+const entitiesPath = [
+  __dirname + '/../../**/modules/**/entity/*.entity{.ts,.js}',
+];
 const migrationsPath = [__dirname + '/../../**/migrations/*{.ts,.js}'];
 
 const configService = new ConfigService();

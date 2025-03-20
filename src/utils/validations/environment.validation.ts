@@ -37,6 +37,10 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   DATABASE_NAME: string;
+
+  @IsString()
+  @IsNotEmpty()
+  JWT_SECRET: string;
 }
 
 export const validateEnvironment = (

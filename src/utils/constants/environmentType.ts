@@ -6,4 +6,5 @@ export enum EnvironmentType {
 
 export enum EnvironmentVariable {
   PORT = 'port',
+  JWT_SECRET = 'jwtSecret',
 }

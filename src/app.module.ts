@@ -6,6 +6,8 @@ import { validateEnvironment } from './utils/validations/environment.validation'
 import databaseConfiguration from './config/database/database.configuration';
 import { DatabaseModule } from './config/database/database.module';
 import applicationConfiguration from './config/application.configuration';
+import { AuthenticationModule } from './modules/authentication/authentication.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import applicationConfiguration from './config/application.configuration';
       validate: validateEnvironment,
     }),
     DatabaseModule,
+    AuthenticationModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

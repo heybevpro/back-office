@@ -18,18 +18,27 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "migrations:create": "",
-    "migration:run": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/config/database/database.configuration.ts",
-    "prepare": "husky"
+    "migration:create": "typeorm migration:create ./src/migrations/$npm_config_migration_name",
+    "migrations:run": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/config/database/database.configuration.ts",
+    "prepare": "[[ \"$HUSKY\" != \"0\" ]] && husky install || true",
+    "environment:start": "docker compose up -d",
+    "environment:stop": "docker compose down",
+    "environment:build-no-cache": "docker compose build --no-cache"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -46,6 +55,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
+    "@types/passport-local": "^1.0.38",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -66,5 +76,9 @@
   },
   "lint-staged": {
     "*.ts": "eslint --fix"
+  },
+  "engines": {
+    "node": ">=23.0.0",
+    "yarn": "Please use NPM"
   }
 }
