@@ -23,14 +23,14 @@ export class VerificationCode {
 
   @Column({
     nullable: false,
-    type: 'timestamptz',
-    default: new Date().setHours(new Date().getHours() + 6),
+    type: 'timestamp with time zone',
+    default: `now() + interval '5 hours'`,
   })
   expires_at: Date;
 
-  @CreateDateColumn('timestamptz')
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
 
-  @UpdateDateColumn('timestamptz')
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
 }
