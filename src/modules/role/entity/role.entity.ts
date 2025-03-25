@@ -20,9 +20,9 @@ export class Role {
   })
   role_name: RoleLevels;
 
-  @CreateDateColumn()
+  @CreateDateColumn('timestamptz')
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn('timestamptz')
   updated_at: Date;
 }

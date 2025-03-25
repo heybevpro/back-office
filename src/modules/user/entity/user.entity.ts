@@ -33,9 +33,9 @@ export class User {
   })
   role: Role;
 
-  @CreateDateColumn()
+  @CreateDateColumn('timestamptz')
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn('timestamptz')
   updated_at: Date;
 }
