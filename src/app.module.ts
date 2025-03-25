@@ -8,6 +8,7 @@ import { DatabaseModule } from './config/database/database.module';
 import applicationConfiguration from './config/application.configuration';
 import { AuthenticationModule } from './modules/authentication/authentication.module';
 import { UserModule } from './modules/user/user.module';
+import { VerificationModule } from './modules/verification/verification.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UserModule } from './modules/user/user.module';
     DatabaseModule,
     AuthenticationModule,
     UserModule,
+    VerificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
