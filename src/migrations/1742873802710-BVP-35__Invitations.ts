@@ -28,7 +28,7 @@ export class BVP35_Invitations1742873802710 implements MigrationInterface {
           {
             name: 'expires_at',
             type: 'timestamptz',
-            default: new Date().setHours(new Date().getHours() + 6),
+            default: `now() + interval '5 hours'`,
           },
           {
             name: 'created_at',

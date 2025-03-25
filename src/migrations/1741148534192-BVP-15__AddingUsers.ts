@@ -41,12 +41,12 @@ export class BVP15_AddingUsers1741148534192 implements MigrationInterface {
           },
           {
             name: 'created_at',
-            type: 'timestamptz',
+            type: 'timestamp',
             default: 'now()',
           },
           {
             name: 'updated_at',
-            type: 'timestamptz',
+            type: 'timestamp',
             default: 'now()',
           },
         ],
