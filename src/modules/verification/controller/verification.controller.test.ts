@@ -2,11 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VerificationController } from './verification.controller';
 import { VerificationService } from '../service/verification.service';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
-import { HttpStatus } from '@nestjs/common';
+import { VerificationMessageSentSuccessResponse } from '../../../utils/constants/api-response.constants';
 
 describe('VerificationController', () => {
   let verificationController: VerificationController;
   let verificationService: VerificationService;
+
+  const mockVerificationService = {
+    addPhoneVerificationRecord: jest
+      .fn()
+      .mockResolvedValue(VerificationMessageSentSuccessResponse),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,12 +20,7 @@ describe('VerificationController', () => {
       providers: [
         {
           provide: VerificationService,
-          useValue: {
-            addPhoneVerificationRecord: jest.fn().mockResolvedValue({
-              message: 'Verification Message Sent!',
-              status: HttpStatus.CREATED,
-            }),
-          },
+          useValue: mockVerificationService,
         },
       ],
     }).compile();
@@ -45,11 +46,9 @@ describe('VerificationController', () => {
         createVerificationCodeDto,
       );
 
-      expect(result).toEqual({
-        message: 'Verification Message Sent!',
-        status: HttpStatus.CREATED,
-      });
+      expect(result).toEqual(VerificationMessageSentSuccessResponse);
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         verificationService.addPhoneVerificationRecord,
       ).toHaveBeenCalledWith(createVerificationCodeDto);
     });
