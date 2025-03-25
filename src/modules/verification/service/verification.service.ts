@@ -9,12 +9,14 @@ import {
   VerificationMSuccessfulResponse,
 } from '../../../utils/constants/api-response.constants';
 import { VerifyPhoneDto } from '../dto/verify-phone.dto';
+import { InvitationService } from '../../invitation/service/invitation.service';
 
 @Injectable()
 export class VerificationService {
   constructor(
     @InjectRepository(VerificationCode)
     private readonly verificationCodeRepository: Repository<VerificationCode>,
+    private readonly invitationService: InvitationService,
   ) {}
 
   async addPhoneVerificationRecord(
@@ -26,6 +28,9 @@ export class VerificationService {
         verification_code: this.generateVerificationCode(),
       }),
     );
+    await this.invitationService.create({
+      phone_number: createVerificationCodeDto.phone_number,
+    });
     return VerificationMessageSentSuccessResponse;
   }
 

@@ -5,6 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as crypto from 'node:crypto';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
+import { InvitationService } from '../../invitation/service/invitation.service';
 
 describe('VerificationService', () => {
   let service: VerificationService;
@@ -29,6 +30,10 @@ describe('VerificationService', () => {
     updated_at: new Date(),
   };
 
+  const mockInvitationService = {
+    create: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -37,6 +42,10 @@ describe('VerificationService', () => {
           useClass: Repository,
         },
         VerificationService,
+        {
+          provide: InvitationService,
+          useValue: mockInvitationService,
+        },
       ],
     }).compile();
 
