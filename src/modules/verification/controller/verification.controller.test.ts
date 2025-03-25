@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { VerificationController } from '../controller/verification.controller';
+import { VerificationController } from './verification.controller';
 import { VerificationService } from '../service/verification.service';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import { HttpStatus } from '@nestjs/common';
