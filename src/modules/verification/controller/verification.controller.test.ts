@@ -5,13 +5,16 @@ import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import { VerificationMessageSentSuccessResponse } from '../../../utils/constants/api-response.constants';
 
 describe('VerificationController', () => {
-  let verificationController: VerificationController;
-  let verificationService: VerificationService;
+  let controller: VerificationController;
 
   const mockVerificationService = {
     addPhoneVerificationRecord: jest
       .fn()
       .mockResolvedValue(VerificationMessageSentSuccessResponse),
+    verifyPhoneNumber: jest
+      .fn()
+      .mockResolvedValue(VerificationMessageSentSuccessResponse),
+    getVerificationCodes: jest.fn().mockResolvedValue([]),
   };
 
   beforeEach(async () => {
@@ -25,14 +28,11 @@ describe('VerificationController', () => {
       ],
     }).compile();
 
-    verificationController = module.get<VerificationController>(
-      VerificationController,
-    );
-    verificationService = module.get<VerificationService>(VerificationService);
+    controller = module.get<VerificationController>(VerificationController);
   });
 
   it('should be defined', () => {
-    expect(verificationController).toBeDefined();
+    expect(controller).toBeDefined();
   });
 
   describe('request', () => {
@@ -42,15 +42,31 @@ describe('VerificationController', () => {
         expires_at: new Date(),
       };
 
-      const result = await verificationController.request(
-        createVerificationCodeDto,
-      );
+      const result = await controller.request(createVerificationCodeDto);
 
       expect(result).toEqual(VerificationMessageSentSuccessResponse);
       expect(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        verificationService.addPhoneVerificationRecord,
+        mockVerificationService.addPhoneVerificationRecord,
       ).toHaveBeenCalledWith(createVerificationCodeDto);
     });
+  });
+
+  it('should verify the one-time code using the verifyPhoneNumber method from Verification Service', async () => {
+    const mockVerifyRequestBody = {
+      phone_number: '<_VALID-PHONE_>',
+      verification_code: '<_VERIFICATION-CODE_>',
+    };
+    const response = await controller.verify(mockVerifyRequestBody);
+    expect(response).toEqual(VerificationMessageSentSuccessResponse);
+    expect(mockVerificationService.verifyPhoneNumber).toHaveBeenCalledWith(
+      mockVerifyRequestBody,
+    );
+  });
+
+  it('is [INTERNAL-ONLY] -> should fetch all valid verification codes', async () => {
+    await controller.getValidRecords('<_VALID-PHONE_>');
+    expect(mockVerificationService.getVerificationCodes).toHaveBeenCalledWith(
+      '<_VALID-PHONE_>',
+    );
   });
 });

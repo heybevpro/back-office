@@ -15,7 +15,7 @@ export class VerificationController {
   }
 
   @Get()
-  async gerValidRecords(@Query('phone') phone: string) {
+  async getValidRecords(@Query('phone') phone: string) {
     return await this.verificationService.getVerificationCodes(phone);
   }
 

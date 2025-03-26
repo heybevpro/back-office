@@ -1,11 +1,12 @@
 import { VerificationService } from './verification.service';
 import { VerificationCode } from '../entity/verification-code.entity';
-import { Repository } from 'typeorm';
+import { DeleteResult, MoreThan, Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as crypto from 'node:crypto';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import { InvitationService } from '../../invitation/service/invitation.service';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('VerificationService', () => {
   let service: VerificationService;
@@ -86,5 +87,48 @@ describe('VerificationService', () => {
     expect(createVerificationRecordSpy).toHaveBeenCalledWith(
       mockVerificationRequestPayload,
     );
+  });
+
+  it('should return all valid verification codes, for a given phone number', async () => {
+    const findVerificationCodesSpy = jest.spyOn(
+      verificationRepository,
+      'findBy',
+    );
+    findVerificationCodesSpy.mockResolvedValue([mockVerificationRecord]);
+    const expiryBound = MoreThan(new Date());
+    const response = await service.getVerificationCodes('<_VALID_PHONE_>');
+    expect(response).toEqual([mockVerificationRecord]);
+    expect(findVerificationCodesSpy).toHaveBeenCalledWith({
+      phone_number: '<_VALID_PHONE_>',
+      expires_at: expiryBound,
+    });
+  });
+
+  it('should delete verification record if found', async () => {
+    const findVerificationCodeSpy = jest.spyOn(
+      verificationRepository,
+      'findOneByOrFail',
+    );
+    const deleteRecordSpy = jest.spyOn(verificationRepository, 'delete');
+    findVerificationCodeSpy.mockResolvedValue(mockVerificationRecord);
+    deleteRecordSpy.mockResolvedValue({} as DeleteResult);
+
+    await service.verifyPhoneNumber(mockVerificationRequestPayload);
+    expect(deleteRecordSpy).toHaveBeenCalledWith(mockVerificationRecord);
+  });
+
+  it('should throw a NotFoundException if verification record is not found', async () => {
+    const findVerificationCodeSpy = jest.spyOn(
+      verificationRepository,
+      'findOneByOrFail',
+    );
+    findVerificationCodeSpy.mockRejectedValue(new BadRequestException());
+
+    await expect(
+      service.verifyPhoneNumber({
+        phone_number: '<_VALID_PHONE_>',
+        verification_code: '<_INVALID_CODE_>',
+      }),
+    ).rejects.toThrow(NotFoundException);
   });
 });
