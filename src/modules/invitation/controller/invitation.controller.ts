@@ -1,6 +1,8 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { InvitationService } from '../service/invitation.service';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
+import { Invitation } from '../entity/invitation.entity';
+import { CreateInvitationDto } from '../dto/create-invitation.dto';
 
 @Controller('invitation')
 export class InvitationController {
@@ -8,7 +10,14 @@ export class InvitationController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.invitationService.fetchAll();
+  async findAll(): Promise<Array<Invitation>> {
+    return await this.invitationService.fetchAll();
+  }
+
+  @Post('/create')
+  async create(
+    @Body() createInvitationDto: CreateInvitationDto,
+  ): Promise<Invitation> {
+    return await this.invitationService.create(createInvitationDto);
   }
 }

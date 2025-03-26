@@ -54,7 +54,14 @@ describe('VerificationService', () => {
     verificationRepository = module.get<Repository<VerificationCode>>(
       getRepositoryToken(VerificationCode),
     );
+
+    const mockedDateObject = new Date('2025-01-01T00:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => mockedDateObject);
   });
+
+  // afterEach(() => {
+  //   jest.rese();
+  // });
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -95,12 +102,12 @@ describe('VerificationService', () => {
       'findBy',
     );
     findVerificationCodesSpy.mockResolvedValue([mockVerificationRecord]);
-    const expiryBound = MoreThan(new Date());
+    // const expiryBound = ;
     const response = await service.getVerificationCodes('<_VALID_PHONE_>');
     expect(response).toEqual([mockVerificationRecord]);
     expect(findVerificationCodesSpy).toHaveBeenCalledWith({
       phone_number: '<_VALID_PHONE_>',
-      expires_at: expiryBound,
+      expires_at: MoreThan(new Date()),
     });
   });
 
