@@ -16,9 +16,7 @@ export class Venue {
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
 
-  @ManyToOne(() => Organization, (organization) => organization.venues, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Organization, (organization) => organization.venues)
   organization: Organization;
 
   @CreateDateColumn()

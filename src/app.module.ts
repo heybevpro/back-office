@@ -11,6 +11,7 @@ import { UserModule } from './modules/user/user.module';
 import { VerificationModule } from './modules/verification/verification.module';
 import { InvitationModule } from './modules/invitation/invitation.module';
 import { OrganizationModule } from './modules/organization/organization.module';
+import { VenueModule } from './modules/venue/venue.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { OrganizationModule } from './modules/organization/organization.module';
     VerificationModule,
     InvitationModule,
     OrganizationModule,
+    VenueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

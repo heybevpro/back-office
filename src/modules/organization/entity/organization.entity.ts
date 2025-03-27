@@ -16,8 +16,8 @@ export class Organization {
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
 
-  @OneToMany(() => Venue, (venue) => venue.id)
-  venues: Array<Venue>;
+  @OneToMany(() => Venue, (venue) => venue.organization)
+  venues: Venue[];
 
   @CreateDateColumn()
   created_at: Date;
