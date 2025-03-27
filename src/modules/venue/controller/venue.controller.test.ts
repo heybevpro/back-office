@@ -1,7 +1,7 @@
 import { VenueService } from '../service/venue.service';
 import { VenueController } from './venue.controller';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Venue } from '../enitity/venue.entity';
+import { Venue } from '../entity/venue.entity';
 import { Organization } from '../../organization/entity/organization.entity';
 
 describe('VenueController', () => {

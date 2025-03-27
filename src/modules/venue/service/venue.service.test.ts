@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository } from 'typeorm';
-import { Venue } from '../enitity/venue.entity';
+import { Venue } from '../entity/venue.entity';
 import { VenueService } from './venue.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Organization } from '../../organization/entity/organization.entity';

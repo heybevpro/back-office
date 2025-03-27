@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Venue } from '../enitity/venue.entity';
+import { Venue } from '../entity/venue.entity';
 import { Repository } from 'typeorm';
 import { CreateVenueDto } from '../dto/create-venue.dto';
 
