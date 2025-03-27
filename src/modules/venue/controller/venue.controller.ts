@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { VenueService } from '../service/venue.service';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { CreateVenueDto } from '../dto/create-venue.dto';
@@ -9,7 +9,7 @@ export class VenueController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(createVenueDto: CreateVenueDto) {
+  async create(@Body() createVenueDto: CreateVenueDto) {
     return await this.venueService.create(createVenueDto);
   }
 

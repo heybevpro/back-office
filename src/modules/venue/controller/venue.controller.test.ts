@@ -10,7 +10,7 @@ describe('VenueController', () => {
   const mockVenue: Venue = {
     id: 1,
     name: '<_VALID-VENUE-NAME_>',
-    organization: {} as Organization,
+    organization: { id: 1 } as Organization,
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -34,11 +34,15 @@ describe('VenueController', () => {
 
   describe('create', () => {
     it('should call the `create` method from the Venue Service', async () => {
-      expect(await controller.create({ name: '<_VALID-VENUE-NAME_>' })).toEqual(
-        mockVenue,
-      );
+      expect(
+        await controller.create({
+          name: '<_VALID-VENUE-NAME_>',
+          organization: 1,
+        }),
+      ).toEqual(mockVenue);
       expect(mockVenueService.create).toHaveBeenCalledWith({
         name: '<_VALID-VENUE-NAME_>',
+        organization: 1,
       });
     });
   });

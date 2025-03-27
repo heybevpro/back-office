@@ -13,13 +13,17 @@ export class VenueService {
 
   async create(createVenueDto: CreateVenueDto) {
     return await this.venueRepository.save(
-      this.venueRepository.create(createVenueDto),
+      this.venueRepository.create({
+        name: createVenueDto.name,
+        organization: { id: createVenueDto.organization },
+      }),
     );
   }
 
   async findAllByOrganization(organizationId: number) {
     return await this.venueRepository.find({
       relations: { organization: true },
+      select: { organization: { id: false } },
       where: {
         organization: { id: organizationId },
       },

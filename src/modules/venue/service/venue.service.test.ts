@@ -43,9 +43,9 @@ describe('VenueService', () => {
       venueCreateSpy.mockReturnValue(mockVenue);
       venueSaveSpy.mockResolvedValue(mockVenue);
 
-      expect(await service.create({ name: '<_VALID-VENUE-NAME_>' })).toEqual(
-        mockVenue,
-      );
+      expect(
+        await service.create({ name: '<_VALID-VENUE-NAME_>', organization: 1 }),
+      ).toEqual(mockVenue);
     });
   });
 
