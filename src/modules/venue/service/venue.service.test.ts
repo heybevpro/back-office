@@ -51,9 +51,10 @@ describe('VenueService', () => {
 
   describe('findAllByOrganization', () => {
     it('should return an array of venues associated with the requested Organization', async () => {
+      const mockOrganizationId = 1;
       const findVenueByOrgSpy = jest.spyOn(venueRepository, 'find');
       findVenueByOrgSpy.mockResolvedValue([mockVenue]);
-      expect(await service.findAllByOrganization({ organization: 1 })).toEqual([
+      expect(await service.findAllByOrganization(mockOrganizationId)).toEqual([
         mockVenue,
       ]);
     });

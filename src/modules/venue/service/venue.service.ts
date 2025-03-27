@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Venue } from '../enitity/venue.entity';
 import { Repository } from 'typeorm';
 import { CreateVenueDto } from '../dto/create-venue.dto';
-import { FindVenuesByOrganizationDto } from '../dto/find-venues-by-organization.dto';
 
 @Injectable()
 export class VenueService {
@@ -18,13 +17,11 @@ export class VenueService {
     );
   }
 
-  async findAllByOrganization(
-    findVenuesByOrganizationDto: FindVenuesByOrganizationDto,
-  ) {
+  async findAllByOrganization(organizationId: number) {
     return await this.venueRepository.find({
       relations: { organization: true },
       where: {
-        organization: { id: findVenuesByOrganizationDto.organization },
+        organization: { id: organizationId },
       },
     });
   }
