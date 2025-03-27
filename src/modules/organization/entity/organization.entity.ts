@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Venue } from '../../venue/enitity/venue.entity';
 
 @Entity()
 export class Organization {
@@ -13,6 +15,9 @@ export class Organization {
 
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
+
+  @OneToMany(() => Venue, (venue) => venue.id)
+  venues: Array<Venue>;
 
   @CreateDateColumn()
   created_at: Date;
