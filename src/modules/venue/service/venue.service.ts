@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Venue } from '../entity/venue.entity';
 import { Repository } from 'typeorm';
@@ -12,6 +12,15 @@ export class VenueService {
   ) {}
 
   async create(createVenueDto: CreateVenueDto) {
+    const existingVenue = await this.venueRepository.findOneBy({
+      organization: { id: createVenueDto.organization },
+      name: createVenueDto.name,
+    });
+    if (existingVenue) {
+      throw new BadRequestException(
+        'Venue already exists for requested Organization.',
+      );
+    }
     return await this.venueRepository.save(
       this.venueRepository.create({
         name: createVenueDto.name,

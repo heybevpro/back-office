@@ -43,8 +43,10 @@ describe('VenueService', () => {
 
   describe('create', () => {
     it('should create a venue and return it', async () => {
+      const findOneBySpy = jest.spyOn(venueRepository, 'findOneBy');
       const venueCreateSpy = jest.spyOn(venueRepository, 'create');
       const venueSaveSpy = jest.spyOn(venueRepository, 'save');
+      findOneBySpy.mockResolvedValue(null);
       venueCreateSpy.mockReturnValue(mockVenue);
       venueSaveSpy.mockResolvedValue(mockVenue);
 
