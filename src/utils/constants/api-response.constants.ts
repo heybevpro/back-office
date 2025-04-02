@@ -9,3 +9,13 @@ export const UserNotFoundErrorResponse = {
   message: 'User not found',
   status: HttpStatus.NOT_FOUND,
 } as const;
+
+export const VerificationMessageSentSuccessResponse = {
+  message: 'Verification Message Sent',
+  status: HttpStatus.CREATED,
+} as const;
+
+export const VerificationMSuccessfulResponse = {
+  message: 'Phone Number Verified',
+  status: HttpStatus.OK,
+} as const;

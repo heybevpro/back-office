@@ -40,6 +40,7 @@ export class BVP21_Roles1742344617552 implements MigrationInterface {
           },
         ],
       }),
+      true,
     );
 
     await queryRunner.query(
