@@ -12,7 +12,12 @@ describe('VenueService', () => {
   const mockVenue: Venue = {
     id: 1,
     name: '<_VALID-VENUE-NAME_>',
-    organization: {} as Organization,
+    organization: { id: 1 } as Organization,
+    address: '<_VALID_ADDRESS_>',
+    capacity: 100,
+    city: '<_CITY_>',
+    phone_number: '<_VALID_PHONE_>',
+    state: '<_STATE_>',
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -44,7 +49,15 @@ describe('VenueService', () => {
       venueSaveSpy.mockResolvedValue(mockVenue);
 
       expect(
-        await service.create({ name: '<_VALID-VENUE-NAME_>', organization: 1 }),
+        await service.create({
+          name: '<_VALID-VENUE-NAME_>',
+          address: '<_VALID_ADDRESS_>',
+          city: '<_CITY_>',
+          state: '<_STATE_>',
+          capacity: 1000,
+          phone_number: '<_VALID_PHONE_>',
+          organization: 1,
+        }),
       ).toEqual(mockVenue);
     });
   });

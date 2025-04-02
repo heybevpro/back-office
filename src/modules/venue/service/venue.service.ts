@@ -15,6 +15,11 @@ export class VenueService {
     return await this.venueRepository.save(
       this.venueRepository.create({
         name: createVenueDto.name,
+        address: createVenueDto.address,
+        city: createVenueDto.city,
+        state: createVenueDto.state,
+        capacity: createVenueDto.capacity,
+        phone_number: createVenueDto.phone_number,
         organization: { id: createVenueDto.organization },
       }),
     );

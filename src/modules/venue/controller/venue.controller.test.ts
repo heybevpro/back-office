@@ -11,6 +11,11 @@ describe('VenueController', () => {
     id: 1,
     name: '<_VALID-VENUE-NAME_>',
     organization: { id: 1 } as Organization,
+    address: '<_VALID_ADDRESS_>',
+    capacity: 100,
+    city: '<_CITY_>',
+    phone_number: '<_VALID_PHONE_>',
+    state: '<_STATE_>',
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -37,11 +42,21 @@ describe('VenueController', () => {
       expect(
         await controller.create({
           name: '<_VALID-VENUE-NAME_>',
+          address: '<_VALID_ADDRESS_>',
+          city: '<_CITY_>',
+          state: '<_STATE_>',
+          capacity: 1000,
+          phone_number: '<_VALID_PHONE_>',
           organization: 1,
         }),
       ).toEqual(mockVenue);
       expect(mockVenueService.create).toHaveBeenCalledWith({
         name: '<_VALID-VENUE-NAME_>',
+        address: '<_VALID_ADDRESS_>',
+        city: '<_CITY_>',
+        state: '<_STATE_>',
+        capacity: 1000,
+        phone_number: '<_VALID_PHONE_>',
         organization: 1,
       });
     });
