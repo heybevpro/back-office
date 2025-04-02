@@ -22,6 +22,21 @@ export class Venue {
   })
   organization: Organization;
 
+  @Column({ type: 'text', nullable: false })
+  address: string;
+
+  @Column({ type: 'varchar', length: 32, nullable: false })
+  city: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: false })
+  state: string;
+
+  @Column({ type: 'varchar', length: 16, nullable: false })
+  phone_number: string;
+
+  @Column({ type: 'int', nullable: false })
+  capacity: number;
+
   @CreateDateColumn()
   created_at: Date;
 
