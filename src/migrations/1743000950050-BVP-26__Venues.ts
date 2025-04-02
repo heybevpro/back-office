@@ -3,6 +3,7 @@ import {
   QueryRunner,
   Table,
   TableForeignKey,
+  TableUnique,
 } from 'typeorm';
 
 export class BVP26_Venues1743000950050 implements MigrationInterface {
@@ -53,9 +54,22 @@ export class BVP26_Venues1743000950050 implements MigrationInterface {
         onDelete: 'CASCADE',
       }),
     );
+
+    await queryRunner.createUniqueConstraint(
+      'venue',
+      new TableUnique({
+        name: 'UQ_venue_organizationId_name',
+        columnNames: ['organizationId', 'name'],
+      }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.dropUniqueConstraint(
+      'venue',
+      'UQ_venue_organizationId_name',
+    );
+
     const table = await queryRunner.getTable('venue');
     const foreignKey = table!.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('organizationId') !== -1,

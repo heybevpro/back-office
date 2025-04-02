@@ -4,11 +4,13 @@ import {
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
 
 @Entity()
+@Unique(['organization', 'name'])
 export class Venue {
   @PrimaryGeneratedColumn()
   id: number;
