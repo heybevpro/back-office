@@ -4,11 +4,13 @@ import {
   IsPhoneNumber,
   IsPositive,
   IsString,
+  Max,
   MaxLength,
 } from 'class-validator';
 
 export class CreateVenueDto {
   @IsString()
+  @MaxLength(100)
   name: string;
 
   @IsString()
@@ -28,7 +30,11 @@ export class CreateVenueDto {
   @IsPhoneNumber()
   phone_number: string;
 
-  @IsNumber()
+  @IsNumber(
+    { maxDecimalPlaces: 0, allowInfinity: false },
+    { message: 'Capacity cannot be a decimal.' },
+  )
+  @Max(1000000)
   @IsPositive()
   capacity: number;
 
