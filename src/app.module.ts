@@ -10,6 +10,7 @@ import { AuthenticationModule } from './modules/authentication/authentication.mo
 import { UserModule } from './modules/user/user.module';
 import { VerificationModule } from './modules/verification/verification.module';
 import { InvitationModule } from './modules/invitation/invitation.module';
+import { OrganizationModule } from './modules/organization/organization.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { InvitationModule } from './modules/invitation/invitation.module';
     UserModule,
     VerificationModule,
     InvitationModule,
+    OrganizationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
