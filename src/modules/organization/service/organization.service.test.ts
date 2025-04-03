@@ -14,6 +14,7 @@ describe('OrganizationService', () => {
     name: '<_VALID-ORG-NAME_>',
     created_at: new Date(),
     updated_at: new Date(),
+    venues: [],
   };
 
   beforeEach(async () => {

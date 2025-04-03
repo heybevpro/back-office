@@ -59,8 +59,6 @@ export class BVP21_Roles1742344617552 implements MigrationInterface {
        WHERE role_name = '${Role.GUEST}'`,
     );
 
-    console.log('Default Role:', defaultRole[0].id);
-
     await queryRunner.addColumn(
       'user',
       new TableColumn({

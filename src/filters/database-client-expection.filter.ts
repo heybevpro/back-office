@@ -17,12 +17,12 @@ export class DatabaseClientExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     const errorResponse = {
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      statusCode: HttpStatus.BAD_REQUEST,
       timestamp: new Date().toISOString(),
       path: request.url,
       message: exception.message,
       detail: exception.driverError.detail,
     };
-    response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(errorResponse);
+    response.status(HttpStatus.BAD_REQUEST).json(errorResponse);
   }
 }

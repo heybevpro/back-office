@@ -18,6 +18,7 @@ export class BVP25_Organizations1742967293145 implements MigrationInterface {
             type: 'varchar',
             length: '100',
             isNullable: false,
+            isUnique: true,
           },
           {
             name: 'created_at',
