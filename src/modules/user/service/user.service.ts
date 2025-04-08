@@ -15,7 +15,10 @@ export class UserService {
   ) {}
 
   async findOneById(id: string): Promise<User> {
-    return this.userRepository.findOneOrFail({ where: { id } });
+    return this.userRepository.findOneOrFail({
+      where: { id },
+      relations: { role: true },
+    });
   }
 
   async findOneByEmail(email: string): Promise<User> {
@@ -52,5 +55,9 @@ export class UserService {
         this.userRepository.create({ ...user, role: defaultRole }),
       ),
     ) as User;
+  }
+
+  async update(user: User): Promise<User> {
+    return await this.userRepository.save(user);
   }
 }

@@ -4,6 +4,7 @@ import { RoleService } from './role.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role as RoleLevel } from '../../../utils/constants/role.constants';
+import { UserService } from '../../user/service/user.service';
 
 describe('role service', () => {
   let roleRepository: Repository<Role>;
@@ -23,6 +24,10 @@ describe('role service', () => {
         {
           provide: getRepositoryToken(Role),
           useClass: Repository,
+        },
+        {
+          provide: UserService,
+          useValue: {},
         },
       ],
     }).compile();
