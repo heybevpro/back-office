@@ -48,7 +48,6 @@ export class BVP21_Roles1742344617552 implements MigrationInterface {
        VALUES ('${Role.SUPER_ADMIN}'),
               ('${Role.ADMIN}'),
               ('${Role.MANAGER}'),
-              ('${Role.SERVER}'),
               ('${Role.GUEST}');`,
     );
 
