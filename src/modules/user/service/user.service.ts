@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { EntityNotFoundError, Not, Repository } from 'typeorm';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { instanceToPlain } from 'class-transformer';
@@ -49,6 +49,14 @@ export class UserService {
       relations: { role: true },
       select: { role: { id: true, role_name: true } },
       order: { created_at: 'DESC' },
+    });
+  }
+
+  async findAllExceptLoggedInUser(loggedInUserId: string): Promise<User[]> {
+    return await this.userRepository.find({
+      relations: { role: true },
+      select: { role: { id: true, role_name: true } },
+      where: { id: Not(loggedInUserId) },
     });
   }
 
