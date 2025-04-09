@@ -48,6 +48,7 @@ export class UserService {
     return await this.userRepository.find({
       relations: { role: true },
       select: { role: { id: true, role_name: true } },
+      order: { created_at: 'DESC' },
     });
   }
 
