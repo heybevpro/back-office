@@ -29,7 +29,6 @@ export class RoleService {
 
   async update(userId: string, updateRoleDto: UpdateRoleDto): Promise<User> {
     const currentUser = await this.userService.findOneById(userId);
-    console.log(currentUser);
     if (
       currentUser.role.role_name === RoleLevel.GUEST ||
       currentUser.role.role_name === RoleLevel.MANAGER ||
@@ -46,8 +45,8 @@ export class RoleService {
         where: { role_name: updateRoleDto.role },
       });
       return await this.userService.update(userToUpdate);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
-      console.error(error);
       throw new BadRequestException('Invalid User');
     }
   }
