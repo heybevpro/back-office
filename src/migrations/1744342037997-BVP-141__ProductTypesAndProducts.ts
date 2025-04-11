@@ -82,7 +82,7 @@ export class BVP141_ProductTypesAndProducts1744342037997
             default: null,
           },
           {
-            name: 'product_typeId',
+            name: 'productTypeId',
             type: 'uuid',
             isNullable: false,
           },
@@ -95,7 +95,7 @@ export class BVP141_ProductTypesAndProducts1744342037997
     await queryRunner.createForeignKey(
       'product',
       new TableForeignKey({
-        columnNames: ['product_typeId'],
+        columnNames: ['productTypeId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'product_type',
         onDelete: 'CASCADE',
@@ -104,10 +104,10 @@ export class BVP141_ProductTypesAndProducts1744342037997
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Drop foreign key for product_typeId in product
+    // Drop foreign key for productTypeId in product
     const productTable = await queryRunner.getTable('product');
     const productForeignKey = productTable!.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('product_typeId') !== -1,
+      (fk) => fk.columnNames.indexOf('productTypeId') !== -1,
     );
     if (productForeignKey) {
       await queryRunner.dropForeignKey('product', productForeignKey);
