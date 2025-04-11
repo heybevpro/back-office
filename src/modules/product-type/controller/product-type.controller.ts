@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ProductTypeService } from '../service/product-type.service';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { ProductType } from '../entity/product-type.entity';
+import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 
 @Controller('product-type')
+@UseGuards(JwtAuthGuard)
 export class ProductTypeController {
   constructor(private readonly productTypeService: ProductTypeService) {}
 

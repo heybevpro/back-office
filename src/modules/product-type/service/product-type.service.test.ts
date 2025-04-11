@@ -44,24 +44,38 @@ describe('ProductTypeService', () => {
       id: 'uuid',
       name: '<_PRODUCT-TYPE_>',
       venue: mockVenue,
+      products: [],
     };
     const createProductTypeDto: CreateProductTypeDto = {
       name: '<_PRODUCT-TYPE_>',
+      venue: 1,
     };
     jest.spyOn(repository, 'create').mockReturnValue(createdMockProductType);
     jest.spyOn(repository, 'save').mockResolvedValue(createdMockProductType);
 
     const result = await service.create(createProductTypeDto);
 
-    expect(repository.create).toHaveBeenCalledWith(createProductTypeDto);
-    expect(repository.save).toHaveBeenCalledWith(createdMockProductType);
+    expect(repository.create).toHaveBeenCalledWith({
+      name: createProductTypeDto.name,
+      venue: { id: createProductTypeDto.venue },
+    });
     expect(result).toEqual(createdMockProductType);
   });
 
   it('finds all product types', async () => {
     const mockProductTypes = [
-      { id: 'uuid1', name: '<_PRODUCT-TYPE-A_>', venue: mockVenue },
-      { id: 'uuid2', name: '<_PRODUCT-TYPE-B_>', venue: mockVenue },
+      {
+        id: 'uuid1',
+        name: '<_PRODUCT-TYPE-A_>',
+        venue: mockVenue,
+        products: [],
+      },
+      {
+        id: 'uuid2',
+        name: '<_PRODUCT-TYPE-B_>',
+        venue: mockVenue,
+        products: [],
+      },
     ];
 
     jest.spyOn(repository, 'find').mockResolvedValue(mockProductTypes);

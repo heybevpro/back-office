@@ -14,7 +14,10 @@ export class ProductTypeService {
   async create(
     createProductTypeDto: CreateProductTypeDto,
   ): Promise<ProductType> {
-    const productType = this.productTypeRepository.create(createProductTypeDto);
+    const productType = this.productTypeRepository.create({
+      name: createProductTypeDto.name,
+      venue: { id: createProductTypeDto.venue },
+    });
     return this.productTypeRepository.save(productType);
   }
 

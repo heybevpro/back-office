@@ -1,5 +1,12 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Venue } from '../../venue/entity/venue.entity';
+import { Product } from '../../product/entity/product.entity';
 
 @Entity()
 export class ProductType {
@@ -11,4 +18,7 @@ export class ProductType {
 
   @ManyToOne(() => Venue, (venue) => venue.product_types, { nullable: false })
   venue: Venue;
+
+  @OneToMany(() => Product, (product) => product.product_type)
+  products: Array<Product>;
 }
