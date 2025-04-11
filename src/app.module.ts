@@ -13,6 +13,7 @@ import { InvitationModule } from './modules/invitation/invitation.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { VenueModule } from './modules/venue/venue.module';
 import { ProductTypeModule } from './modules/product-type/product-type.module';
+import { ProductModule } from './modules/product/product.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ProductTypeModule } from './modules/product-type/product-type.module';
     OrganizationModule,
     VenueModule,
     ProductTypeModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
