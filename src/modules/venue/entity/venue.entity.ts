@@ -3,11 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
+import { ProductType } from '../../product-type/entity/product-type.entity';
 
 @Entity()
 @Unique(['organization', 'name'])
@@ -38,6 +40,9 @@ export class Venue {
 
   @Column({ type: 'int', nullable: false })
   capacity: number;
+
+  @OneToMany(() => ProductType, (productType) => productType.venue)
+  product_types: Array<ProductType>;
 
   @CreateDateColumn()
   created_at: Date;

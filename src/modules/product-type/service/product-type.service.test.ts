@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductType } from '../entity/product-type.entity';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
+import { Venue } from '../../venue/entity/venue.entity';
 
 describe('ProductTypeService', () => {
   let service: ProductTypeService;
@@ -14,6 +15,12 @@ describe('ProductTypeService', () => {
     save: jest.fn(),
     find: jest.fn(),
   };
+
+  const mockVenue: Venue = {
+    id: 1,
+    name: 'Venue A',
+    product_types: [],
+  } as unknown as Venue;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,7 +40,11 @@ describe('ProductTypeService', () => {
   });
 
   it('creates a new product type', async () => {
-    const createdMockProductType = { id: 'uuid', name: '<_PRODUCT-TYPE_>' };
+    const createdMockProductType = {
+      id: 'uuid',
+      name: '<_PRODUCT-TYPE_>',
+      venue: mockVenue,
+    };
     const createProductTypeDto: CreateProductTypeDto = {
       name: '<_PRODUCT-TYPE_>',
     };
@@ -49,8 +60,8 @@ describe('ProductTypeService', () => {
 
   it('finds all product types', async () => {
     const mockProductTypes = [
-      { id: 'uuid1', name: '<_PRODUCT-TYPE-A_>' },
-      { id: 'uuid2', name: '<_PRODUCT-TYPE-B_>' },
+      { id: 'uuid1', name: '<_PRODUCT-TYPE-A_>', venue: mockVenue },
+      { id: 'uuid2', name: '<_PRODUCT-TYPE-B_>', venue: mockVenue },
     ];
 
     jest.spyOn(repository, 'find').mockResolvedValue(mockProductTypes);

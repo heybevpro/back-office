@@ -3,6 +3,7 @@ import { ProductTypeController } from './product-type.controller';
 import { ProductTypeService } from '../service/product-type.service';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { ProductType } from '../entity/product-type.entity';
+import { Venue } from '../../venue/entity/venue.entity';
 
 describe('ProductTypeController', () => {
   let controller: ProductTypeController;
@@ -12,6 +13,12 @@ describe('ProductTypeController', () => {
     create: jest.fn(),
     findAll: jest.fn(),
   };
+
+  const mockVenue: Venue = {
+    id: 1,
+    name: 'Venue A',
+    product_types: [],
+  } as unknown as Venue;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,34 +35,39 @@ describe('ProductTypeController', () => {
     service = module.get<ProductTypeService>(ProductTypeService);
   });
 
-  it('should create a new product type', async () => {
-    const createProductTypeDto: CreateProductTypeDto = {
-      name: '<_PRODUCT-TYPE-A_>',
-    };
-    const createdProductType: ProductType = {
-      id: 'uuid',
-      name: '<_PRODUCT-TYPE-A_>',
-    };
+  describe('create', () => {
+    it('should create a new product type', async () => {
+      const createProductTypeDto: CreateProductTypeDto = {
+        name: '<_PRODUCT-TYPE-A_>',
+      };
+      const createdProductType: ProductType = {
+        id: 'uuid',
+        name: '<_PRODUCT-TYPE-A_>',
+        venue: mockVenue,
+      };
 
-    jest.spyOn(service, 'create').mockResolvedValue(createdProductType);
+      jest.spyOn(service, 'create').mockResolvedValue(createdProductType);
 
-    const result = await controller.create(createProductTypeDto);
+      const result = await controller.create(createProductTypeDto);
 
-    expect(service.create).toHaveBeenCalledWith(createProductTypeDto);
-    expect(result).toEqual(createdProductType);
+      expect(service.create).toHaveBeenCalledWith(createProductTypeDto);
+      expect(result).toEqual(createdProductType);
+    });
   });
 
-  it('should return a list of product types', async () => {
-    const productTypes: ProductType[] = [
-      { id: 'uuid1', name: '<_PRODUCT-TYPE-A_>' },
-      { id: 'uuid2', name: '<_PRODUCT-TYPE-B_>' },
-    ];
+  describe('findAll', () => {
+    it('should return a list of product types', async () => {
+      const productTypes: ProductType[] = [
+        { id: 'uuid1', name: '<_PRODUCT-TYPE-A_>', venue: mockVenue },
+        { id: 'uuid2', name: '<_PRODUCT-TYPE-B_>', venue: mockVenue },
+      ];
 
-    jest.spyOn(service, 'findAll').mockResolvedValue(productTypes);
+      jest.spyOn(service, 'findAll').mockResolvedValue(productTypes);
 
-    const result = await controller.findAll();
+      const result = await controller.findAll();
 
-    expect(service.findAll).toHaveBeenCalled();
-    expect(result).toEqual(productTypes);
+      expect(service.findAll).toHaveBeenCalled();
+      expect(result).toEqual(productTypes);
+    });
   });
 });

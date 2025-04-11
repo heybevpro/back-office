@@ -18,6 +18,7 @@ describe('VenueController', () => {
     state: '<_STATE_>',
     created_at: new Date(),
     updated_at: new Date(),
+    product_types: [],
   };
 
   const mockVenueService = {
