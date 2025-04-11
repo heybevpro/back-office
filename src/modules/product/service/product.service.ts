@@ -22,4 +22,14 @@ export class ProductService {
   async findAll(): Promise<Product[]> {
     return this.productRepository.find({ relations: { product_type: true } });
   }
+
+  async findAllByProductType(productTypeId: string): Promise<Array<Product>> {
+    return this.productRepository.find({
+      relations: { product_type: true },
+      select: { product_type: { id: false } },
+      where: {
+        product_type: { id: productTypeId },
+      },
+    });
+  }
 }
