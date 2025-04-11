@@ -45,6 +45,8 @@ describe('ProductTypeService', () => {
       name: '<_PRODUCT-TYPE_>',
       venue: mockVenue,
       products: [],
+      created_at: new Date(),
+      updated_at: new Date(),
     };
     const createProductTypeDto: CreateProductTypeDto = {
       name: '<_PRODUCT-TYPE_>',
@@ -68,12 +70,16 @@ describe('ProductTypeService', () => {
         id: 'uuid1',
         name: '<_PRODUCT-TYPE-A_>',
         venue: mockVenue,
+        created_at: new Date(),
+        updated_at: new Date(),
         products: [],
       },
       {
         id: 'uuid2',
         name: '<_PRODUCT-TYPE-B_>',
         venue: mockVenue,
+        created_at: new Date(),
+        updated_at: new Date(),
         products: [],
       },
     ];

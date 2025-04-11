@@ -46,6 +46,8 @@ describe('ProductTypeController', () => {
         name: '<_PRODUCT-TYPE-A_>',
         venue: mockVenue,
         products: [],
+        created_at: new Date(),
+        updated_at: new Date(),
       };
 
       jest.spyOn(service, 'create').mockResolvedValue(createdProductType);
@@ -64,12 +66,16 @@ describe('ProductTypeController', () => {
           id: 'uuid1',
           name: '<_PRODUCT-TYPE-A_>',
           venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
           products: [],
         },
         {
           id: 'uuid2',
           name: '<_PRODUCT-TYPE-B_>',
           venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
           products: [],
         },
       ];
