@@ -6,6 +6,7 @@ import { UserNotFoundException } from '../../../excpetions/credentials.exception
 import { CreateUserDto } from '../dto/create-user.dto';
 import { instanceToPlain } from 'class-transformer';
 import { RoleService } from '../../role/service/role.service';
+import { Role } from '../../../utils/constants/role.constants';
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,13 @@ export class UserService {
   async findOneById(id: string): Promise<User> {
     return this.userRepository.findOneOrFail({
       where: { id },
+      relations: { role: true },
+    });
+  }
+
+  async findOneByIdAndRole(id: string, role: Role): Promise<User> {
+    return this.userRepository.findOneOrFail({
+      where: { id: id, role: { role_name: role } },
       relations: { role: true },
     });
   }

@@ -8,6 +8,8 @@ import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.re
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
+import { Role } from '../../../utils/constants/role.constants';
 
 @Injectable()
 export class AuthenticationService {
@@ -41,6 +43,18 @@ export class AuthenticationService {
       access_token: await this.jwtService.signAsync(sanitizedUserData),
       ...sanitizedUserData,
     };
+  }
+
+  async validateUserJwt(verifiedJwtPayload: VerifiedJwtPayload): Promise<User> {
+    try {
+      return await this.userService.findOneByIdAndRole(
+        verifiedJwtPayload.id,
+        verifiedJwtPayload.role as Role,
+      );
+    } catch (error) {
+      console.log(error);
+      throw new InvalidUserCredentialsException();
+    }
   }
 
   async register(createUserDto: CreateUserDto): Promise<User> {
