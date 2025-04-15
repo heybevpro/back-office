@@ -9,8 +9,8 @@ import { UpdateRoleDto } from '../dto/update-role.dto';
 import { User } from '../../user/entity/user.entity';
 import {
   BadRequestException,
+  ForbiddenException,
   ImATeapotException,
-  UnauthorizedException,
 } from '@nestjs/common';
 
 describe('role service', () => {
@@ -117,7 +117,7 @@ describe('role service', () => {
       jest.spyOn(userService, 'findOneById').mockResolvedValue(mockUser);
 
       await expect(service.update(mockUser.id, updateRoleDto)).rejects.toThrow(
-        UnauthorizedException,
+        ForbiddenException,
       );
     });
 

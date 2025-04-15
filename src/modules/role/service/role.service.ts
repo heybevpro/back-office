@@ -1,9 +1,9 @@
 import {
   BadRequestException,
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Role } from '../entity/role.entity';
 import { Repository } from 'typeorm';
@@ -35,7 +35,7 @@ export class RoleService {
       (currentUser.role.role_name === RoleLevel.ADMIN &&
         updateRoleDto.role === RoleLevel.SUPER_ADMIN)
     ) {
-      throw new UnauthorizedException('Missing permissions to update role');
+      throw new ForbiddenException('Missing permissions to update role');
     }
     try {
       const userToUpdate = await this.userService.findOneById(
