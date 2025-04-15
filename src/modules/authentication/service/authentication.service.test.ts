@@ -11,6 +11,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
+import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
+import { ImATeapotException } from '@nestjs/common';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -57,6 +59,7 @@ describe('AuthenticationService', () => {
         email: createUserDto.email,
       }),
     ),
+    findOneByIdAndRole: jest.fn(),
   };
 
   const mockJwtService = {
@@ -149,6 +152,32 @@ describe('AuthenticationService', () => {
         last_name: createUserMockData.last_name,
         email: createUserMockData.email,
       });
+    });
+  });
+
+  describe('validateUserJwt', () => {
+    const mockJwtPayload: VerifiedJwtPayload = {
+      id: '<_VALID-ID_>',
+      first_name: '<_FIRST-NAME_>',
+      last_name: '<_LAST-NAME_>',
+      email: '<_EMAIL_>',
+      role: 'ADMIN',
+      exp: 10000,
+      iat: 9999,
+    };
+    it('should validate the JWT Payload', async () => {
+      await service.validateUserJwt(mockJwtPayload);
+      expect(mockUserService.findOneByIdAndRole).toHaveBeenCalledWith(
+        mockJwtPayload.id,
+        mockJwtPayload.role,
+      );
+    });
+    it('should throw and exception if JWT payload is invalid', async () => {
+      const userServiceSpy = jest.spyOn(mockUserService, 'findOneByIdAndRole');
+      userServiceSpy.mockRejectedValue(new ImATeapotException());
+      await expect(service.validateUserJwt(mockJwtPayload)).rejects.toThrow(
+        InvalidUserCredentialsException,
+      );
     });
   });
 });

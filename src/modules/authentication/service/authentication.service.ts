@@ -51,8 +51,8 @@ export class AuthenticationService {
         verifiedJwtPayload.id,
         verifiedJwtPayload.role as Role,
       );
-    } catch (error) {
-      console.log(error);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: unknown) {
       throw new InvalidUserCredentialsException();
     }
   }
