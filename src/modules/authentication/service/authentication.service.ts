@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user/service/user.service';
 
 import * as bcrypt from 'bcrypt';
-import { InvalidUserCredentialsException } from '../../../excpetions/credentials.exception';
+import {
+  InvalidJwtException,
+  InvalidUserCredentialsException,
+} from '../../../excpetions/credentials.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { LoginRequestDto } from '../dto/login-request.dto';
@@ -53,7 +56,7 @@ export class AuthenticationService {
       );
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
-      throw new InvalidUserCredentialsException();
+      throw new InvalidJwtException();
     }
   }
 

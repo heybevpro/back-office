@@ -3,6 +3,7 @@ import { AuthenticationService } from './authentication.service';
 import { UserService } from '../../user/service/user.service';
 import { User } from '../../user/entity/user.entity';
 import {
+  InvalidJwtException,
   InvalidUserCredentialsException,
   UserNotFoundException,
 } from '../../../excpetions/credentials.exception';
@@ -176,7 +177,7 @@ describe('AuthenticationService', () => {
       const userServiceSpy = jest.spyOn(mockUserService, 'findOneByIdAndRole');
       userServiceSpy.mockRejectedValue(new ImATeapotException());
       await expect(service.validateUserJwt(mockJwtPayload)).rejects.toThrow(
-        InvalidUserCredentialsException,
+        InvalidJwtException,
       );
     });
   });

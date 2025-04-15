@@ -19,3 +19,8 @@ export const VerificationMSuccessfulResponse = {
   message: 'Phone Number Verified',
   status: HttpStatus.OK,
 } as const;
+
+export const InvalidJwtErrorResponse = {
+  message: 'Invalid JWT',
+  status: 498,
+};
