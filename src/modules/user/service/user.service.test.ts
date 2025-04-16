@@ -18,6 +18,7 @@ describe('UserService', () => {
     last_name: 'Doe',
     email: 'john@email.com',
     password: '<_PASSWORD_>',
+    email_verified: true,
     role: { id: 'Role-ID', role_name: 'VALID_ROLE_NAME' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),

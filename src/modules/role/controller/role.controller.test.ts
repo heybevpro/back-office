@@ -42,6 +42,7 @@ describe('RoleController - update', () => {
       updated_at: new Date(),
       password: '<_VALID_PASSWORD>',
       created_at: new Date(),
+      email_verified: true,
       role: {
         id: '<_VALID_ROLE_ID_>',
         role_name: Role.MANAGER,

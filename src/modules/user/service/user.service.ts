@@ -23,7 +23,7 @@ export class UserService {
   }
 
   async findOneByIdAndRole(id: string, role: Role): Promise<User> {
-    return this.userRepository.findOneOrFail({
+    return await this.userRepository.findOneOrFail({
       where: { id: id, role: { role_name: role } },
       relations: { role: true },
     });
@@ -38,6 +38,7 @@ export class UserService {
           first_name: true,
           last_name: true,
           email: true,
+          email_verified: true,
           role: { id: true, role_name: true },
           created_at: true,
           password: true,
@@ -66,6 +67,14 @@ export class UserService {
       select: { role: { id: true, role_name: true } },
       where: { id: Not(loggedInUserId) },
     });
+  }
+
+  async markUserEmailAsVerified(email: string): Promise<User> {
+    const user = await this.userRepository.findOneOrFail({
+      where: { email: email },
+    });
+    user.email_verified = true;
+    return await this.update(user);
   }
 
   async create(user: CreateUserDto): Promise<User> {

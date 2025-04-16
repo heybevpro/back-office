@@ -9,7 +9,6 @@ import { LoginRequestDto } from '../dto/login-request.dto';
 import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
-import { Role } from '../../../utils/constants/role.constants';
 import { VerificationService } from '../../verification/service/verification.service';
 
 @Injectable()
@@ -38,6 +37,7 @@ export class AuthenticationService {
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
+      email_verified: user.email_verified,
       role: user.role.role_name,
       created_at: user.created_at,
     };
@@ -51,7 +51,7 @@ export class AuthenticationService {
     try {
       return await this.userService.findOneByIdAndRole(
         verifiedJwtPayload.id,
-        verifiedJwtPayload.role as Role,
+        verifiedJwtPayload.role.role_name,
       );
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {

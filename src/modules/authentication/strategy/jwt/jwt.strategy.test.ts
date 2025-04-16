@@ -48,7 +48,12 @@ describe('JwtStrategy', () => {
       first_name: 'John',
       last_name: 'Wick',
       email: '<_USER-EMAIL_>',
-      role: Role.MANAGER,
+      role: {
+        id: '<_ROLE_UUID_>',
+        role_name: Role.MANAGER,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
       iat: 100000,
       exp: 100000,
     };

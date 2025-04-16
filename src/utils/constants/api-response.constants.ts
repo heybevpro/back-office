@@ -15,7 +15,12 @@ export const VerificationMessageSentSuccessResponse = {
   status: HttpStatus.CREATED,
 } as const;
 
-export const VerificationMSuccessfulResponse = {
+export const VerificationSuccessfulResponse = {
   message: 'Phone Number Verified',
+  status: HttpStatus.OK,
+} as const;
+
+export const EmailVerificationSuccessfulResponse = {
+  message: 'Email Number Verified',
   status: HttpStatus.OK,
 } as const;
