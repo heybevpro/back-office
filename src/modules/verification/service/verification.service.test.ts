@@ -7,6 +7,8 @@ import * as crypto from 'node:crypto';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import { InvitationService } from '../../invitation/service/invitation.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { EmailService } from '../../email/service/email.service';
+import { EmailVerificationCode } from '../entity/email-verification-code.entity';
 
 describe('VerificationService', () => {
   let service: VerificationService;
@@ -35,6 +37,8 @@ describe('VerificationService', () => {
     create: jest.fn(),
   };
 
+  const mockEmailService = {};
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -42,10 +46,18 @@ describe('VerificationService', () => {
           provide: getRepositoryToken(VerificationCode),
           useClass: Repository,
         },
+        {
+          provide: getRepositoryToken(EmailVerificationCode),
+          useClass: Repository,
+        },
         VerificationService,
         {
           provide: InvitationService,
           useValue: mockInvitationService,
+        },
+        {
+          provide: EmailService,
+          useValue: mockEmailService,
         },
       ],
     }).compile();
@@ -59,9 +71,6 @@ describe('VerificationService', () => {
     jest.spyOn(global, 'Date').mockImplementation(() => mockedDateObject);
   });
 
-  // afterEach(() => {
-  //   jest.rese();
-  // });
   it('should be defined', () => {
     expect(service).toBeDefined();
   });

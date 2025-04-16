@@ -10,13 +10,19 @@ import {
 } from '../../../utils/constants/api-response.constants';
 import { VerifyPhoneDto } from '../dto/verify-phone.dto';
 import { InvitationService } from '../../invitation/service/invitation.service';
+import { CreateEmailVerificationCodeDto } from '../dto/create-email-verification-code.dto';
+import { EmailVerificationCode } from '../entity/email-verification-code.entity';
+import { EmailService } from '../../email/service/email.service';
 
 @Injectable()
 export class VerificationService {
   constructor(
     @InjectRepository(VerificationCode)
     private readonly verificationCodeRepository: Repository<VerificationCode>,
+    @InjectRepository(EmailVerificationCode)
+    private readonly emailVerificationCodeRepository: Repository<EmailVerificationCode>,
     private readonly invitationService: InvitationService,
+    private readonly emailService: EmailService,
   ) {}
 
   async addPhoneVerificationRecord(
@@ -31,6 +37,23 @@ export class VerificationService {
     await this.invitationService.create({
       phone_number: createVerificationCodeDto.phone_number,
     });
+    return VerificationMessageSentSuccessResponse;
+  }
+
+  async addEmailVerificationRecord(
+    createEmailVerificationDto: CreateEmailVerificationCodeDto,
+  ) {
+    const verificationCode = this.generateVerificationCode();
+    await this.emailVerificationCodeRepository.save(
+      this.emailVerificationCodeRepository.create({
+        ...createEmailVerificationDto,
+        verification_code: verificationCode,
+      }),
+    );
+    await this.emailService.sendVerificationEmail(
+      createEmailVerificationDto.email,
+      verificationCode,
+    );
     return VerificationMessageSentSuccessResponse;
   }
 
