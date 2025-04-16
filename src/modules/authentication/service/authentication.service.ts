@@ -10,6 +10,7 @@ import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
 import { Role } from '../../../utils/constants/role.constants';
+import { VerificationService } from '../../verification/service/verification.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -18,6 +19,7 @@ export class AuthenticationService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   async validateUser(
@@ -57,12 +59,22 @@ export class AuthenticationService {
     }
   }
 
-  async register(createUserDto: CreateUserDto): Promise<User> {
+  async register(
+    createUserDto: CreateUserDto,
+  ): Promise<SuccessfulLoginResponse> {
     createUserDto.password = await bcrypt.hash(
       createUserDto.password,
       AuthenticationService.SALT_ROUNDS,
     );
-    return await this.userService.create(createUserDto);
+    const user = await this.userService.create(createUserDto);
+    await this.verificationService.addEmailVerificationRecord({
+      email: user.email,
+    });
+
+    return {
+      access_token: await this.jwtService.signAsync(user),
+      ...user,
+    };
   }
 
   async compareHash(password: string, hash: string): Promise<boolean> {

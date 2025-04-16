@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthenticationService } from '../service/authentication.service';
-import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { DatabaseClientExceptionFilter } from '../../../filters/database-client-expection.filter';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
@@ -24,7 +23,9 @@ export class AuthenticationController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() createUserDto: CreateUserDto): Promise<User> {
+  async register(
+    @Body() createUserDto: CreateUserDto,
+  ): Promise<SuccessfulLoginResponse> {
     return this.authenticationService.register(createUserDto);
   }
 

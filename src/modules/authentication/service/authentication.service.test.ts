@@ -13,6 +13,7 @@ import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
 import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
 import { ImATeapotException } from '@nestjs/common';
+import { VerificationService } from '../../verification/service/verification.service';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -53,13 +54,17 @@ describe('AuthenticationService', () => {
     }),
     create: jest.fn((createUserDto: CreateUserDto) =>
       Promise.resolve({
-        id: '<_AUTO_UUID_>',
+        id: 'VALID_ID',
         first_name: createUserDto.first_name,
         last_name: createUserDto.last_name,
         email: createUserDto.email,
       }),
     ),
     findOneByIdAndRole: jest.fn(),
+  };
+
+  const mockVerificationService = {
+    addEmailVerificationRecord: jest.fn(),
   };
 
   const mockJwtService = {
@@ -78,6 +83,7 @@ describe('AuthenticationService', () => {
           provide: UserService,
           useValue: mockUserService,
         },
+        { provide: VerificationService, useValue: mockVerificationService },
       ],
     }).compile();
 
@@ -147,11 +153,15 @@ describe('AuthenticationService', () => {
     };
     it('should return the created user', async () => {
       expect(await service.register(createUserMockData)).toEqual({
-        id: '<_AUTO_UUID_>',
-        first_name: createUserMockData.first_name,
-        last_name: createUserMockData.last_name,
-        email: createUserMockData.email,
+        access_token: 'VALID_ACCESS_TOKEN',
+        id: 'VALID_ID',
+        first_name: 'Jane',
+        last_name: 'Doe',
+        email: 'newuser@email.com',
       });
+      expect(
+        mockVerificationService.addEmailVerificationRecord,
+      ).toHaveBeenCalledWith({ email: createUserMockData.email });
     });
   });
 
