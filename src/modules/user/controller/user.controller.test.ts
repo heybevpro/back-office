@@ -24,6 +24,7 @@ describe('UserController', () => {
       throw new NotFoundException();
     }),
     findAll: jest.fn(() => Promise.resolve([mockUser])),
+    findAllExceptLoggedInUser: jest.fn(() => Promise.resolve([mockUser])),
   };
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -56,6 +57,19 @@ describe('UserController', () => {
     it('should return all users', async () => {
       expect(await controller.findAll()).toEqual([mockUser]);
       expect(mockUserService.findAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('find all users except logged in user', () => {
+    it('should return all users except logged in user', async () => {
+      expect(
+        await controller.findAllExceptLoggedInUser({
+          user: { id: '<_LOGGED_IN_USER_ID_>' },
+        }),
+      ).toEqual([mockUser]);
+      expect(mockUserService.findAllExceptLoggedInUser).toHaveBeenCalledTimes(
+        1,
+      );
     });
   });
 });

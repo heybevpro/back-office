@@ -104,6 +104,14 @@ describe('UserService', () => {
       jest.spyOn(userRepository, 'find').mockResolvedValue([mockUser]);
       await expect(service.findAll()).resolves.toEqual([mockUser]);
     });
+
+    it('should return all users except the logged-in user', async () => {
+      const loggedInUserId = 'logged-in-user-id';
+      jest.spyOn(userRepository, 'find').mockResolvedValue([mockUser]);
+      await expect(
+        service.findAllExceptLoggedInUser(loggedInUserId),
+      ).resolves.toEqual([mockUser]);
+    });
   });
 
   describe('create', () => {
@@ -120,6 +128,15 @@ describe('UserService', () => {
         role: mockUser.role,
       });
       expect(saveUserSpy).toHaveBeenCalledWith(mockUser);
+    });
+  });
+
+  describe('update', () => {
+    it('should update and return the user', async () => {
+      const updatedUser = { ...mockUser, first_name: '<_UPDATED_NAME_>' };
+      jest.spyOn(userRepository, 'save').mockResolvedValue(updatedUser);
+      const result = await service.update(mockUser);
+      expect(result).toEqual(updatedUser);
     });
   });
 });

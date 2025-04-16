@@ -4,6 +4,7 @@ import { Venue } from '../entity/venue.entity';
 import { VenueService } from './venue.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
+import { BadRequestException } from '@nestjs/common';
 
 describe('VenueService', () => {
   let service: VenueService;
@@ -20,6 +21,7 @@ describe('VenueService', () => {
     state: '<_STATE_>',
     created_at: new Date(),
     updated_at: new Date(),
+    product_types: [],
   };
 
   beforeEach(async () => {
@@ -61,6 +63,22 @@ describe('VenueService', () => {
           organization: 1,
         }),
       ).toEqual(mockVenue);
+    });
+
+    it('should throw a BadRequestException when creating a venue with a name that already exists', async () => {
+      const findOneBySpy = jest.spyOn(venueRepository, 'findOneBy');
+      findOneBySpy.mockResolvedValue({} as Venue);
+      await expect(
+        service.create({
+          name: '<_EXISTING-VENUE-NAME_>',
+          address: '<_VALID_ADDRESS_>',
+          city: '<_CITY_>',
+          state: '<_STATE_>',
+          capacity: 1000,
+          phone_number: '<_VALID_PHONE_>',
+          organization: 1,
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { EntityNotFoundError, Not, Repository } from 'typeorm';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { instanceToPlain } from 'class-transformer';
 import { RoleService } from '../../role/service/role.service';
+import { Role } from '../../../utils/constants/role.constants';
 
 @Injectable()
 export class UserService {
@@ -15,7 +16,17 @@ export class UserService {
   ) {}
 
   async findOneById(id: string): Promise<User> {
-    return this.userRepository.findOneOrFail({ where: { id } });
+    return this.userRepository.findOneOrFail({
+      where: { id },
+      relations: { role: true },
+    });
+  }
+
+  async findOneByIdAndRole(id: string, role: Role): Promise<User> {
+    return this.userRepository.findOneOrFail({
+      where: { id: id, role: { role_name: role } },
+      relations: { role: true },
+    });
   }
 
   async findOneByEmail(email: string): Promise<User> {
@@ -42,7 +53,19 @@ export class UserService {
   }
 
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+    return await this.userRepository.find({
+      relations: { role: true },
+      select: { role: { id: true, role_name: true } },
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async findAllExceptLoggedInUser(loggedInUserId: string): Promise<User[]> {
+    return await this.userRepository.find({
+      relations: { role: true },
+      select: { role: { id: true, role_name: true } },
+      where: { id: Not(loggedInUserId) },
+    });
   }
 
   async create(user: CreateUserDto): Promise<User> {
@@ -52,5 +75,9 @@ export class UserService {
         this.userRepository.create({ ...user, role: defaultRole }),
       ),
     ) as User;
+  }
+
+  async update(user: User): Promise<User> {
+    return await this.userRepository.save(user);
   }
 }

@@ -2,9 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariable } from '../../../../utils/constants/environmentType';
+import { VerifiedJwtPayload } from '../../../../utils/constants/auth.constants';
+import { Role } from '../../../../utils/constants/role.constants';
+import { AuthenticationService } from '../../service/authentication.service';
 
 describe('JwtStrategy', () => {
   let jwtStrategy: JwtStrategy;
+
+  const mockAuthenticationService = {
+    validateUserJwt: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,6 +28,10 @@ describe('JwtStrategy', () => {
             }),
           },
         },
+        {
+          provide: AuthenticationService,
+          useValue: mockAuthenticationService,
+        },
       ],
     }).compile();
 
@@ -31,12 +42,19 @@ describe('JwtStrategy', () => {
     expect(jwtStrategy).toBeDefined();
   });
 
-  it('should validate the payload', () => {
-    const payload = {
+  it('should validate the payload', async () => {
+    const payload: VerifiedJwtPayload = {
       id: '<_USER_UUID_>',
       first_name: 'John',
       last_name: 'Wick',
+      email: '<_USER-EMAIL_>',
+      role: Role.MANAGER,
+      iat: 100000,
+      exp: 100000,
     };
-    expect(jwtStrategy.validate(payload)).toEqual(payload);
+    await jwtStrategy.validate(payload);
+    expect(mockAuthenticationService.validateUserJwt).toHaveBeenCalledWith(
+      payload,
+    );
   });
 });
