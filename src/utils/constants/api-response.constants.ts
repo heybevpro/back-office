@@ -24,3 +24,8 @@ export const EmailVerificationSuccessfulResponse = {
   message: 'Email Verified',
   status: HttpStatus.OK,
 } as const;
+
+export const InvalidJwtErrorResponse = {
+  message: 'Invalid JWT',
+  status: 498,
+};
