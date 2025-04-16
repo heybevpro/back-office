@@ -21,6 +21,6 @@ export const VerificationSuccessfulResponse = {
 } as const;
 
 export const EmailVerificationSuccessfulResponse = {
-  message: 'Email Number Verified',
+  message: 'Email Verified',
   status: HttpStatus.OK,
 } as const;
