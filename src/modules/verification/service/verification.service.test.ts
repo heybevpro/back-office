@@ -9,6 +9,7 @@ import { InvitationService } from '../../invitation/service/invitation.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EmailService } from '../../email/service/email.service';
 import { EmailVerificationCode } from '../entity/email-verification-code.entity';
+import { UserService } from '../../user/service/user.service';
 
 describe('VerificationService', () => {
   let service: VerificationService;
@@ -58,6 +59,10 @@ describe('VerificationService', () => {
         {
           provide: EmailService,
           useValue: mockEmailService,
+        },
+        {
+          provide: UserService,
+          useValue: {},
         },
       ],
     }).compile();
