@@ -284,7 +284,7 @@ describe('VerificationService', () => {
       );
       await service.verifyEmail(verifyEmailDto, email);
       expect(emailRecordDeleteSpy).toHaveBeenCalledWith(
-        mockEmailVerificationRecord,
+        mockEmailVerificationRecord.id,
       );
     });
     it('should not delete the verification record if the workflow gets interrupted', async () => {

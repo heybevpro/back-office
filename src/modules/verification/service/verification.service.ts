@@ -91,11 +91,12 @@ export class VerificationService {
           verification_code: verifyEmailDto.verification_code,
           expires_at: MoreThan(new Date()),
         });
-      await this.emailVerificationCodeRepository.delete(verificationRecord);
+      await this.emailVerificationCodeRepository.delete(verificationRecord.id);
       await this.userService.markUserEmailAsVerified(email);
       return EmailVerificationSuccessfulResponse;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      throw new NotFoundException(error);
+      throw new NotFoundException();
     }
   }
 
