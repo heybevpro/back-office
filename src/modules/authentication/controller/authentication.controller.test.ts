@@ -7,6 +7,7 @@ import { InvalidUserCredentialsException } from '../../../excpetions/credentials
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { User } from '../../user/entity/user.entity';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -103,6 +104,21 @@ describe('AuthenticationController', () => {
       expect(mockAuthenticationService.register).toHaveBeenCalledWith(
         mockCreateUserDto,
       );
+    });
+  });
+
+  describe('loggedInUser', () => {
+    it('should fetch loggedIn user details from JWT', () => {
+      const mockUserPayload = {
+        user: {
+          id: 'VALID-ID',
+          email: 'test@example.com',
+          password: '<_VALID_PASSWORD_>',
+        } as User,
+      };
+
+      const result = controller.loggedInUserDetails(mockUserPayload);
+      expect(result).toEqual(mockUserPayload.user);
     });
   });
 });

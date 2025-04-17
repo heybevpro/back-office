@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -15,6 +16,8 @@ import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.re
 import { LoginRequestValidationGuard } from '../../../guards/forms/authentication/login-request-validation.guard';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { UserCredentialsAuthGuard } from '../../../guards/auth/user-credendtials.guard';
+import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
+import { User } from '../../user/entity/user.entity';
 
 @Controller('auth')
 @UseFilters(DatabaseClientExceptionFilter)
@@ -36,5 +39,11 @@ export class AuthenticationController {
     @Request() request: { user: LoginRequestDto },
   ): Promise<SuccessfulLoginResponse> {
     return request.user as unknown as Promise<SuccessfulLoginResponse>;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('logged-in-user')
+  loggedInUserDetails(@Request() request: { user: User }): User {
+    return request.user;
   }
 }
