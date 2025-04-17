@@ -12,6 +12,7 @@ describe('ProductTypeController', () => {
   const mockProductTypeService = {
     create: jest.fn(),
     findAll: jest.fn(),
+    findAllByVenue: jest.fn(),
   };
 
   const mockVenue: Venue = {
@@ -85,6 +86,37 @@ describe('ProductTypeController', () => {
       const result = await controller.findAll();
 
       expect(service.findAll).toHaveBeenCalled();
+      expect(result).toEqual(productTypes);
+    });
+  });
+
+  describe('findByVenue', () => {
+    it('should return a list of product types for a given venue', async () => {
+      const venueId = 1;
+      const productTypes: ProductType[] = [
+        {
+          id: 'uuid1',
+          name: '<_PRODUCT-TYPE-A_>',
+          venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
+          products: [],
+        },
+        {
+          id: 'uuid2',
+          name: '<_PRODUCT-TYPE-B_>',
+          venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
+          products: [],
+        },
+      ];
+
+      jest.spyOn(service, 'findAllByVenue').mockResolvedValue(productTypes);
+
+      const result = await controller.findByVenue(venueId);
+
+      expect(service.findAllByVenue).toHaveBeenCalledWith(venueId);
       expect(result).toEqual(productTypes);
     });
   });

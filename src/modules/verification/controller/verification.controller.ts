@@ -12,6 +12,7 @@ import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import { VerifyPhoneDto } from '../dto/verify-phone.dto';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
+import { CreateEmailVerificationCodeDto } from '../dto/create-email-verification-code.dto';
 
 @Controller('verify')
 export class VerificationController {
@@ -43,6 +44,16 @@ export class VerificationController {
     return this.verificationService.verifyEmail(
       verifyEmailDto,
       request.user.email,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('email/re-send')
+  async resendEmailVerification(
+    @Body() createEmailVerificationDto: CreateEmailVerificationCodeDto,
+  ) {
+    return await this.verificationService.addEmailVerificationRecord(
+      createEmailVerificationDto,
     );
   }
 }

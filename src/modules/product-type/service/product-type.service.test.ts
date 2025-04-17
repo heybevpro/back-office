@@ -39,56 +39,103 @@ describe('ProductTypeService', () => {
     );
   });
 
-  it('creates a new product type', async () => {
-    const createdMockProductType = {
-      id: 'uuid',
-      name: '<_PRODUCT-TYPE_>',
-      venue: mockVenue,
-      products: [],
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    const createProductTypeDto: CreateProductTypeDto = {
-      name: '<_PRODUCT-TYPE_>',
-      venue: 1,
-    };
-    jest.spyOn(repository, 'create').mockReturnValue(createdMockProductType);
-    jest.spyOn(repository, 'save').mockResolvedValue(createdMockProductType);
-
-    const result = await service.create(createProductTypeDto);
-
-    expect(repository.create).toHaveBeenCalledWith({
-      name: createProductTypeDto.name,
-      venue: { id: createProductTypeDto.venue },
+  describe('service', () => {
+    it('should be defined', () => {
+      expect(service).toBeDefined();
     });
-    expect(result).toEqual(createdMockProductType);
   });
 
-  it('finds all product types', async () => {
-    const mockProductTypes = [
-      {
-        id: 'uuid1',
-        name: '<_PRODUCT-TYPE-A_>',
+  describe('create', () => {
+    it('creates a new product type', async () => {
+      const createdMockProductType = {
+        id: 'uuid',
+        name: '<_PRODUCT-TYPE_>',
         venue: mockVenue,
+        products: [],
         created_at: new Date(),
         updated_at: new Date(),
-        products: [],
-      },
-      {
-        id: 'uuid2',
-        name: '<_PRODUCT-TYPE-B_>',
-        venue: mockVenue,
-        created_at: new Date(),
-        updated_at: new Date(),
-        products: [],
-      },
-    ];
+      };
+      const createProductTypeDto: CreateProductTypeDto = {
+        name: '<_PRODUCT-TYPE_>',
+        venue: 1,
+      };
+      jest.spyOn(repository, 'create').mockReturnValue(createdMockProductType);
+      jest.spyOn(repository, 'save').mockResolvedValue(createdMockProductType);
 
-    jest.spyOn(repository, 'find').mockResolvedValue(mockProductTypes);
+      const result = await service.create(createProductTypeDto);
 
-    const result = await service.findAll();
+      expect(repository.create).toHaveBeenCalledWith({
+        name: createProductTypeDto.name,
+        venue: { id: createProductTypeDto.venue },
+      });
+      expect(result).toEqual(createdMockProductType);
+    });
+  });
 
-    expect(repository.find).toHaveBeenCalled();
-    expect(result).toEqual(mockProductTypes);
+  describe('findAll', () => {
+    it('finds all product types', async () => {
+      const mockProductTypes = [
+        {
+          id: 'uuid1',
+          name: '<_PRODUCT-TYPE-A_>',
+          venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
+          products: [],
+        },
+        {
+          id: 'uuid2',
+          name: '<_PRODUCT-TYPE-B_>',
+          venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
+          products: [],
+        },
+      ];
+
+      jest.spyOn(repository, 'find').mockResolvedValue(mockProductTypes);
+
+      const result = await service.findAll();
+
+      expect(repository.find).toHaveBeenCalled();
+      expect(result).toEqual(mockProductTypes);
+    });
+  });
+
+  describe('findAllByVenue', () => {
+    it('should return a list of product types for a given venue', async () => {
+      const venueId = 1;
+      const mockProductTypes: ProductType[] = [
+        {
+          id: 'uuid1',
+          name: 'Product Type A',
+          venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
+          products: [],
+        },
+        {
+          id: 'uuid2',
+          name: 'Product Type B',
+          venue: mockVenue,
+          created_at: new Date(),
+          updated_at: new Date(),
+          products: [],
+        },
+      ];
+
+      jest.spyOn(repository, 'find').mockResolvedValue(mockProductTypes);
+
+      const result = await service.findAllByVenue(venueId);
+
+      expect(repository.find).toHaveBeenCalledWith({
+        relations: { venue: true },
+        select: { venue: { id: false } },
+        where: {
+          venue: { id: venueId },
+        },
+      });
+      expect(result).toEqual(mockProductTypes);
+    });
   });
 });

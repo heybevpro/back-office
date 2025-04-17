@@ -6,14 +6,25 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import * as crypto from 'node:crypto';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import { InvitationService } from '../../invitation/service/invitation.service';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ImATeapotException,
+  NotFoundException,
+} from '@nestjs/common';
 import { EmailService } from '../../email/service/email.service';
 import { EmailVerificationCode } from '../entity/email-verification-code.entity';
 import { UserService } from '../../user/service/user.service';
+import { CreateEmailVerificationCodeDto } from '../dto/create-email-verification-code.dto';
+import {
+  EmailVerificationSuccessfulResponse,
+  VerificationMessageSentSuccessResponse,
+} from '../../../utils/constants/api-response.constants';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
 
 describe('VerificationService', () => {
   let service: VerificationService;
   let verificationRepository: Repository<VerificationCode>;
+  let emailVerificationCodeRepository: Repository<EmailVerificationCode>;
 
   const mockVerificationRequestPayload: CreateVerificationCodeDto & {
     verification_code: string;
@@ -38,7 +49,13 @@ describe('VerificationService', () => {
     create: jest.fn(),
   };
 
-  const mockEmailService = {};
+  const mockEmailService = {
+    sendVerificationEmail: jest.fn(),
+  };
+
+  const mockUserService = {
+    markUserEmailAsVerified: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -62,7 +79,7 @@ describe('VerificationService', () => {
         },
         {
           provide: UserService,
-          useValue: {},
+          useValue: mockUserService,
         },
       ],
     }).compile();
@@ -70,6 +87,9 @@ describe('VerificationService', () => {
     service = module.get<VerificationService>(VerificationService);
     verificationRepository = module.get<Repository<VerificationCode>>(
       getRepositoryToken(VerificationCode),
+    );
+    emailVerificationCodeRepository = module.get(
+      getRepositoryToken(EmailVerificationCode),
     );
 
     const mockedDateObject = new Date('2025-01-01T00:00:00Z');
@@ -151,5 +171,131 @@ describe('VerificationService', () => {
         verification_code: '<_INVALID_CODE_>',
       }),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  describe('addEmailVerificationRecord', () => {
+    it('should save an email verification record and send an email', async () => {
+      const createEmailVerificationCodeDto: CreateEmailVerificationCodeDto = {
+        email: 'test@example.com',
+      };
+      const mockVerificationCode = '123456';
+
+      const mockEmailVerificationRecord: EmailVerificationCode = {
+        id: 1,
+        email: 'email@verify.com',
+        verification_code: mockVerificationCode,
+        expires_at: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      const createVerificationCodeSpy = jest.spyOn(
+        emailVerificationCodeRepository,
+        'create',
+      );
+      const saveVerificationCodeSpy = jest.spyOn(
+        emailVerificationCodeRepository,
+        'save',
+      );
+      jest
+        .spyOn(service, 'generateVerificationCode')
+        .mockReturnValue(mockVerificationCode);
+      createVerificationCodeSpy.mockReturnValue(mockEmailVerificationRecord);
+      saveVerificationCodeSpy.mockResolvedValue(mockEmailVerificationRecord);
+
+      const result = await service.addEmailVerificationRecord(
+        createEmailVerificationCodeDto,
+      );
+
+      expect(emailVerificationCodeRepository.create).toHaveBeenCalledWith({
+        ...createEmailVerificationCodeDto,
+        verification_code: mockVerificationCode,
+      });
+      expect(emailVerificationCodeRepository.save).toHaveBeenCalled();
+      expect(mockEmailService.sendVerificationEmail).toHaveBeenCalledWith(
+        createEmailVerificationCodeDto.email,
+        mockVerificationCode,
+      );
+      expect(result).toEqual(VerificationMessageSentSuccessResponse);
+    });
+  });
+
+  describe('verifyEmail', () => {
+    let verifyEmailDto: VerifyEmailDto;
+    let email: string;
+    let mockEmailVerificationRecord: EmailVerificationCode;
+
+    let emailVerificationRecordFindOneByOrFailSpy: jest.SpyInstance;
+    let emailRecordDeleteSpy: jest.SpyInstance;
+    beforeEach(() => {
+      verifyEmailDto = {
+        verification_code: '123456',
+      };
+      email = 'email@domain.com';
+      mockEmailVerificationRecord = {
+        id: 1,
+        email: email,
+        verification_code: verifyEmailDto.verification_code,
+        expires_at: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      emailVerificationRecordFindOneByOrFailSpy = jest.spyOn(
+        emailVerificationCodeRepository,
+        'findOneByOrFail',
+      );
+      emailRecordDeleteSpy = jest.spyOn(
+        emailVerificationCodeRepository,
+        'delete',
+      );
+    });
+    it('should validate the email verification code and delete the record', async () => {
+      emailRecordDeleteSpy.mockResolvedValue({} as DeleteResult);
+      emailVerificationRecordFindOneByOrFailSpy.mockResolvedValue(
+        mockEmailVerificationRecord,
+      );
+
+      expect(await service.verifyEmail(verifyEmailDto, email)).toEqual(
+        EmailVerificationSuccessfulResponse,
+      );
+      expect(emailVerificationRecordFindOneByOrFailSpy).toHaveBeenCalledWith({
+        email: email,
+        verification_code: verifyEmailDto.verification_code,
+        expires_at: MoreThan(new Date()),
+      });
+    });
+
+    it('should throw NotFoundException if verification record is not found', async () => {
+      emailRecordDeleteSpy.mockResolvedValue({} as DeleteResult);
+      emailVerificationRecordFindOneByOrFailSpy.mockRejectedValue(
+        new ImATeapotException(),
+      );
+
+      await expect(service.verifyEmail(verifyEmailDto, email)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should delete the verification record', async () => {
+      emailRecordDeleteSpy.mockResolvedValue({} as DeleteResult);
+      emailVerificationRecordFindOneByOrFailSpy.mockResolvedValue(
+        mockEmailVerificationRecord,
+      );
+      await service.verifyEmail(verifyEmailDto, email);
+      expect(emailRecordDeleteSpy).toHaveBeenCalledWith(
+        mockEmailVerificationRecord,
+      );
+    });
+    it('should not delete the verification record if the workflow gets interrupted', async () => {
+      emailRecordDeleteSpy.mockResolvedValue({} as DeleteResult);
+      emailVerificationRecordFindOneByOrFailSpy.mockRejectedValue(
+        new ImATeapotException(),
+      );
+      await expect(service.verifyEmail(verifyEmailDto, email)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(emailRecordDeleteSpy).not.toHaveBeenCalled();
+    });
   });
 });

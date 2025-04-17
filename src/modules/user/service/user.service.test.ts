@@ -8,6 +8,7 @@ import { UserNotFoundException } from '../../../excpetions/credentials.exception
 import { CreateUserDto } from '../dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
 import { RoleService } from '../../role/service/role.service';
+import { Role as RoleLevel } from '../../../utils/constants/role.constants';
 
 describe('UserService', () => {
   let userRepository: Repository<User>;
@@ -112,6 +113,43 @@ describe('UserService', () => {
       await expect(
         service.findAllExceptLoggedInUser(loggedInUserId),
       ).resolves.toEqual([mockUser]);
+    });
+  });
+
+  describe('findOneByIdAndRole', () => {
+    it('should return the user if found', async () => {
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
+      findOneOrFailSpy.mockResolvedValue(mockUser);
+      expect(
+        await service.findOneByIdAndRole('<_ID_>', RoleLevel.ADMIN),
+      ).toEqual(mockUser);
+      expect(findOneOrFailSpy).toHaveBeenCalledWith({
+        where: { id: '<_ID_>', role: { role_name: RoleLevel.ADMIN } },
+        relations: { role: true },
+      });
+    });
+
+    it('should throw a Not Found Exception if user is not found', async () => {
+      jest
+        .spyOn(userRepository, 'findOneOrFail')
+        .mockRejectedValue(new NotFoundException());
+
+      await expect(
+        service.findOneByIdAndRole('<_INVALID-ID_>', RoleLevel.ADMIN),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('markUserEmailAsVerified', () => {
+    it('should update the user email_verified field and return the user', async () => {
+      const userWithVerifiedEmail = { ...mockUser, email_verified: true };
+      jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(mockUser);
+      jest
+        .spyOn(userRepository, 'save')
+        .mockResolvedValue(userWithVerifiedEmail);
+
+      const result = await service.markUserEmailAsVerified(mockUser.email);
+      expect(result).toEqual(userWithVerifiedEmail);
     });
   });
 

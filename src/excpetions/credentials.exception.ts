@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import {
   InvalidCredentialsErrorResponse,
-  InvalidJwtErrorResponse,
   UserNotFoundErrorResponse,
 } from '../utils/constants/api-response.constants';
 
@@ -17,8 +16,14 @@ export class UserNotFoundException extends HttpException {
   }
 }
 
-export class InvalidJwtException extends HttpException {
+export class FailedToSendEmailException extends HttpException {
   constructor() {
-    super(InvalidJwtErrorResponse, 498);
+    super(
+      {
+        statusCode: HttpStatus.BAD_GATEWAY,
+        message: 'Failed to send email',
+      },
+      HttpStatus.BAD_GATEWAY,
+    );
   }
 }
