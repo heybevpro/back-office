@@ -10,6 +10,7 @@ import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
 import { VerificationService } from '../../verification/service/verification.service';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class AuthenticationService {
@@ -67,12 +68,13 @@ export class AuthenticationService {
       AuthenticationService.SALT_ROUNDS,
     );
     const user = await this.userService.create(createUserDto);
+    console.log(user);
     await this.verificationService.addEmailVerificationRecord({
       email: user.email,
     });
 
     return {
-      access_token: await this.jwtService.signAsync(user),
+      access_token: await this.jwtService.signAsync(instanceToPlain(user)),
       ...user,
     };
   }

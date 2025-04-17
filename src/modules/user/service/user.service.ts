@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
 import { EntityNotFoundError, Not, Repository } from 'typeorm';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { instanceToPlain } from 'class-transformer';
 import { RoleService } from '../../role/service/role.service';
 import { Role } from '../../../utils/constants/role.constants';
 
@@ -79,11 +78,16 @@ export class UserService {
 
   async create(user: CreateUserDto): Promise<User> {
     const defaultRole = await this.roleService.findDefault();
-    return instanceToPlain(
-      await this.userRepository.save(
+    try {
+      return await this.userRepository.save(
         this.userRepository.create({ ...user, role: defaultRole }),
-      ),
-    ) as User;
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new ConflictException(
+        `User with email: ${user.email} already exists`,
+      );
+    }
   }
 
   async update(user: User): Promise<User> {

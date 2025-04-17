@@ -3,7 +3,11 @@ import { User } from '../entity/user.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserService } from './user.service';
-import { ImATeapotException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ImATeapotException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
@@ -157,11 +161,26 @@ describe('UserService', () => {
     it('should create and return a new user', async () => {
       const createUserSpy = jest.spyOn(userRepository, 'create');
       const saveUserSpy = jest.spyOn(userRepository, 'save');
-      jest.spyOn(userRepository, 'create').mockReturnValue(mockUser);
-      jest.spyOn(userRepository, 'save').mockResolvedValue(mockUser);
+      createUserSpy.mockReturnValue(mockUser);
+      saveUserSpy.mockResolvedValue(mockUser);
 
       const result = await service.create(mockCreateUserDto);
       expect(result).toEqual(mockUser);
+      expect(createUserSpy).toHaveBeenCalledWith({
+        ...mockCreateUserDto,
+        role: mockUser.role,
+      });
+      expect(saveUserSpy).toHaveBeenCalledWith(mockUser);
+    });
+    it('should throw a conflict exception if user with email already exists', async () => {
+      const createUserSpy = jest.spyOn(userRepository, 'create');
+      const saveUserSpy = jest.spyOn(userRepository, 'save');
+      createUserSpy.mockReturnValue(mockUser);
+      saveUserSpy.mockRejectedValue(new ImATeapotException());
+
+      await expect(service.create(mockCreateUserDto)).rejects.toThrow(
+        ConflictException,
+      );
       expect(createUserSpy).toHaveBeenCalledWith({
         ...mockCreateUserDto,
         role: mockUser.role,
