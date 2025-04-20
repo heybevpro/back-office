@@ -14,6 +14,7 @@ import { OrganizationModule } from './modules/organization/organization.module';
 import { VenueModule } from './modules/venue/venue.module';
 import { ProductTypeModule } from './modules/product-type/product-type.module';
 import { ProductModule } from './modules/product/product.module';
+import { VoiceModule } from './modules/voice/voice.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ProductModule } from './modules/product/product.module';
     VenueModule,
     ProductTypeModule,
     ProductModule,
+    VoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
