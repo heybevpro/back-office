@@ -19,7 +19,6 @@ import { VoiceController } from './controller/voice.controller';
           },
         );
         at.addGrant({ roomJoin: true, room: 'local-room' });
-        console.log('TOKEN', at);
         return at;
       },
       inject: [ConfigService],
