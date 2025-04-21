@@ -108,4 +108,31 @@ describe('OrderService', () => {
       expect(result).toEqual(mockTabOrder);
     });
   });
+  describe('createClosedOrder', () => {
+    it('should create and save a closed order', async () => {
+      const mockClosedOrderDto = { name: 'Closed Order', details: {} as JSON };
+      const mockClosedOrder = {
+        id: 'CLOSED-ID',
+        name: 'Closed Order',
+        details: {} as JSON,
+        status: OrderStatus.CLOSED,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      const orderRepositoryCreateSpy = jest.spyOn(orderRepository, 'create');
+      const orderRepositorySaveSpy = jest.spyOn(orderRepository, 'save');
+      orderRepositoryCreateSpy.mockReturnValue(mockClosedOrder);
+      orderRepositorySaveSpy.mockResolvedValue(mockClosedOrder);
+
+      const result = await orderService.createClosedOrder(mockClosedOrderDto);
+
+      expect(orderRepositoryCreateSpy).toHaveBeenCalledWith({
+        ...mockClosedOrderDto,
+        status: OrderStatus.CLOSED,
+      });
+      expect(orderRepositorySaveSpy).toHaveBeenCalledWith(mockClosedOrder);
+      expect(result).toEqual(mockClosedOrder);
+    });
+  });
 });
