@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 
 export const InvalidCredentialsErrorResponse = {
-  message: 'Invalid credentials',
+  message: 'Your credentials are incorrect. Please try again.',
   status: HttpStatus.UNAUTHORIZED,
 } as const;
 
