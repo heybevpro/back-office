@@ -8,6 +8,7 @@ import { AuthenticationController } from './controller/authentication.controller
 import { CredentialsStrategy } from './strategy/credentials/credentials.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt/jwt.strategy';
+import { VerificationModule } from '../verification/verification.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { JwtStrategy } from './strategy/jwt/jwt.strategy';
     ConfigModule,
     UserModule,
     PassportModule,
+    VerificationModule,
   ],
   providers: [AuthenticationService, CredentialsStrategy, JwtStrategy],
   controllers: [AuthenticationController],

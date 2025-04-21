@@ -3,11 +3,16 @@ import { User } from '../entity/user.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserService } from './user.service';
-import { ImATeapotException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ImATeapotException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
 import { RoleService } from '../../role/service/role.service';
+import { Role as RoleLevel } from '../../../utils/constants/role.constants';
 
 describe('UserService', () => {
   let userRepository: Repository<User>;
@@ -18,6 +23,7 @@ describe('UserService', () => {
     last_name: 'Doe',
     email: 'john@email.com',
     password: '<_PASSWORD_>',
+    email_verified: true,
     role: { id: 'Role-ID', role_name: 'VALID_ROLE_NAME' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
@@ -114,15 +120,67 @@ describe('UserService', () => {
     });
   });
 
+  describe('findOneByIdAndRole', () => {
+    it('should return the user if found', async () => {
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
+      findOneOrFailSpy.mockResolvedValue(mockUser);
+      expect(
+        await service.findOneByIdAndRole('<_ID_>', RoleLevel.ADMIN),
+      ).toEqual(mockUser);
+      expect(findOneOrFailSpy).toHaveBeenCalledWith({
+        where: { id: '<_ID_>', role: { role_name: RoleLevel.ADMIN } },
+        relations: { role: true },
+      });
+    });
+
+    it('should throw a Not Found Exception if user is not found', async () => {
+      jest
+        .spyOn(userRepository, 'findOneOrFail')
+        .mockRejectedValue(new NotFoundException());
+
+      await expect(
+        service.findOneByIdAndRole('<_INVALID-ID_>', RoleLevel.ADMIN),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('markUserEmailAsVerified', () => {
+    it('should update the user email_verified field and return the user', async () => {
+      const userWithVerifiedEmail = { ...mockUser, email_verified: true };
+      jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(mockUser);
+      jest
+        .spyOn(userRepository, 'save')
+        .mockResolvedValue(userWithVerifiedEmail);
+
+      const result = await service.markUserEmailAsVerified(mockUser.email);
+      expect(result).toEqual(userWithVerifiedEmail);
+    });
+  });
+
   describe('create', () => {
     it('should create and return a new user', async () => {
       const createUserSpy = jest.spyOn(userRepository, 'create');
       const saveUserSpy = jest.spyOn(userRepository, 'save');
-      jest.spyOn(userRepository, 'create').mockReturnValue(mockUser);
-      jest.spyOn(userRepository, 'save').mockResolvedValue(mockUser);
+      createUserSpy.mockReturnValue(mockUser);
+      saveUserSpy.mockResolvedValue(mockUser);
 
       const result = await service.create(mockCreateUserDto);
       expect(result).toEqual(mockUser);
+      expect(createUserSpy).toHaveBeenCalledWith({
+        ...mockCreateUserDto,
+        role: mockUser.role,
+      });
+      expect(saveUserSpy).toHaveBeenCalledWith(mockUser);
+    });
+    it('should throw a conflict exception if user with email already exists', async () => {
+      const createUserSpy = jest.spyOn(userRepository, 'create');
+      const saveUserSpy = jest.spyOn(userRepository, 'save');
+      createUserSpy.mockReturnValue(mockUser);
+      saveUserSpy.mockRejectedValue(new ImATeapotException());
+
+      await expect(service.create(mockCreateUserDto)).rejects.toThrow(
+        ConflictException,
+      );
       expect(createUserSpy).toHaveBeenCalledWith({
         ...mockCreateUserDto,
         role: mockUser.role,

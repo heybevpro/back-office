@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
 import { EntityNotFoundError, Not, Repository } from 'typeorm';
 import { UserNotFoundException } from '../../../excpetions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { instanceToPlain } from 'class-transformer';
 import { RoleService } from '../../role/service/role.service';
 import { Role } from '../../../utils/constants/role.constants';
 
@@ -23,7 +22,7 @@ export class UserService {
   }
 
   async findOneByIdAndRole(id: string, role: Role): Promise<User> {
-    return this.userRepository.findOneOrFail({
+    return await this.userRepository.findOneOrFail({
       where: { id: id, role: { role_name: role } },
       relations: { role: true },
     });
@@ -38,6 +37,7 @@ export class UserService {
           first_name: true,
           last_name: true,
           email: true,
+          email_verified: true,
           role: { id: true, role_name: true },
           created_at: true,
           password: true,
@@ -68,13 +68,26 @@ export class UserService {
     });
   }
 
+  async markUserEmailAsVerified(email: string): Promise<User> {
+    const user = await this.userRepository.findOneOrFail({
+      where: { email: email },
+    });
+    user.email_verified = true;
+    return await this.update(user);
+  }
+
   async create(user: CreateUserDto): Promise<User> {
     const defaultRole = await this.roleService.findDefault();
-    return instanceToPlain(
-      await this.userRepository.save(
+    try {
+      return await this.userRepository.save(
         this.userRepository.create({ ...user, role: defaultRole }),
-      ),
-    ) as User;
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new ConflictException(
+        `User with email: ${user.email} already exists`,
+      );
+    }
   }
 
   async update(user: User): Promise<User> {

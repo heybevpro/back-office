@@ -3,7 +3,6 @@ import { AuthenticationService } from './authentication.service';
 import { UserService } from '../../user/service/user.service';
 import { User } from '../../user/entity/user.entity';
 import {
-  InvalidJwtException,
   InvalidUserCredentialsException,
   UserNotFoundException,
 } from '../../../excpetions/credentials.exception';
@@ -14,6 +13,8 @@ import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
 import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
 import { ImATeapotException } from '@nestjs/common';
+import { VerificationService } from '../../verification/service/verification.service';
+import { Role as RoleLevel } from '../../../utils/constants/role.constants';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -24,6 +25,7 @@ describe('AuthenticationService', () => {
     last_name: 'Doe',
     password: '<_PASSWORD_>',
     email: 'john@email.com',
+    email_verified: true,
     role: { id: 'ROLE_ID', role_name: 'ADMIN' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
@@ -38,6 +40,7 @@ describe('AuthenticationService', () => {
     first_name: mockUser.first_name,
     last_name: mockUser.last_name,
     email: mockUser.email,
+    email_verified: mockUser.email_verified,
     role: mockUser.role.role_name as unknown as Role,
     created_at: mockUser.created_at,
   };
@@ -54,13 +57,17 @@ describe('AuthenticationService', () => {
     }),
     create: jest.fn((createUserDto: CreateUserDto) =>
       Promise.resolve({
-        id: '<_AUTO_UUID_>',
+        id: 'VALID_ID',
         first_name: createUserDto.first_name,
         last_name: createUserDto.last_name,
         email: createUserDto.email,
       }),
     ),
     findOneByIdAndRole: jest.fn(),
+  };
+
+  const mockVerificationService = {
+    addEmailVerificationRecord: jest.fn(),
   };
 
   const mockJwtService = {
@@ -79,6 +86,7 @@ describe('AuthenticationService', () => {
           provide: UserService,
           useValue: mockUserService,
         },
+        { provide: VerificationService, useValue: mockVerificationService },
       ],
     }).compile();
 
@@ -148,11 +156,15 @@ describe('AuthenticationService', () => {
     };
     it('should return the created user', async () => {
       expect(await service.register(createUserMockData)).toEqual({
-        id: '<_AUTO_UUID_>',
-        first_name: createUserMockData.first_name,
-        last_name: createUserMockData.last_name,
-        email: createUserMockData.email,
+        access_token: 'VALID_ACCESS_TOKEN',
+        id: 'VALID_ID',
+        first_name: 'Jane',
+        last_name: 'Doe',
+        email: 'newuser@email.com',
       });
+      expect(
+        mockVerificationService.addEmailVerificationRecord,
+      ).toHaveBeenCalledWith({ email: createUserMockData.email });
     });
   });
 
@@ -162,7 +174,12 @@ describe('AuthenticationService', () => {
       first_name: '<_FIRST-NAME_>',
       last_name: '<_LAST-NAME_>',
       email: '<_EMAIL_>',
-      role: 'ADMIN',
+      role: {
+        id: '<_ROLE_ID>',
+        role_name: RoleLevel.GUEST,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
       exp: 10000,
       iat: 9999,
     };
@@ -170,14 +187,14 @@ describe('AuthenticationService', () => {
       await service.validateUserJwt(mockJwtPayload);
       expect(mockUserService.findOneByIdAndRole).toHaveBeenCalledWith(
         mockJwtPayload.id,
-        mockJwtPayload.role,
+        mockJwtPayload.role.role_name,
       );
     });
     it('should throw and exception if JWT payload is invalid', async () => {
       const userServiceSpy = jest.spyOn(mockUserService, 'findOneByIdAndRole');
       userServiceSpy.mockRejectedValue(new ImATeapotException());
       await expect(service.validateUserJwt(mockJwtPayload)).rejects.toThrow(
-        InvalidJwtException,
+        InvalidUserCredentialsException,
       );
     });
   });

@@ -66,4 +66,20 @@ describe('ProductService', () => {
       expect(productRepository.find).toHaveBeenCalled();
     });
   });
+
+  describe('findAllByProductType', () => {
+    it('should return a paginated list of products', async () => {
+      const mockProducts = [mockProduct];
+      jest.spyOn(productRepository, 'find').mockResolvedValue(mockProducts);
+      const result = await service.findAllByProductType('<_PRODUCT-TYPE-ID_>');
+      expect(result).toEqual(mockProducts);
+      expect(productRepository.find).toHaveBeenCalledWith({
+        relations: { product_type: true },
+        select: { product_type: { id: false } },
+        where: {
+          product_type: { id: '<_PRODUCT-TYPE-ID_>' },
+        },
+      });
+    });
+  });
 });

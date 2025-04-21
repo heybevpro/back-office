@@ -20,7 +20,7 @@ export class ProductController {
   }
 
   @Get('by-product-type/:productTypeId')
-  async findByVenue(
+  async findByProductType(
     @Param('productTypeId') productTypeId: string,
   ): Promise<Array<Product>> {
     return this.productService.findAllByProductType(productTypeId);

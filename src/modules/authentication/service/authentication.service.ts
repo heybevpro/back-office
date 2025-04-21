@@ -2,17 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user/service/user.service';
 
 import * as bcrypt from 'bcrypt';
-import {
-  InvalidJwtException,
-  InvalidUserCredentialsException,
-} from '../../../excpetions/credentials.exception';
+import { InvalidUserCredentialsException } from '../../../excpetions/credentials.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
-import { Role } from '../../../utils/constants/role.constants';
+import { VerificationService } from '../../verification/service/verification.service';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class AuthenticationService {
@@ -21,6 +19,7 @@ export class AuthenticationService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   async validateUser(
@@ -39,6 +38,7 @@ export class AuthenticationService {
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
+      email_verified: user.email_verified,
       role: user.role.role_name,
       created_at: user.created_at,
     };
@@ -52,20 +52,31 @@ export class AuthenticationService {
     try {
       return await this.userService.findOneByIdAndRole(
         verifiedJwtPayload.id,
-        verifiedJwtPayload.role as Role,
+        verifiedJwtPayload.role.role_name,
       );
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
-      throw new InvalidJwtException();
+      throw new InvalidUserCredentialsException();
     }
   }
 
-  async register(createUserDto: CreateUserDto): Promise<User> {
+  async register(
+    createUserDto: CreateUserDto,
+  ): Promise<SuccessfulLoginResponse> {
     createUserDto.password = await bcrypt.hash(
       createUserDto.password,
       AuthenticationService.SALT_ROUNDS,
     );
-    return await this.userService.create(createUserDto);
+    const user = await this.userService.create(createUserDto);
+    console.log(user);
+    await this.verificationService.addEmailVerificationRecord({
+      email: user.email,
+    });
+
+    return {
+      access_token: await this.jwtService.signAsync(instanceToPlain(user)),
+      ...user,
+    };
   }
 
   async compareHash(password: string, hash: string): Promise<boolean> {
