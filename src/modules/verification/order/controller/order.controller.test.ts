@@ -15,6 +15,7 @@ describe('OrderController', () => {
       getOrderById: jest.fn(),
       getAllClosedOrders: jest.fn(),
       createTab: jest.fn(),
+      createClosedOrder: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -116,6 +117,33 @@ describe('OrderController', () => {
 
       expect(orderService.createTab).toHaveBeenCalledWith(createTabDto);
       expect(result).toEqual(mockTab);
+    });
+  });
+
+  describe('createClosedOrder', () => {
+    it('should call OrderService.createClosedOrder with the correct DTO and return the result', async () => {
+      const createClosedOrderDto = {
+        name: 'Closed Order',
+        details: {} as JSON,
+      };
+      const mockClosedOrder = {
+        id: 'CLOSED-ID',
+        name: 'Closed Order',
+        details: {} as JSON,
+        status: OrderStatus.CLOSED,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      orderService.createClosedOrder.mockResolvedValue(mockClosedOrder);
+
+      const result =
+        await orderController.createClosedOrder(createClosedOrderDto);
+
+      expect(orderService.createClosedOrder).toHaveBeenCalledWith(
+        createClosedOrderDto,
+      );
+      expect(result).toEqual(mockClosedOrder);
     });
   });
 });

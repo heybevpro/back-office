@@ -2,6 +2,7 @@ import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { OrderService } from '../service/order.service';
 import { JwtAuthGuard } from '../../../../guards/auth/jwt.guard';
 import { CreateTabDto } from '../dto/create-tab.dto';
+import { CreateClosedOrderDto } from '../dto/create-closed-order.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('order')
@@ -26,5 +27,10 @@ export class OrderController {
   @Post('tab')
   createTab(createTabDto: CreateTabDto) {
     return this.orderService.createTab(createTabDto);
+  }
+
+  @Post('closed')
+  createClosedOrder(createTabDto: CreateClosedOrderDto) {
+    return this.orderService.createClosedOrder(createTabDto);
   }
 }
