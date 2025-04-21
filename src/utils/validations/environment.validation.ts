@@ -57,6 +57,14 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   NEXT_CLIENT_URL: string;
+
+  @IsString()
+  @IsNotEmpty()
+  LIVEKIT_API_KEY: string;
+
+  @IsString()
+  @IsNotEmpty()
+  LIVEKIT_API_SECRET: string;
 }
 
 export const validateEnvironment = (
