@@ -72,7 +72,7 @@ export class ProductService {
         id: updateProductQuantityDto.product,
       });
       productToUpdate.quantity = updateProductQuantityDto.quantity;
-      return await this.productRepository.save(updateProductQuantityDto);
+      return await this.productRepository.save(productToUpdate);
     } catch (e) {
       console.error(e);
       throw new NotFoundException('Product not found');
