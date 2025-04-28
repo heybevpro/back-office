@@ -6,6 +6,9 @@ export class VoiceService {
   constructor(private readonly voiceClientAccessToken: AccessToken) {}
 
   async createToken() {
-    return await this.voiceClientAccessToken.toJwt();
+    const token = await this.voiceClientAccessToken.toJwt();
+    return {
+      token,
+    };
   }
 }

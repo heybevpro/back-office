@@ -31,7 +31,7 @@ describe('VoiceController', () => {
 
   describe('getToken', () => {
     it('should return a token from the service', async () => {
-      const mockToken = 'VOICE-SERVICE-JWT-TOKEN';
+      const mockToken = { token: 'VOICE-SERVICE-JWT-TOKEN' };
       jest.spyOn(service, 'createToken').mockResolvedValue(mockToken);
 
       const result = await controller.getToken();
