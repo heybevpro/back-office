@@ -23,7 +23,7 @@ export class EmailService {
           },
           Subject: { Data: 'BevPro: Confirm Your Email.' },
         },
-        Destination: { ToAddresses: [email] },
+        Destination: { ToAddresses: [email.toLowerCase()] },
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err: unknown) {

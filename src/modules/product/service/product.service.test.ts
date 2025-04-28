@@ -16,6 +16,7 @@ describe('ProductService', () => {
     price: 100,
     description: 'Test Description',
     product_type: {} as ProductType,
+    quantity: 1,
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -79,6 +80,7 @@ describe('ProductService', () => {
         where: {
           product_type: { id: '<_PRODUCT-TYPE-ID_>' },
         },
+        order: { name: 'ASC' },
       });
     });
   });

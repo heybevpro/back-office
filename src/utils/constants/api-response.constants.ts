@@ -29,3 +29,8 @@ export const InvalidJwtErrorResponse = {
   message: 'Invalid JWT',
   status: 498,
 };
+
+export const TabClosedSuccessFullyResponse = {
+  message: 'Tab Closed',
+  status: HttpStatus.OK,
+} as const;

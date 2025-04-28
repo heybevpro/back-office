@@ -68,7 +68,6 @@ export class AuthenticationService {
       AuthenticationService.SALT_ROUNDS,
     );
     const user = await this.userService.create(createUserDto);
-    console.log(user);
     await this.verificationService.addEmailVerificationRecord({
       email: user.email,
     });
