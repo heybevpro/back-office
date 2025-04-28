@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { CreateTabDto } from '../dto/create-tab.dto';
 import { CloseTabDto } from '../dto/close-tab.dto';
 import { validateSync } from 'class-validator';
+import { CreateClosedOrderDto } from '../dto/create-closed-order.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('order')
@@ -36,7 +37,6 @@ export class OrderController {
 
   @Post('tab')
   createTab(@Body() createTabDto: CreateTabDto) {
-    console.log('CREATE', createTabDto);
     return this.orderService.createTab(createTabDto);
   }
 
@@ -54,8 +54,7 @@ export class OrderController {
   }
 
   @Post('closed')
-  createClosedOrder(@Body() createTabDto: any) {
-    console.log('CREATE CLOSED ORDER', createTabDto);
+  createClosedOrder(@Body() createTabDto: CreateClosedOrderDto) {
     return this.orderService.createClosedOrder(createTabDto);
   }
 }

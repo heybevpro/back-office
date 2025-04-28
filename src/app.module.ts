@@ -15,6 +15,7 @@ import { VenueModule } from './modules/venue/venue.module';
 import { ProductTypeModule } from './modules/product-type/product-type.module';
 import { ProductModule } from './modules/product/product.module';
 import { VoiceModule } from './modules/voice/voice.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { VoiceModule } from './modules/voice/voice.module';
     ProductTypeModule,
     ProductModule,
     VoiceModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
