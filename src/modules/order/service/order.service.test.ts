@@ -3,21 +3,31 @@ import { Repository } from 'typeorm';
 import { Order } from '../entity/order.entity';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { OrderStatus } from '../../../../utils/constants/order.constants';
+import { OrderStatus } from '../../../utils/constants/order.constants';
 import { ImATeapotException } from '@nestjs/common';
 import { CreateTabDto } from '../dto/create-tab.dto';
+import { ProductService } from '../../product/service/product.service';
 
 describe('OrderService', () => {
   let orderService: OrderService;
   let orderRepository: Repository<Order>;
+  const mockProductService = {
+    findAllWithIds: jest.fn().mockResolvedValue([]),
+    updateMultipleProducts: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
+      imports: [],
       providers: [
         OrderService,
         {
           provide: getRepositoryToken(Order),
           useClass: Repository,
+        },
+        {
+          provide: ProductService,
+          useValue: mockProductService,
         },
       ],
     }).compile();
@@ -80,6 +90,7 @@ describe('OrderService', () => {
 
       expect(orderRepository.find).toHaveBeenCalledWith({
         where: { status: OrderStatus.CLOSED },
+        order: { created_at: 'DESC' },
       });
       expect(result).toEqual(mockOrders);
     });
@@ -87,11 +98,11 @@ describe('OrderService', () => {
 
   describe('createTab', () => {
     it('should create and save a new tab', async () => {
-      const mockTab: CreateTabDto = { name: 'Test Tab', details: {} as JSON };
+      const mockTab: CreateTabDto = { name: 'Test Tab', details: '' };
       const mockTabOrder = {
         id: 'TAB-ID',
         name: 'Test Tab',
-        details: {} as JSON,
+        details: '',
         status: OrderStatus.OPEN,
         created_at: new Date(),
         updated_at: new Date(),
@@ -110,11 +121,11 @@ describe('OrderService', () => {
   });
   describe('createClosedOrder', () => {
     it('should create and save a closed order', async () => {
-      const mockClosedOrderDto = { name: 'Closed Order', details: {} as JSON };
-      const mockClosedOrder = {
+      const mockClosedOrderDto = { details: [] };
+      const mockClosedOrderResponse = {
         id: 'CLOSED-ID',
-        name: 'Closed Order',
-        details: {} as JSON,
+        name: null as unknown as string,
+        details: '',
         status: OrderStatus.CLOSED,
         created_at: new Date(),
         updated_at: new Date(),
@@ -122,17 +133,20 @@ describe('OrderService', () => {
 
       const orderRepositoryCreateSpy = jest.spyOn(orderRepository, 'create');
       const orderRepositorySaveSpy = jest.spyOn(orderRepository, 'save');
-      orderRepositoryCreateSpy.mockReturnValue(mockClosedOrder);
-      orderRepositorySaveSpy.mockResolvedValue(mockClosedOrder);
+      orderRepositoryCreateSpy.mockReturnValue(mockClosedOrderResponse);
+      orderRepositorySaveSpy.mockResolvedValue(mockClosedOrderResponse);
 
       const result = await orderService.createClosedOrder(mockClosedOrderDto);
 
       expect(orderRepositoryCreateSpy).toHaveBeenCalledWith({
         ...mockClosedOrderDto,
+        details: JSON.stringify(mockClosedOrderDto.details),
         status: OrderStatus.CLOSED,
       });
-      expect(orderRepositorySaveSpy).toHaveBeenCalledWith(mockClosedOrder);
-      expect(result).toEqual(mockClosedOrder);
+      expect(orderRepositorySaveSpy).toHaveBeenCalledWith(
+        mockClosedOrderResponse,
+      );
+      expect(result).toEqual(mockClosedOrderResponse);
     });
   });
 });

@@ -5,7 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { OrderStatus } from '../../../../utils/constants/order.constants';
+import { OrderStatus } from '../../../utils/constants/order.constants';
 
 @Entity()
 export class Order {
@@ -19,7 +19,7 @@ export class Order {
   status: OrderStatus;
 
   @Column({ type: 'json', nullable: false })
-  details: JSON;
+  details: string;
 
   @CreateDateColumn()
   created_at: Date;

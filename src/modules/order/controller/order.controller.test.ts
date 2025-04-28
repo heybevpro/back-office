@@ -3,7 +3,7 @@ import { OrderController } from './order.controller';
 import { OrderService } from '../service/order.service';
 import { CreateTabDto } from '../dto/create-tab.dto';
 import { Order } from '../entity/order.entity';
-import { OrderStatus } from '../../../../utils/constants/order.constants';
+import { OrderStatus } from '../../../utils/constants/order.constants';
 
 describe('OrderController', () => {
   let orderController: OrderController;
@@ -43,7 +43,7 @@ describe('OrderController', () => {
           id: '1',
           status: OrderStatus.OPEN,
           name: 'VALID-NAME',
-          details: {} as JSON,
+          details: '',
           updated_at: new Date(),
           created_at: new Date(),
         },
@@ -63,7 +63,7 @@ describe('OrderController', () => {
         id: '1',
         status: OrderStatus.OPEN,
         name: 'VALID-NAME',
-        details: {} as JSON,
+        details: '',
         updated_at: new Date(),
         created_at: new Date(),
       };
@@ -83,7 +83,7 @@ describe('OrderController', () => {
           id: '1',
           status: OrderStatus.OPEN,
           name: 'VALID-NAME',
-          details: {} as JSON,
+          details: '',
           updated_at: new Date(),
           created_at: new Date(),
         },
@@ -101,7 +101,7 @@ describe('OrderController', () => {
     it('should call OrderService.createTab with the correct DTO and return the result', async () => {
       const createTabDto: CreateTabDto = {
         name: '<_VALID-TAB-NAME_>',
-        details: {} as JSON,
+        details: '',
       };
       const mockTab = {
         id: 'TAB-ID',
@@ -124,12 +124,12 @@ describe('OrderController', () => {
     it('should call OrderService.createClosedOrder with the correct DTO and return the result', async () => {
       const createClosedOrderDto = {
         name: 'Closed Order',
-        details: {} as JSON,
+        details: [],
       };
       const mockClosedOrder = {
         id: 'CLOSED-ID',
         name: 'Closed Order',
-        details: {} as JSON,
+        details: '',
         status: OrderStatus.CLOSED,
         created_at: new Date(),
         updated_at: new Date(),
