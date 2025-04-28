@@ -6,5 +6,5 @@ export class CreateTabDto {
   name: string;
 
   @IsJSON()
-  details: JSON;
+  details: string;
 }
