@@ -18,6 +18,10 @@ import { LoginRequestDto } from '../dto/login-request.dto';
 import { UserCredentialsAuthGuard } from '../../../guards/auth/user-credendtials.guard';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { User } from '../../user/entity/user.entity';
+import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { ValidatePasswordResetDTO } from '../dto/validate-password-reset.dto';
+import { TemporaryJwtGuard } from '../../../guards/auth/temporary-jwt.guard';
 
 @Controller('auth')
 @UseFilters(DatabaseClientExceptionFilter)
@@ -45,5 +49,35 @@ export class AuthenticationController {
   @Get('logged-in-user')
   loggedInUserDetails(@Request() request: { user: User }): User {
     return request.user;
+  }
+
+  @Post('request-password-reset')
+  requestResetPassword(
+    @Body() requestPasswordResetDto: RequestPasswordResetDto,
+  ) {
+    return this.authenticationService.requestResetPassword(
+      requestPasswordResetDto.email,
+    );
+  }
+
+  @Post('validate-reset-password')
+  validateResetPassword(
+    @Body() validateResetPasswordDto: ValidatePasswordResetDTO,
+  ) {
+    return this.authenticationService.validateResetPassword(
+      validateResetPasswordDto.rs,
+    );
+  }
+
+  @UseGuards(TemporaryJwtGuard)
+  @Post('reset-password')
+  resetPassword(
+    @Request() request: { user: { id: string } },
+    @Body() requestPasswordResetDto: ResetPasswordDto,
+  ) {
+    return this.authenticationService.resetPassword(
+      request.user.id,
+      requestPasswordResetDto.updated_password,
+    );
   }
 }

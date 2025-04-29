@@ -78,6 +78,32 @@ export class AuthenticationService {
     };
   }
 
+  async validateResetPassword(code: string) {
+    const verificationRecord =
+      await this.verificationService.findPasswordResetRequestByCode(code);
+    const user = await this.userService.findOneByEmail(
+      verificationRecord.email,
+    );
+    return {
+      reset_token: await this.jwtService.signAsync(
+        { user: { id: user.id, email: user.email } },
+        { expiresIn: '10m' },
+      ),
+    };
+  }
+
+  async resetPassword(userId: string, updatedPassword: string) {
+    const hash = await bcrypt.hash(
+      updatedPassword,
+      AuthenticationService.SALT_ROUNDS,
+    );
+    return await this.userService.updateUserPasswordHash(userId, hash);
+  }
+
+  async requestResetPassword(email: string) {
+    return await this.verificationService.createPasswordResetRequest(email);
+  }
+
   async compareHash(password: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(password, hash);
   }

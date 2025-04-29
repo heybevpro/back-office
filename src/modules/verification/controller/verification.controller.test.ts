@@ -67,7 +67,7 @@ describe('VerificationController', () => {
       const verifyEmailDto: VerifyEmailDto = { verification_code: '000000' };
 
       expect(
-        await controller.verifyEmail(verifyEmailDto, {
+        await controller.verifyUserEmail(verifyEmailDto, {
           user: { email: '<_USER-EMAIL_>' },
         }),
       ).toBe(EmailVerificationSuccessfulResponse);
