@@ -30,4 +30,25 @@ export class EmailService {
       throw new FailedToSendEmailException();
     }
   }
+
+  async sendPasswordResetEmail(email: string, verificationCode: string) {
+    const verificationLink = `${this.configService.get('NEXT_CLIENT_URL')}/auth/reset-password?code=${verificationCode}`;
+    try {
+      await this.sesClient.sendEmail({
+        Source: 'hey@hey-bev.com',
+        Message: {
+          Body: {
+            Text: {
+              Data: `Click the link to reset your password: ${verificationLink}`,
+            },
+          },
+          Subject: { Data: 'BevPro: Reset Password' },
+        },
+        Destination: { ToAddresses: [email.toLowerCase()] },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err: unknown) {
+      throw new FailedToSendEmailException();
+    }
+  }
 }
