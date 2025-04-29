@@ -37,7 +37,7 @@ export class VerificationController {
 
   @UseGuards(JwtAuthGuard)
   @Post('email')
-  async verifyEmail(
+  async verifyUserEmail(
     @Body() verifyEmailDto: VerifyEmailDto,
     @Request() request: { user: { email: string } },
   ) {

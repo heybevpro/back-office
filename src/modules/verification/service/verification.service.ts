@@ -6,6 +6,7 @@ import { randomInt as randomVerificationCodeGenerator } from 'node:crypto';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import {
   EmailVerificationSuccessfulResponse,
+  PasswordResetEmailSentSuccessResponse,
   VerificationMessageSentSuccessResponse,
   VerificationSuccessfulResponse,
 } from '../../../utils/constants/api-response.constants';
@@ -17,8 +18,12 @@ import { EmailService } from '../../email/service/email.service';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { UserService } from '../../user/service/user.service';
 
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+
 @Injectable()
 export class VerificationService {
+  private readonly encryptionKey = randomBytes(32); // Use a secure key
+  private readonly iv = randomBytes(16); // Initialization vector
   constructor(
     @InjectRepository(VerificationCode)
     private readonly verificationCodeRepository: Repository<VerificationCode>,
@@ -68,6 +73,21 @@ export class VerificationService {
     });
   }
 
+  async createPasswordResetRequest(
+    email: string,
+  ): Promise<typeof PasswordResetEmailSentSuccessResponse> {
+    const verificationCode = this.generateVerificationCode();
+    await this.emailVerificationCodeRepository.save(
+      this.emailVerificationCodeRepository.create({
+        email: email,
+        verification_code: verificationCode,
+      }),
+    );
+    //TODO: Optimize this to not send email if the user with 'email' is not found
+    await this.emailService.sendPasswordResetEmail(email, verificationCode);
+    return PasswordResetEmailSentSuccessResponse;
+  }
+
   async verifyPhoneNumber(verifyPhoneDto: VerifyPhoneDto) {
     try {
       const verificationRecord =
@@ -100,7 +120,39 @@ export class VerificationService {
     }
   }
 
+  async findPasswordResetRequestByCode(code: string) {
+    return await this.emailVerificationCodeRepository
+      .findOneBy({
+        verification_code: code,
+        expires_at: MoreThan(new Date()),
+      })
+      .then((record) => {
+        if (!record) {
+          throw new NotFoundException('Verification code not found');
+        }
+        return record;
+      });
+  }
+
   generateVerificationCode(): string {
     return randomVerificationCodeGenerator(100000, 1000000).toString();
+  }
+
+  encryptVerificationCode(code: string): string {
+    const cipher = createCipheriv('aes-256-cbc', this.encryptionKey, this.iv);
+    let encrypted = cipher.update(code, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+  }
+
+  decryptVerificationCode(encryptedCode: string): string {
+    const decipher = createDecipheriv(
+      'aes-256-cbc',
+      this.encryptionKey,
+      this.iv,
+    );
+    let decrypted = decipher.update(encryptedCode, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
   }
 }
