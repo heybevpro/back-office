@@ -34,3 +34,8 @@ export const TabClosedSuccessFullyResponse = {
   message: 'Tab Closed',
   status: HttpStatus.OK,
 } as const;
+
+export const PasswordResetEmailSentSuccessResponse = {
+  message: 'Email Sent',
+  status: HttpStatus.OK,
+} as const;
