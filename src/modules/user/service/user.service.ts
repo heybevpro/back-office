@@ -90,6 +90,14 @@ export class UserService {
     }
   }
 
+  async updateUserPasswordHash(userId: string, hash: string) {
+    const user = await this.userRepository.findOneOrFail({
+      where: { id: userId },
+    });
+    user.password = hash;
+    return await this.update(user);
+  }
+
   async update(user: User): Promise<User> {
     return await this.userRepository.save(user);
   }
