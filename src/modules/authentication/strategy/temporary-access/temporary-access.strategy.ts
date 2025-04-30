@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariable } from '../../../../utils/constants/environmentType';
 import { AuthenticationService } from '../../service/authentication.service';
-import { VerifiedJwtPayload } from '../../../../utils/constants/auth.constants';
+import { TemporaryAccessJwtPayload } from '../../../../utils/constants/auth.constants';
 
 @Injectable()
 export class TemporaryAccessStrategy extends PassportStrategy(Strategy) {
@@ -21,8 +21,7 @@ export class TemporaryAccessStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate = (payload: VerifiedJwtPayload) => {
-    console.log('TemporaryAccessStrategy validate payload:', payload);
-    return payload;
+  validate = async (payload: TemporaryAccessJwtPayload) => {
+    return await this.authService.validateTemporaryAccessJwt(payload);
   };
 }
