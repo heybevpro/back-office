@@ -5,16 +5,11 @@ import { Repository } from 'typeorm';
 import { ProductType } from '../entity/product-type.entity';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { Venue } from '../../venue/entity/venue.entity';
+import { VenueService } from '../../venue/service/venue.service';
 
 describe('ProductTypeService', () => {
   let service: ProductTypeService;
   let repository: Repository<ProductType>;
-
-  const mockProductTypeRepository = {
-    create: jest.fn(),
-    save: jest.fn(),
-    find: jest.fn(),
-  };
 
   const mockVenue: Venue = {
     id: 1,
@@ -22,14 +17,19 @@ describe('ProductTypeService', () => {
     product_types: [],
   } as unknown as Venue;
 
+  const mockVenueService = {
+    findOneById: jest.fn(() => Promise.resolve(mockVenue)),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductTypeService,
         {
           provide: getRepositoryToken(ProductType),
-          useValue: mockProductTypeRepository,
+          useClass: Repository,
         },
+        { provide: VenueService, useValue: mockVenueService },
       ],
     }).compile();
 

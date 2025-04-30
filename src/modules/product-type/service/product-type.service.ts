@@ -3,20 +3,25 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductType } from '../entity/product-type.entity';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
+import { VenueService } from '../../venue/service/venue.service';
 
 @Injectable()
 export class ProductTypeService {
   constructor(
     @InjectRepository(ProductType)
     private readonly productTypeRepository: Repository<ProductType>,
+    private readonly venueService: VenueService,
   ) {}
 
   async create(
     createProductTypeDto: CreateProductTypeDto,
   ): Promise<ProductType> {
+    const venue = await this.venueService.findOneById(
+      createProductTypeDto.venue,
+    );
     const productType = this.productTypeRepository.create({
       name: createProductTypeDto.name,
-      venue: { id: createProductTypeDto.venue },
+      venue: { id: venue.id },
     });
     return this.productTypeRepository.save(productType);
   }

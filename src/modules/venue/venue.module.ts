@@ -8,5 +8,6 @@ import { VenueController } from './controller/venue.controller';
   imports: [TypeOrmModule.forFeature([Venue])],
   providers: [VenueService],
   controllers: [VenueController],
+  exports: [VenueService],
 })
 export class VenueModule {}
