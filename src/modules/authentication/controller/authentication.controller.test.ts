@@ -8,6 +8,8 @@ import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '../../user/entity/user.entity';
+import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
+import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -38,6 +40,9 @@ describe('AuthenticationController', () => {
         last_name: createUserDto.last_name,
         email: createUserDto.email,
       });
+    }),
+    requestResetPassword: jest.fn(() => {
+      return Promise.resolve(PasswordResetEmailSentSuccessResponse);
     }),
   };
 
@@ -119,6 +124,18 @@ describe('AuthenticationController', () => {
 
       const result = controller.loggedInUserDetails(mockUserPayload);
       expect(result).toEqual(mockUserPayload.user);
+    });
+  });
+
+  describe('request Password Reset', () => {
+    it('should call AuthenticationService.requestPasswordReset with correct parameters', async () => {
+      const mockResetPasswordDto: RequestPasswordResetDto = {
+        email: 'someuser@email.com',
+      };
+      await controller.requestResetPassword(mockResetPasswordDto);
+      expect(
+        mockAuthenticationService.requestResetPassword,
+      ).toHaveBeenCalledWith(mockResetPasswordDto.email);
     });
   });
 });

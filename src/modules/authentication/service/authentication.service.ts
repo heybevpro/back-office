@@ -8,7 +8,10 @@ import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.re
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
-import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
+import {
+  TemporaryAccessJwtPayload,
+  VerifiedJwtPayload,
+} from '../../../utils/constants/auth.constants';
 import { VerificationService } from '../../verification/service/verification.service';
 import { instanceToPlain } from 'class-transformer';
 
@@ -54,6 +57,17 @@ export class AuthenticationService {
         verifiedJwtPayload.id,
         verifiedJwtPayload.role.role_name,
       );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: unknown) {
+      throw new InvalidUserCredentialsException();
+    }
+  }
+
+  async validateTemporaryAccessJwt(
+    verifiedJwtPayload: TemporaryAccessJwtPayload,
+  ): Promise<User> {
+    try {
+      return await this.userService.findOneById(verifiedJwtPayload.id);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
       throw new InvalidUserCredentialsException();
