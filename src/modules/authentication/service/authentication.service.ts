@@ -100,7 +100,7 @@ export class AuthenticationService {
     );
     return {
       reset_token: await this.jwtService.signAsync(
-        { user: { id: user.id, email: user.email } },
+        { id: user.id, email: user.email },
         { expiresIn: '10m' },
       ),
     };
