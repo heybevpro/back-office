@@ -222,6 +222,20 @@ describe('VerificationService', () => {
     });
   });
 
+  describe('deleteEmailVerificationRecord', () => {
+    it('should delete an email verification record and send an email', async () => {
+      const mockId: number = 999;
+      const mockDeleteResponse = {};
+      const deleteSpy = jest
+        .spyOn(emailVerificationCodeRepository, 'delete')
+        .mockResolvedValue(mockDeleteResponse as DeleteResult);
+      expect(await service.deleteEmailVerificationRecordById(mockId)).toEqual(
+        mockDeleteResponse,
+      );
+      expect(deleteSpy).toHaveBeenCalledWith({ id: mockId });
+    });
+  });
+
   describe('verifyEmail', () => {
     let verifyEmailDto: VerifyEmailDto;
     let email: string;

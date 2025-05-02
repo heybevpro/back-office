@@ -98,6 +98,9 @@ export class AuthenticationService {
     const user = await this.userService.findOneByEmail(
       verificationRecord.email,
     );
+    await this.verificationService.deleteEmailVerificationRecordById(
+      verificationRecord.id,
+    );
     return {
       reset_token: await this.jwtService.signAsync(
         { id: user.id, email: user.email },

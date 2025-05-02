@@ -75,6 +75,7 @@ describe('AuthenticationService', () => {
     addEmailVerificationRecord: jest.fn(),
     findPasswordResetRequestByCode: jest.fn(),
     createPasswordResetRequest: jest.fn(),
+    deleteEmailVerificationRecordById: jest.fn(),
   };
 
   const mockJwtService = {

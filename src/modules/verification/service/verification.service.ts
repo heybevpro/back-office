@@ -84,6 +84,10 @@ export class VerificationService {
     return PasswordResetEmailSentSuccessResponse;
   }
 
+  async deleteEmailVerificationRecordById(id: number) {
+    return await this.emailVerificationCodeRepository.delete({ id: id });
+  }
+
   async verifyPhoneNumber(verifyPhoneDto: VerifyPhoneDto) {
     try {
       const verificationRecord =
