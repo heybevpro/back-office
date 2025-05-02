@@ -1,4 +1,4 @@
-import { IsNumber, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsUUID, Max, Min } from 'class-validator';
 
 export class UpdateProductQuantityDto {
   @IsUUID()
@@ -6,5 +6,6 @@ export class UpdateProductQuantityDto {
 
   @IsNumber({ allowInfinity: false })
   @Min(0)
+  @Max(2147483647)
   quantity: number;
 }

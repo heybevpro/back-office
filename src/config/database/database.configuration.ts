@@ -25,7 +25,7 @@ export default registerAs(
     synchronize: false,
     migrations: migrationsPath,
     migrationsRun: true,
-    logging: true,
+    logging: false,
   }),
 );
 //
