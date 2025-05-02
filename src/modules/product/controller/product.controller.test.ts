@@ -3,6 +3,7 @@ import { ProductController } from './product.controller';
 import { ProductService } from '../service/product.service';
 import { Product } from '../entity/product.entity';
 import { CreateProductDto } from '../dto/create-product.dto';
+import { UpdateProductQuantityDto } from '../dto/update-product-quantity.dto';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -13,6 +14,8 @@ describe('ProductController', () => {
     findOne: jest.fn(),
     create: jest.fn(),
     findAllByProductType: jest.fn(),
+    fetchInventory: jest.fn(),
+    updateItemQuantity: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -89,6 +92,46 @@ describe('ProductController', () => {
         '<_PRODUCT-TYPE-ID_>',
       );
       expect(result).toEqual(mockProducts);
+    });
+  });
+
+  describe('fetchInventory', () => {
+    it('should return a list of products with their quantities in inventory', async () => {
+      const productServiceFetchInventorySpy = jest.spyOn(
+        service,
+        'fetchInventory',
+      );
+      const mockProducts: Product[] = [
+        {
+          id: 1,
+          name: 'Product A',
+          price: 100,
+          quantity: 12,
+        } as unknown as Product,
+        {
+          id: 2,
+          name: 'Product B',
+          price: 200,
+          quantity: 7,
+        } as unknown as Product,
+      ];
+      productServiceFetchInventorySpy.mockResolvedValue(mockProducts);
+      const result = await controller.fetchInventory();
+      expect(productServiceFetchInventorySpy).toHaveBeenCalled();
+      expect(result).toEqual(mockProducts);
+    });
+  });
+
+  describe('updateItemQuantity', () => {
+    it('should call the update item quantity method in the service', async () => {
+      const mockUpdateItemQuantityDto: UpdateProductQuantityDto = {
+        quantity: 10,
+        product: 'VALID-PRODUCT-ID',
+      };
+      await controller.updateItemQuantity(mockUpdateItemQuantityDto);
+      expect(service.updateItemQuantity).toHaveBeenCalledWith(
+        mockUpdateItemQuantityDto,
+      );
     });
   });
 });

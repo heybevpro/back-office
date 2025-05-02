@@ -1,5 +1,5 @@
 import {
-  BadGatewayException,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +8,11 @@ import { In, Repository } from 'typeorm';
 import { Product } from '../entity/product.entity';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductQuantityDto } from '../dto/update-product-quantity.dto';
+import { CustomCharge } from '../../../utils/constants/order.constants';
+import {
+  InsufficientStockException,
+  OutOfStockException,
+} from '../../../excpetions/order.exception';
 
 @Injectable()
 export class ProductService {
@@ -94,22 +99,48 @@ export class ProductService {
       });
       productToUpdate.quantity = updateProductQuantityDto.quantity;
       return await this.productRepository.save(productToUpdate);
-    } catch (e) {
-      console.error(e);
-      throw new NotFoundException('Product not found');
+    } catch (err) {
+      throw new NotFoundException('Product not found', { cause: err });
     }
   }
 
   async updateMultipleProducts(
     updateMultipleProductsDto: Product[],
-  ): Promise<Product[]> {
+  ): Promise<Array<Product>> {
     try {
       return await this.productRepository.save(updateMultipleProductsDto);
-    } catch (e: unknown) {
-      console.error(e);
-      throw new BadGatewayException('Failed Up Update Product Quantity', {
-        cause: e,
+    } catch (err: unknown) {
+      throw new BadRequestException('Failed Up Update Product Quantity', {
+        cause: err,
       });
     }
+  }
+
+  async validateAndUpdateItemQuantitiesFromOrder(
+    orderDetails: Array<Product | CustomCharge>,
+  ): Promise<Array<Product>> {
+    const productIdQuantityMap: Record<string, number> = {};
+    const productsIds: Array<string> = orderDetails.map((product: Product) => {
+      productIdQuantityMap[product.id] = product.quantity;
+      return product.id;
+    });
+    const productsToUpdate = await this.findAllWithIds(productsIds);
+    productsToUpdate.forEach((product: Product) => {
+      this.validateInventoryForProduct(
+        product,
+        productIdQuantityMap[product.id],
+      );
+      product.quantity = product.quantity - productIdQuantityMap[product.id];
+    });
+    return await this.updateMultipleProducts(productsToUpdate);
+  }
+
+  private validateInventoryForProduct(
+    product: Product,
+    requestedQuantity: number,
+  ) {
+    if (!product.quantity) throw new OutOfStockException(product.name);
+    if (product.quantity < requestedQuantity)
+      throw new InsufficientStockException(product.name);
   }
 }

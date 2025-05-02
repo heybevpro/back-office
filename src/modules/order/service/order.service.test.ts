@@ -1,10 +1,10 @@
 import { OrderService } from './order.service';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { Order } from '../entity/order.entity';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { OrderStatus } from '../../../utils/constants/order.constants';
-import { ImATeapotException } from '@nestjs/common';
+import { ImATeapotException, NotFoundException } from '@nestjs/common';
 import { CreateTabDto } from '../dto/create-tab.dto';
 import { ProductService } from '../../product/service/product.service';
 
@@ -12,8 +12,7 @@ describe('OrderService', () => {
   let orderService: OrderService;
   let orderRepository: Repository<Order>;
   const mockProductService = {
-    findAllWithIds: jest.fn().mockResolvedValue([]),
-    updateMultipleProducts: jest.fn(),
+    validateAndUpdateItemQuantitiesFromOrder: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -96,6 +95,49 @@ describe('OrderService', () => {
     });
   });
 
+  describe('getOpenOrderById', () => {
+    it('should return Order if found', async () => {
+      const mockOrder = { id: 'VALID-ID', status: OrderStatus.OPEN } as Order;
+      const orderRepositoryFindOneByOrFailSpy = jest.spyOn(
+        orderRepository,
+        'findOneByOrFail',
+      );
+      orderRepositoryFindOneByOrFailSpy.mockResolvedValue(mockOrder);
+
+      await expect(orderService.getOpenOrderById('VALID-ID')).resolves.toEqual(
+        mockOrder,
+      );
+    });
+
+    it('should throw a NotFoundException if Query Fails', async () => {
+      const orderRepositoryFindOneByOrFailSpy = jest.spyOn(
+        orderRepository,
+        'findOneByOrFail',
+      );
+      orderRepositoryFindOneByOrFailSpy.mockRejectedValue(
+        new QueryFailedError('GENERATED-QUERY', [], new Error('Query Error')),
+      );
+
+      await expect(orderService.getOpenOrderById('INVALID-ID')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw a the exception back if any other error is thrown', async () => {
+      const orderRepositoryFindOneByOrFailSpy = jest.spyOn(
+        orderRepository,
+        'findOneByOrFail',
+      );
+      orderRepositoryFindOneByOrFailSpy.mockRejectedValue(
+        new ImATeapotException(),
+      );
+
+      await expect(orderService.getOpenOrderById('INVALID-ID')).rejects.toThrow(
+        ImATeapotException,
+      );
+    });
+  });
+
   describe('createTab', () => {
     it('should create and save a new tab', async () => {
       const mockTab: CreateTabDto = { name: 'Test Tab', details: '' };
@@ -117,6 +159,42 @@ describe('OrderService', () => {
       expect(orderRepositoryCreateSpy).toHaveBeenCalledWith(mockTab);
       expect(orderRepositorySaveSpy).toHaveBeenCalledWith(mockTabOrder);
       expect(result).toEqual(mockTabOrder);
+    });
+  });
+
+  describe('closeTab', () => {
+    it('should close the tab and return the update data', async () => {
+      const mockOrder = {
+        id: 'TAB-ID',
+        name: 'Test Tab',
+        details: '',
+        status: OrderStatus.OPEN,
+        created_at: new Date(),
+        updated_at: new Date(),
+      } as Order;
+
+      const orderServiceGetOpenOrderByIdSpy = jest.spyOn(
+        orderService,
+        'getOpenOrderById',
+      );
+
+      orderServiceGetOpenOrderByIdSpy.mockResolvedValue(mockOrder);
+
+      const orderRepositorySaveSpy = jest.spyOn(orderRepository, 'save');
+
+      orderRepositorySaveSpy.mockResolvedValue({
+        ...mockOrder,
+        status: OrderStatus.CLOSED,
+      });
+
+      const result = await orderService.closeTab('TAB-ID');
+
+      expect(orderServiceGetOpenOrderByIdSpy).toHaveBeenCalledWith('TAB-ID');
+      expect(orderRepositorySaveSpy).toHaveBeenCalledWith({
+        ...mockOrder,
+        status: OrderStatus.CLOSED,
+      });
+      expect(result).toEqual({ ...mockOrder, status: OrderStatus.CLOSED });
     });
   });
   describe('createClosedOrder', () => {

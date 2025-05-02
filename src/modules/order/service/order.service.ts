@@ -1,13 +1,11 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from '../entity/order.entity';
-import { BadGatewayException, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { QueryFailedError, Repository } from 'typeorm';
 import { OrderStatus } from '../../../utils/constants/order.constants';
 import { CreateTabDto } from '../dto/create-tab.dto';
 import { CreateClosedOrderDto } from '../dto/create-closed-order.dto';
-import { TabClosedSuccessFullyResponse } from '../../../utils/constants/api-response.constants';
 import { ProductService } from '../../product/service/product.service';
-import { Product } from '../../product/entity/product.entity';
 
 @Injectable()
 export class OrderService {
@@ -28,6 +26,19 @@ export class OrderService {
     });
   }
 
+  async getOpenOrderById(id: string): Promise<Order> {
+    try {
+      return await this.orderRepository.findOneByOrFail({
+        id,
+        status: OrderStatus.OPEN,
+      });
+    } catch (e) {
+      if (e instanceof QueryFailedError)
+        throw new NotFoundException('Order not found');
+      throw e;
+    }
+  }
+
   async getAllClosedOrders(): Promise<Array<Order>> {
     return await this.orderRepository.find({
       where: { status: OrderStatus.CLOSED },
@@ -44,22 +55,9 @@ export class OrderService {
   async createClosedOrder(
     createClosedOrderDto: CreateClosedOrderDto,
   ): Promise<Order> {
-    const productIdQuantityMap: Record<string, number> = {};
-    const productsIds: Array<string> = createClosedOrderDto.details?.map(
-      (product: Product) => {
-        productIdQuantityMap[product.id] = product.quantity;
-        return product.id;
-      },
+    await this.productService.validateAndUpdateItemQuantitiesFromOrder(
+      createClosedOrderDto.details,
     );
-    const productsToUpdate =
-      await this.productService.findAllWithIds(productsIds);
-    productsToUpdate.forEach((product) => {
-      const quantity = productIdQuantityMap[product.id];
-      if (quantity && product.quantity) {
-        product.quantity -= quantity;
-      }
-    });
-    await this.productService.updateMultipleProducts(productsToUpdate);
     return await this.orderRepository.save(
       this.orderRepository.create({
         details: JSON.stringify(createClosedOrderDto.details),
@@ -68,15 +66,9 @@ export class OrderService {
     );
   }
 
-  async closeTab(id: string): Promise<typeof TabClosedSuccessFullyResponse> {
-    try {
-      await this.orderRepository.update(
-        { id: id, status: OrderStatus.OPEN },
-        { status: OrderStatus.CLOSED },
-      );
-      return TabClosedSuccessFullyResponse;
-    } catch (e: unknown) {
-      throw new BadGatewayException('Failed to Close Tab', { cause: e });
-    }
+  async closeTab(id: string): Promise<Order> {
+    const order = await this.getOpenOrderById(id);
+    order.status = OrderStatus.CLOSED;
+    return await this.orderRepository.save(order);
   }
 }

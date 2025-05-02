@@ -84,4 +84,48 @@ describe('EmailService', () => {
       expect(sesClientMock.sendEmail).toHaveBeenCalled();
     });
   });
+
+  describe('sendPasswordResetEmail', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should send an email with the correct parameters', async () => {
+      sesClientMock.sendEmail.mockResolvedValue({} as never);
+
+      const email = 'test@example.com';
+      const verificationCode = 'VALID_VERIFICATION_CODE';
+      const expectedLink = `https://example.com/auth/reset-password?code=${verificationCode}`;
+
+      await service.sendPasswordResetEmail(email, verificationCode);
+
+      expect(sesClientMock.sendEmail).toHaveBeenCalledWith({
+        Source: 'hey@hey-bev.com',
+        Message: {
+          Body: {
+            Text: {
+              Data: `Click the link to reset your password: ${expectedLink}`,
+            },
+          },
+          Subject: { Data: 'BevPro: Reset Password' },
+        },
+        Destination: { ToAddresses: [email.toLowerCase()] },
+      });
+    });
+
+    it('should throw a FailedToSendEmailException if SES fails', async () => {
+      sesClientMock.sendEmail.mockRejectedValue(
+        new Error('SES Error') as never,
+      );
+
+      const email = 'test@example.com';
+      const verificationCode = '123456';
+
+      await expect(
+        service.sendPasswordResetEmail(email, verificationCode),
+      ).rejects.toThrow(FailedToSendEmailException);
+
+      expect(sesClientMock.sendEmail).toHaveBeenCalled();
+    });
+  });
 });

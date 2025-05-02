@@ -42,8 +42,7 @@ export class VenueService {
     try {
       return await this.venueRepository.findOneByOrFail({ id });
     } catch (error) {
-      console.error(error);
-      throw new NotFoundException('Venue not found.');
+      throw new NotFoundException('Venue not found.', { cause: error });
     }
   }
 

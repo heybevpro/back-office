@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { Venue } from '../entity/venue.entity';
 import { VenueService } from './venue.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('VenueService', () => {
   let service: VenueService;
@@ -90,6 +90,23 @@ describe('VenueService', () => {
       expect(await service.findAllByOrganization(mockOrganizationId)).toEqual([
         mockVenue,
       ]);
+    });
+  });
+
+  describe('findOneById', () => {
+    it('should find a venue by ID and return it', async () => {
+      const findOneByOrFailSpy = jest.spyOn(venueRepository, 'findOneByOrFail');
+      findOneByOrFailSpy.mockResolvedValue(mockVenue);
+      expect(await service.findOneById(1)).toEqual(mockVenue);
+      expect(findOneByOrFailSpy).toHaveBeenCalled();
+    });
+
+    it('should throw a NotFoundException if the venue is not found', async () => {
+      const findOneByOrFailSpy = jest.spyOn(venueRepository, 'findOneByOrFail');
+      findOneByOrFailSpy.mockRejectedValue(
+        new QueryFailedError('Not Found', [], new Error()),
+      );
+      await expect(service.findOneById(999)).rejects.toThrow(NotFoundException);
     });
   });
 });

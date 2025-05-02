@@ -64,6 +64,9 @@ describe('UserService', () => {
   });
 
   describe('find one user by ID', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
     it('should return the user if found', async () => {
       jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(mockUser);
       expect(await service.findOneById('<_ID_>')).toEqual(mockUser);
@@ -72,7 +75,7 @@ describe('UserService', () => {
     it('should throw a Not Found Exception if user is not found', async () => {
       jest
         .spyOn(userRepository, 'findOneOrFail')
-        .mockRejectedValue(new NotFoundException());
+        .mockRejectedValue(new ImATeapotException());
 
       await expect(service.findOneById('<_INVALID-ID_>')).rejects.toThrow(
         NotFoundException,
@@ -195,6 +198,24 @@ describe('UserService', () => {
       jest.spyOn(userRepository, 'save').mockResolvedValue(updatedUser);
       const result = await service.update(mockUser);
       expect(result).toEqual(updatedUser);
+    });
+  });
+
+  describe('updateUserPasswordHash', () => {
+    it('should update the user password field and return the user', async () => {
+      const mockUserId = '<_USER_ID_>';
+      const mockUserPasswordHash = '<_PASSWORD_HASH_NEW_>';
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
+      jest
+        .spyOn(userRepository, 'save')
+        .mockResolvedValue({ ...mockUser, password: mockUserPasswordHash });
+      findOneOrFailSpy.mockResolvedValue(mockUser);
+      expect(
+        await service.updateUserPasswordHash(mockUserId, mockUserPasswordHash),
+      ).toEqual({
+        ...mockUser,
+        password: mockUserPasswordHash,
+      });
     });
   });
 });

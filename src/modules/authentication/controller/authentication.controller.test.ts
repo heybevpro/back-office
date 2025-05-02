@@ -44,6 +44,8 @@ describe('AuthenticationController', () => {
     requestResetPassword: jest.fn(() => {
       return Promise.resolve(PasswordResetEmailSentSuccessResponse);
     }),
+    validateResetPassword: jest.fn(),
+    resetPassword: jest.fn(),
   };
 
   const mockAuthGuard = {
@@ -136,6 +138,36 @@ describe('AuthenticationController', () => {
       expect(
         mockAuthenticationService.requestResetPassword,
       ).toHaveBeenCalledWith(mockResetPasswordDto.email);
+    });
+  });
+
+  describe('validate password reset request', () => {
+    it('should call AuthenticationService.validateResetPassword with correct parameters', async () => {
+      const mockValidatePasswordResetDto = {
+        rs: 'VALID_RESET_TOKEN',
+      };
+      await controller.validateResetPassword(mockValidatePasswordResetDto);
+      expect(
+        mockAuthenticationService.validateResetPassword,
+      ).toHaveBeenCalledWith(mockValidatePasswordResetDto.rs);
+    });
+  });
+
+  describe('reset password', () => {
+    it('should call AuthenticationService.validateResetPassword with correct parameters', async () => {
+      const mockRequest = {
+        user: {
+          id: 'VALID-ID',
+        },
+      };
+      const mockResetPasswordDto = {
+        updated_password: 'NEW_PASSWORD',
+      };
+      await controller.resetPassword(mockRequest, mockResetPasswordDto);
+      expect(mockAuthenticationService.resetPassword).toHaveBeenCalledWith(
+        mockRequest.user.id,
+        mockResetPasswordDto.updated_password,
+      );
     });
   });
 });
