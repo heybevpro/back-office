@@ -366,12 +366,17 @@ describe('AuthenticationService', () => {
   });
 
   describe('requestResetPassword', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
     it('should create a password reset request successfully', async () => {
-      const email = 'user@example.com';
+      const email = 'john@email.com';
 
       jest
         .spyOn(mockVerificationService, 'createPasswordResetRequest')
         .mockResolvedValue(PasswordResetEmailSentSuccessResponse);
+
+      jest.spyOn(mockUserService, 'findOneByEmail').mockResolvedValue(mockUser);
 
       const result = await service.requestResetPassword(email);
 
@@ -395,6 +400,25 @@ describe('AuthenticationService', () => {
       expect(
         mockVerificationService.createPasswordResetRequest,
       ).toHaveBeenCalledWith(email);
+    });
+
+    it('should return a success response even if the email is invalid', async () => {
+      const email = 'invalid@user.com';
+
+      jest
+        .spyOn(mockUserService, 'findOneByEmail')
+        .mockRejectedValue(new ImATeapotException());
+
+      jest
+        .spyOn(mockVerificationService, 'createPasswordResetRequest')
+        .mockRejectedValue(new Error('Request failed'));
+
+      const result = await service.requestResetPassword(email);
+
+      expect(
+        mockVerificationService.createPasswordResetRequest,
+      ).not.toHaveBeenCalled();
+      expect(result).toEqual(PasswordResetEmailSentSuccessResponse);
     });
   });
 });

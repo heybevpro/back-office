@@ -14,6 +14,7 @@ import {
 } from '../../../utils/constants/auth.constants';
 import { VerificationService } from '../../verification/service/verification.service';
 import { instanceToPlain } from 'class-transformer';
+import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
 
 @Injectable()
 export class AuthenticationService {
@@ -118,6 +119,13 @@ export class AuthenticationService {
   }
 
   async requestResetPassword(email: string) {
+    try {
+      await this.userService.findOneByEmail(email);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      return PasswordResetEmailSentSuccessResponse;
+    }
+
     return await this.verificationService.createPasswordResetRequest(email);
   }
 
