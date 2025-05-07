@@ -4,6 +4,7 @@ import { RoleService } from '../service/role.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { UpdateRoleDto } from '../dto/update-role.dto';
 import { Role } from '../../../utils/constants/role.constants';
+import { Organization } from '../../organization/entity/organization.entity';
 
 describe('RoleController - update', () => {
   let controller: RoleController;
@@ -49,6 +50,7 @@ describe('RoleController - update', () => {
         created_at: new Date(),
         updated_at: new Date(),
       },
+      organization: {} as Organization,
     };
 
     jest.spyOn(roleService, 'update').mockResolvedValue(updatedUser);

@@ -2,12 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entity/role.entity';
+import { Organization } from '../../organization/entity/organization.entity';
 
 @Entity()
 export class User {
@@ -32,6 +35,10 @@ export class User {
     onDelete: 'RESTRICT',
   })
   role: Role;
+
+  @OneToOne(() => Organization, { onDelete: 'SET NULL' })
+  @JoinColumn()
+  organization: Organization;
 
   @Column({ type: 'boolean', default: false })
   email_verified: boolean;

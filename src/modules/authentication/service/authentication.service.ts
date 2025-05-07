@@ -44,6 +44,7 @@ export class AuthenticationService {
       email: user.email,
       email_verified: user.email_verified,
       role: user.role.role_name,
+      organization: user.organization,
       created_at: user.created_at,
     };
     return {

@@ -12,6 +12,7 @@ import {
   ImATeapotException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Organization } from '../../organization/entity/organization.entity';
 
 describe('role service', () => {
   let roleRepository: Repository<Role>;
@@ -35,6 +36,7 @@ describe('role service', () => {
     role: { id: 'role-id', role_name: RoleLevel.ADMIN } as Role,
     created_at: new Date(),
     updated_at: new Date(),
+    organization: {} as Organization,
   };
 
   const mockRole: Role = {

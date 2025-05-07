@@ -3,6 +3,7 @@ import { OrganizationService } from '../service/organization.service';
 import { OrganizationController } from './organization.controller';
 import { Organization } from '../entity/organization.entity';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
+import { User } from '../../user/entity/user.entity';
 
 describe('OrganizationController', () => {
   let controller: OrganizationController;
@@ -13,6 +14,7 @@ describe('OrganizationController', () => {
     created_at: new Date(),
     updated_at: new Date(),
     venues: [],
+    user: {} as User,
   };
 
   const mockOrganizationService = {

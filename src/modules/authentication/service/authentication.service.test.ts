@@ -19,6 +19,7 @@ import { ImATeapotException } from '@nestjs/common';
 import { VerificationService } from '../../verification/service/verification.service';
 import { Role as RoleLevel } from '../../../utils/constants/role.constants';
 import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
+import { Organization } from '../../organization/entity/organization.entity';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -33,6 +34,7 @@ describe('AuthenticationService', () => {
     role: { id: 'ROLE_ID', role_name: 'ADMIN' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
+    organization: { id: 1, name: 'VALID_ORGANIZATION_NAME' } as Organization,
   };
 
   const userByEmailQueryResponse: Omit<User, 'updated_at'> = {
@@ -47,6 +49,7 @@ describe('AuthenticationService', () => {
     email_verified: mockUser.email_verified,
     role: mockUser.role.role_name as unknown as Role,
     created_at: mockUser.created_at,
+    organization: mockUser.organization,
   };
 
   const mockUserService = {
@@ -55,8 +58,10 @@ describe('AuthenticationService', () => {
       throw new UserNotFoundException();
     }),
     findOneByEmail: jest.fn((email: string) => {
-      if (email === 'VALID_EMAIL')
+      if (email === 'VALID_EMAIL') {
+        console.log('userByEmailQueryResponse', userByEmailQueryResponse);
         return Promise.resolve(userByEmailQueryResponse);
+      }
       throw new UserNotFoundException();
     }),
     create: jest.fn((createUserDto: CreateUserDto) =>
@@ -142,9 +147,11 @@ describe('AuthenticationService', () => {
         email: 'VALID_EMAIL',
         password: 'VALID_PASSWORD',
       });
+      console.log('SANITIZED', sanitizedUserData);
+      console.log('res', response);
       expect(response).toEqual({
         access_token: 'VALID_ACCESS_TOKEN',
-        ...sanitizedUserData,
+        ...Object.assign({}, sanitizedUserData),
       });
       expect(compareHashSpy).toHaveBeenCalledTimes(1);
       expect(compareHashSpy).toHaveBeenCalledWith(

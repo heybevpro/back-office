@@ -4,6 +4,7 @@ import { Organization } from '../entity/organization.entity';
 import { Repository } from 'typeorm';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
+import { User } from '../../user/entity/user.entity';
 
 describe('OrganizationService', () => {
   let service: OrganizationService;
@@ -15,6 +16,7 @@ describe('OrganizationService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     venues: [],
+    user: {} as User,
   };
 
   beforeEach(async () => {

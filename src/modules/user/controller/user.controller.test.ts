@@ -4,6 +4,7 @@ import { User } from '../entity/user.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Role } from '../../role/entity/role.entity';
+import { Organization } from '../../organization/entity/organization.entity';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -17,6 +18,7 @@ describe('UserController', () => {
     role: 'ADMIN' as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
+    organization: {} as Organization,
   };
 
   const mockUserService = {

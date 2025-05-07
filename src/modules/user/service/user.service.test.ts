@@ -13,6 +13,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
 import { RoleService } from '../../role/service/role.service';
 import { Role as RoleLevel } from '../../../utils/constants/role.constants';
+import { Organization } from '../../organization/entity/organization.entity';
 
 describe('UserService', () => {
   let userRepository: Repository<User>;
@@ -27,6 +28,7 @@ describe('UserService', () => {
     role: { id: 'Role-ID', role_name: 'VALID_ROLE_NAME' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
+    organization: {} as Organization,
   };
 
   const mockCreateUserDto: CreateUserDto = {
