@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Organization } from '../entity/organization.entity';
 import { Repository } from 'typeorm';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
@@ -14,9 +14,15 @@ export class OrganizationService {
   async create(
     createOrganizationDto: CreateOrganizationDto,
   ): Promise<Organization> {
-    return await this.organizationRepository.save(
-      this.organizationRepository.create(createOrganizationDto),
-    );
+    try {
+      return await this.organizationRepository.save(
+        this.organizationRepository.create(createOrganizationDto),
+      );
+    } catch (error) {
+      throw new BadRequestException('Failed create organization.', {
+        cause: error,
+      });
+    }
   }
 
   async findAll(): Promise<Organization[]> {

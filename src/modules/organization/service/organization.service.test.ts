@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { User } from '../../user/entity/user.entity';
+import { OrganizationSize } from '../../../utils/constants/organization.constants';
 
 describe('OrganizationService', () => {
   let service: OrganizationService;
@@ -17,6 +18,12 @@ describe('OrganizationService', () => {
     updated_at: new Date(),
     venues: [],
     user: {} as User,
+    address_line1: '123 Main St',
+    address_line2: 'Apt 4B',
+    city: 'New York',
+    state: 'NY',
+    zip: '10001',
+    size: OrganizationSize.SMALL,
   };
 
   beforeEach(async () => {
@@ -44,6 +51,13 @@ describe('OrganizationService', () => {
     it('should create and return an `Organization`', async () => {
       const createOrganizationPayload: CreateOrganizationDto = {
         name: '<_VALID-ORG-NAME_>',
+        phone: '123-456-7890',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
       };
       const createOrganizationSpy = jest.spyOn(
         organizationRepository,
