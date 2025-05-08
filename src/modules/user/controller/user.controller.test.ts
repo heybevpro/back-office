@@ -15,6 +15,7 @@ describe('UserController', () => {
     password: '<_PASSWORD_>',
     email: 'john@email.com',
     email_verified: true,
+    onboarding_complete: true,
     role: 'ADMIN' as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),

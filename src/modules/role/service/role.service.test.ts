@@ -33,6 +33,7 @@ describe('role service', () => {
     email: 'john@example.com',
     password: 'password',
     email_verified: true,
+    onboarding_complete: true,
     role: { id: 'role-id', role_name: RoleLevel.ADMIN } as Role,
     created_at: new Date(),
     updated_at: new Date(),
