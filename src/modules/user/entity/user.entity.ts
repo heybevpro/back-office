@@ -36,12 +36,20 @@ export class User {
   })
   role: Role;
 
-  @OneToOne(() => Organization, { onDelete: 'SET NULL' })
-  @JoinColumn()
+  @OneToOne(() => Organization, {
+    onDelete: 'SET NULL',
+    cascade: ['insert'],
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'organization_id', referencedColumnName: 'id' })
   organization: Organization;
 
   @Column({ type: 'boolean', default: false })
   email_verified: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  onboarding_complete: boolean;
 
   @CreateDateColumn()
   created_at: Date;
