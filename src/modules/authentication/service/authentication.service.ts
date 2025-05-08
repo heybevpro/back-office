@@ -15,6 +15,7 @@ import {
 import { VerificationService } from '../../verification/service/verification.service';
 import { instanceToPlain } from 'class-transformer';
 import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
+import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -43,6 +44,7 @@ export class AuthenticationService {
       last_name: user.last_name,
       email: user.email,
       email_verified: user.email_verified,
+      onboarding_complete: user.onboarding_complete,
       role: user.role.role_name,
       organization: user.organization,
       created_at: user.created_at,
@@ -132,5 +134,9 @@ export class AuthenticationService {
 
   async compareHash(password: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(password, hash);
+  }
+
+  async onboard(userId: string, onboardDto: AccountOnboardingDto) {
+    return await this.userService.onboardUser(userId, onboardDto);
   }
 }

@@ -31,6 +31,7 @@ describe('AuthenticationService', () => {
     password: '<_PASSWORD_>',
     email: 'john@email.com',
     email_verified: true,
+    onboarding_complete: true,
     role: { id: 'ROLE_ID', role_name: 'ADMIN' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
@@ -47,6 +48,7 @@ describe('AuthenticationService', () => {
     last_name: mockUser.last_name,
     email: mockUser.email,
     email_verified: mockUser.email_verified,
+    onboarding_complete: mockUser.onboarding_complete,
     role: mockUser.role.role_name as unknown as Role,
     created_at: mockUser.created_at,
     organization: mockUser.organization,
@@ -59,7 +61,6 @@ describe('AuthenticationService', () => {
     }),
     findOneByEmail: jest.fn((email: string) => {
       if (email === 'VALID_EMAIL') {
-        console.log('userByEmailQueryResponse', userByEmailQueryResponse);
         return Promise.resolve(userByEmailQueryResponse);
       }
       throw new UserNotFoundException();
@@ -147,8 +148,6 @@ describe('AuthenticationService', () => {
         email: 'VALID_EMAIL',
         password: 'VALID_PASSWORD',
       });
-      console.log('SANITIZED', sanitizedUserData);
-      console.log('res', response);
       expect(response).toEqual({
         access_token: 'VALID_ACCESS_TOKEN',
         ...Object.assign({}, sanitizedUserData),

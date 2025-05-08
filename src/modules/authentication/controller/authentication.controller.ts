@@ -22,6 +22,7 @@ import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { ValidatePasswordResetDTO } from '../dto/validate-password-reset.dto';
 import { TemporaryJwtGuard } from '../../../guards/auth/temporary-jwt.guard';
+import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
 
 @Controller('auth')
 @UseFilters(DatabaseClientExceptionFilter)
@@ -79,5 +80,14 @@ export class AuthenticationController {
       request.user.id,
       requestPasswordResetDto.updated_password,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('onboard')
+  onboard(
+    @Request() request: { user: { id: string } },
+    @Body() onboardingDto: AccountOnboardingDto,
+  ) {
+    return this.authenticationService.onboard(request.user.id, onboardingDto);
   }
 }

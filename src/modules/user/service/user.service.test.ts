@@ -14,6 +14,7 @@ import { Role } from '../../role/entity/role.entity';
 import { RoleService } from '../../role/service/role.service';
 import { Role as RoleLevel } from '../../../utils/constants/role.constants';
 import { Organization } from '../../organization/entity/organization.entity';
+import { OrganizationService } from '../../organization/service/organization.service';
 
 describe('UserService', () => {
   let userRepository: Repository<User>;
@@ -25,6 +26,7 @@ describe('UserService', () => {
     email: 'john@email.com',
     password: '<_PASSWORD_>',
     email_verified: true,
+    onboarding_complete: true,
     role: { id: 'Role-ID', role_name: 'VALID_ROLE_NAME' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
@@ -42,6 +44,10 @@ describe('UserService', () => {
     findDefault: jest.fn(() => Promise.resolve(mockUser.role)),
   };
 
+  const mockOrganizationService = {
+    create: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -53,6 +59,10 @@ describe('UserService', () => {
         {
           provide: RoleService,
           useValue: mockRoleService,
+        },
+        {
+          provide: OrganizationService,
+          useValue: mockOrganizationService,
         },
       ],
     }).compile();
