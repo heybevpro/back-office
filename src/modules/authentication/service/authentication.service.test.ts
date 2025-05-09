@@ -20,6 +20,8 @@ import { VerificationService } from '../../verification/service/verification.ser
 import { Role as RoleLevel } from '../../../utils/constants/role.constants';
 import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
 import { Organization } from '../../organization/entity/organization.entity';
+import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
+import { OrganizationSize } from '../../../utils/constants/organization.constants';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -75,6 +77,7 @@ describe('AuthenticationService', () => {
     ),
     findOneByIdAndRole: jest.fn(),
     updateUserPasswordHash: jest.fn(),
+    onboardUser: jest.fn(),
   };
 
   const mockVerificationService = {
@@ -425,6 +428,28 @@ describe('AuthenticationService', () => {
         mockVerificationService.createPasswordResetRequest,
       ).not.toHaveBeenCalled();
       expect(result).toEqual(PasswordResetEmailSentSuccessResponse);
+    });
+  });
+
+  describe('onboard', () => {
+    it('should make a cal to the onboard user method in user service', async () => {
+      const userId = 'VALID_USER_ID';
+      const onboardingDto: AccountOnboardingDto = {
+        name: 'Organization Name',
+        phone: '123-456-7890',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
+      };
+      await service.onboard(userId, onboardingDto);
+
+      expect(mockUserService.onboardUser).toHaveBeenCalledWith(
+        userId,
+        onboardingDto,
+      );
     });
   });
 });

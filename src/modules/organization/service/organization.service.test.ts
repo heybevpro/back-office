@@ -6,6 +6,7 @@ import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { User } from '../../user/entity/user.entity';
 import { OrganizationSize } from '../../../utils/constants/organization.constants';
+import { BadRequestException } from '@nestjs/common';
 
 describe('OrganizationService', () => {
   let service: OrganizationService;
@@ -68,6 +69,29 @@ describe('OrganizationService', () => {
       saveOrganizationSpy.mockResolvedValue(mockOrganization);
       expect(await service.create(createOrganizationPayload)).toEqual(
         mockOrganization,
+      );
+    });
+
+    it('should throw a BadRequestException if Create Query fails', async () => {
+      const createOrganizationPayload: CreateOrganizationDto = {
+        name: '<_VALID-ORG-NAME_>',
+        phone: '123-456-7890',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
+      };
+      const createOrganizationSpy = jest.spyOn(
+        organizationRepository,
+        'create',
+      );
+      const saveOrganizationSpy = jest.spyOn(organizationRepository, 'save');
+      createOrganizationSpy.mockReturnValue(mockOrganization);
+      saveOrganizationSpy.mockRejectedValue(new Error('Failed to save'));
+      await expect(service.create(createOrganizationPayload)).rejects.toThrow(
+        BadRequestException,
       );
     });
   });

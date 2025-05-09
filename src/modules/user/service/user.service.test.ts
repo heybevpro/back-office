@@ -15,6 +15,7 @@ import { RoleService } from '../../role/service/role.service';
 import { Role as RoleLevel } from '../../../utils/constants/role.constants';
 import { Organization } from '../../organization/entity/organization.entity';
 import { OrganizationService } from '../../organization/service/organization.service';
+import { OrganizationSize } from '../../../utils/constants/organization.constants';
 
 describe('UserService', () => {
   let userRepository: Repository<User>;
@@ -45,7 +46,7 @@ describe('UserService', () => {
   };
 
   const mockOrganizationService = {
-    create: jest.fn(),
+    create: jest.fn(() => Promise.resolve(mockUser.organization)),
   };
 
   beforeEach(async () => {
@@ -228,6 +229,40 @@ describe('UserService', () => {
         ...mockUser,
         password: mockUserPasswordHash,
       });
+    });
+  });
+
+  describe('onboardUser', () => {
+    it('should update the user email_verified field and return the user', async () => {
+      const mockUserId = '<_USER_ID_>';
+      const mockAccountOnboardingDto = {
+        name: 'Test Organization',
+        phone: '+11234567890',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
+      };
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
+      findOneOrFailSpy.mockResolvedValue(mockUser);
+      const userRepositorySaveSpy = jest.spyOn(userRepository, 'save');
+      userRepositorySaveSpy.mockResolvedValue({
+        ...mockUser,
+        onboarding_complete: true,
+      });
+      const result = await service.onboardUser(
+        mockUserId,
+        mockAccountOnboardingDto,
+      );
+      expect(result).toEqual(mockUser);
+      expect(findOneOrFailSpy).toHaveBeenCalledWith({
+        where: { id: mockUserId },
+      });
+      expect(mockOrganizationService.create).toHaveBeenCalledWith(
+        mockAccountOnboardingDto,
+      );
     });
   });
 });
