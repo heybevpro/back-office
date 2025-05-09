@@ -3,6 +3,7 @@ import { EmailService } from './email.service';
 import { SES } from '@aws-sdk/client-ses';
 import { ConfigService } from '@nestjs/config';
 import { FailedToSendEmailException } from '../../../excpetions/credentials.exception';
+import { EmailTemplates } from '../../../utils/constants/email.constants';
 
 jest.mock('@aws-sdk/client-ses');
 
@@ -31,7 +32,7 @@ describe('EmailService', () => {
         {
           provide: SES,
           useValue: {
-            sendEmail: jest.fn(),
+            sendTemplatedEmail: jest.fn(),
           },
         },
       ],
@@ -47,30 +48,24 @@ describe('EmailService', () => {
 
   describe('sendVerificationEmail', () => {
     it('should send an email with the correct parameters', async () => {
-      sesClientMock.sendEmail.mockResolvedValue({} as never);
+      sesClientMock.sendTemplatedEmail.mockResolvedValue({} as never);
 
       const email = 'test@example.com';
       const verificationCode = '123456';
-      const expectedLink = `https://example.com/auth/verify-email?code=${verificationCode}`;
+      const verificationUrl = `https://example.com/auth/verify-email?code=${verificationCode}`;
 
       await service.sendVerificationEmail(email, verificationCode);
 
-      expect(sesClientMock.sendEmail).toHaveBeenCalledWith({
+      expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalledWith({
         Source: 'hey@hey-bev.com',
-        Message: {
-          Body: {
-            Text: {
-              Data: `Thank you for signing up! To complete your registration, please confirm your email by clicking the link below. ${expectedLink}`,
-            },
-          },
-          Subject: { Data: 'BevPro: Confirm Your Email.' },
-        },
-        Destination: { ToAddresses: [email] },
+        Template: EmailTemplates.VerifyEmail,
+        TemplateData: JSON.stringify({ verificationUrl }),
+        Destination: { ToAddresses: [email.toLowerCase()] },
       });
     });
 
     it('should throw a FailedToSendEmailException if SES fails', async () => {
-      sesClientMock.sendEmail.mockRejectedValue(
+      sesClientMock.sendTemplatedEmail.mockRejectedValue(
         new Error('SES Error') as never,
       );
 
@@ -81,7 +76,7 @@ describe('EmailService', () => {
         service.sendVerificationEmail(email, verificationCode),
       ).rejects.toThrow(FailedToSendEmailException);
 
-      expect(sesClientMock.sendEmail).toHaveBeenCalled();
+      expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalled();
     });
   });
 
@@ -91,30 +86,24 @@ describe('EmailService', () => {
     });
 
     it('should send an email with the correct parameters', async () => {
-      sesClientMock.sendEmail.mockResolvedValue({} as never);
+      sesClientMock.sendTemplatedEmail.mockResolvedValue({} as never);
 
       const email = 'test@example.com';
       const verificationCode = 'VALID_VERIFICATION_CODE';
-      const expectedLink = `https://example.com/auth/reset-password?code=${verificationCode}`;
+      const resetUrl = `https://example.com/auth/reset-password?code=${verificationCode}`;
 
       await service.sendPasswordResetEmail(email, verificationCode);
 
-      expect(sesClientMock.sendEmail).toHaveBeenCalledWith({
+      expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalledWith({
         Source: 'hey@hey-bev.com',
-        Message: {
-          Body: {
-            Text: {
-              Data: `Click the link to reset your password: ${expectedLink}`,
-            },
-          },
-          Subject: { Data: 'BevPro: Reset Password' },
-        },
+        Template: EmailTemplates.ResetPassword,
+        TemplateData: JSON.stringify({ resetUrl }),
         Destination: { ToAddresses: [email.toLowerCase()] },
       });
     });
 
     it('should throw a FailedToSendEmailException if SES fails', async () => {
-      sesClientMock.sendEmail.mockRejectedValue(
+      sesClientMock.sendTemplatedEmail.mockRejectedValue(
         new Error('SES Error') as never,
       );
 
@@ -125,7 +114,7 @@ describe('EmailService', () => {
         service.sendPasswordResetEmail(email, verificationCode),
       ).rejects.toThrow(FailedToSendEmailException);
 
-      expect(sesClientMock.sendEmail).toHaveBeenCalled();
+      expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalled();
     });
   });
 });

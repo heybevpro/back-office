@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SES } from '@aws-sdk/client-ses';
 import { ConfigService } from '@nestjs/config';
 import { FailedToSendEmailException } from '../../../excpetions/credentials.exception';
+import { EmailTemplates } from '../../../utils/constants/email.constants';
 
 @Injectable()
 export class EmailService {
@@ -11,18 +12,12 @@ export class EmailService {
   ) {}
 
   async sendVerificationEmail(email: string, verificationCode: string) {
-    const verificationLink = `${this.configService.get('NEXT_CLIENT_URL')}/auth/verify-email?code=${verificationCode}`;
+    const verificationUrl = `${this.configService.get('NEXT_CLIENT_URL')}/auth/verify-email?code=${verificationCode}`;
     try {
-      await this.sesClient.sendEmail({
+      await this.sesClient.sendTemplatedEmail({
         Source: 'hey@hey-bev.com',
-        Message: {
-          Body: {
-            Text: {
-              Data: `Thank you for signing up! To complete your registration, please confirm your email by clicking the link below. ${verificationLink}`,
-            },
-          },
-          Subject: { Data: 'BevPro: Confirm Your Email.' },
-        },
+        Template: EmailTemplates.VerifyEmail,
+        TemplateData: JSON.stringify({ verificationUrl }),
         Destination: { ToAddresses: [email.toLowerCase()] },
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,18 +27,12 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(email: string, verificationCode: string) {
-    const verificationLink = `${this.configService.get('NEXT_CLIENT_URL')}/auth/reset-password?code=${verificationCode}`;
+    const resetUrl = `${this.configService.get('NEXT_CLIENT_URL')}/auth/reset-password?code=${verificationCode}`;
     try {
-      await this.sesClient.sendEmail({
+      await this.sesClient.sendTemplatedEmail({
         Source: 'hey@hey-bev.com',
-        Message: {
-          Body: {
-            Text: {
-              Data: `Click the link to reset your password: ${verificationLink}`,
-            },
-          },
-          Subject: { Data: 'BevPro: Reset Password' },
-        },
+        Template: EmailTemplates.ResetPassword,
+        TemplateData: JSON.stringify({ resetUrl }),
         Destination: { ToAddresses: [email.toLowerCase()] },
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
