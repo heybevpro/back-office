@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VoiceController } from './voice.controller';
 import { VoiceService } from '../service/voice.service';
+import { User } from '../../user/entity/user.entity';
 
 describe('VoiceController', () => {
   let controller: VoiceController;
@@ -31,13 +32,18 @@ describe('VoiceController', () => {
 
   describe('getToken', () => {
     it('should return a token from the service', async () => {
-      const mockToken = { token: 'VOICE-SERVICE-JWT-TOKEN' };
-      jest.spyOn(service, 'createToken').mockResolvedValue(mockToken);
+      const mockResponse = { token: 'VOICE-SERVICE-JWT-TOKEN' };
+      const mockRequest = {
+        user: {
+          id: 'VALID-USER-ID',
+        } as unknown as User,
+      };
+      jest.spyOn(service, 'createToken').mockResolvedValue(mockResponse);
 
-      const result = await controller.getToken();
+      const result = await controller.getToken(mockRequest);
 
       expect(service.createToken).toHaveBeenCalled();
-      expect(result).toBe(mockToken);
+      expect(result).toBe(mockResponse);
     });
   });
 });
