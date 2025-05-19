@@ -3,3 +3,8 @@ export enum OrderStatus {
   CLOSED = 'closed',
   CANCELLED = 'cancelled',
 }
+
+export interface CustomCharge {
+  name: string;
+  price: number;
+}

@@ -1,8 +1,3 @@
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { AccountOnboardingDto } from '../../authentication/dto/account-onboarding.dto';
 
-export class CreateOrganizationDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  name: string;
-}
+export class CreateOrganizationDto extends AccountOnboardingDto {}

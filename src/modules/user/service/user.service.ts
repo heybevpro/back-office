@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
 import { EntityNotFoundError, Not, Repository } from 'typeorm';
@@ -6,19 +10,26 @@ import { UserNotFoundException } from '../../../excpetions/credentials.exception
 import { CreateUserDto } from '../dto/create-user.dto';
 import { RoleService } from '../../role/service/role.service';
 import { Role } from '../../../utils/constants/role.constants';
+import { AccountOnboardingDto } from '../../authentication/dto/account-onboarding.dto';
+import { OrganizationService } from '../../organization/service/organization.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly roleService: RoleService,
+    private readonly organizationService: OrganizationService,
   ) {}
 
   async findOneById(id: string): Promise<User> {
-    return this.userRepository.findOneOrFail({
-      where: { id },
-      relations: { role: true },
-    });
+    try {
+      return await this.userRepository.findOneOrFail({
+        where: { id },
+        relations: { role: true, organization: true },
+      });
+    } catch (error) {
+      throw new NotFoundException('User not found', { cause: error });
+    }
   }
 
   async findOneByIdAndRole(id: string, role: Role): Promise<User> {
@@ -31,7 +42,7 @@ export class UserService {
   async findOneByEmail(email: string): Promise<User> {
     try {
       return await this.userRepository.findOneOrFail({
-        relations: { role: true },
+        relations: { role: true, organization: true },
         select: {
           id: true,
           first_name: true,
@@ -41,6 +52,7 @@ export class UserService {
           role: { id: true, role_name: true },
           created_at: true,
           password: true,
+          organization: { id: true, name: true },
         },
         where: { email },
       });
@@ -90,7 +102,28 @@ export class UserService {
     }
   }
 
+  async updateUserPasswordHash(userId: string, hash: string) {
+    const user = await this.userRepository.findOneOrFail({
+      where: { id: userId },
+    });
+    user.password = hash;
+    return await this.update(user);
+  }
+
   async update(user: User): Promise<User> {
+    return await this.userRepository.save(user);
+  }
+
+  async onboardUser(
+    userId: string,
+    accountOnboardingDto: AccountOnboardingDto,
+  ): Promise<User> {
+    const user = await this.userRepository.findOneOrFail({
+      where: { id: userId },
+    });
+    user.organization =
+      await this.organizationService.create(accountOnboardingDto);
+    user.onboarding_complete = true;
     return await this.userRepository.save(user);
   }
 }

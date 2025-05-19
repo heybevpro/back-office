@@ -6,6 +6,7 @@ import { randomInt as randomVerificationCodeGenerator } from 'node:crypto';
 import { CreateVerificationCodeDto } from '../dto/create-verification-code.dto';
 import {
   EmailVerificationSuccessfulResponse,
+  PasswordResetEmailSentSuccessResponse,
   VerificationMessageSentSuccessResponse,
   VerificationSuccessfulResponse,
 } from '../../../utils/constants/api-response.constants';
@@ -68,6 +69,25 @@ export class VerificationService {
     });
   }
 
+  async createPasswordResetRequest(
+    email: string,
+  ): Promise<typeof PasswordResetEmailSentSuccessResponse> {
+    const verificationCode = this.generateVerificationCode();
+    await this.emailVerificationCodeRepository.save(
+      this.emailVerificationCodeRepository.create({
+        email: email,
+        verification_code: verificationCode,
+      }),
+    );
+    //TODO: Optimize this to not send email if the user with 'email' is not found
+    await this.emailService.sendPasswordResetEmail(email, verificationCode);
+    return PasswordResetEmailSentSuccessResponse;
+  }
+
+  async deleteEmailVerificationRecordById(id: number) {
+    return await this.emailVerificationCodeRepository.delete({ id: id });
+  }
+
   async verifyPhoneNumber(verifyPhoneDto: VerifyPhoneDto) {
     try {
       const verificationRecord =
@@ -98,6 +118,20 @@ export class VerificationService {
     } catch (error) {
       throw new NotFoundException();
     }
+  }
+
+  async findPasswordResetRequestByCode(code: string) {
+    return await this.emailVerificationCodeRepository
+      .findOneBy({
+        verification_code: code,
+        expires_at: MoreThan(new Date()),
+      })
+      .then((record) => {
+        if (!record) {
+          throw new NotFoundException('Verification code not found');
+        }
+        return record;
+      });
   }
 
   generateVerificationCode(): string {

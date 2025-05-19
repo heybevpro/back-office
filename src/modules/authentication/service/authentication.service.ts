@@ -8,9 +8,14 @@ import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.re
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { User } from '../../user/entity/user.entity';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
-import { VerifiedJwtPayload } from '../../../utils/constants/auth.constants';
+import {
+  TemporaryAccessJwtPayload,
+  VerifiedJwtPayload,
+} from '../../../utils/constants/auth.constants';
 import { VerificationService } from '../../verification/service/verification.service';
 import { instanceToPlain } from 'class-transformer';
+import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
+import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -39,7 +44,9 @@ export class AuthenticationService {
       last_name: user.last_name,
       email: user.email,
       email_verified: user.email_verified,
+      onboarding_complete: user.onboarding_complete,
       role: user.role.role_name,
+      organization: user.organization,
       created_at: user.created_at,
     };
     return {
@@ -54,6 +61,17 @@ export class AuthenticationService {
         verifiedJwtPayload.id,
         verifiedJwtPayload.role.role_name,
       );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: unknown) {
+      throw new InvalidUserCredentialsException();
+    }
+  }
+
+  async validateTemporaryAccessJwt(
+    verifiedJwtPayload: TemporaryAccessJwtPayload,
+  ): Promise<User> {
+    try {
+      return await this.userService.findOneById(verifiedJwtPayload.id);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
       throw new InvalidUserCredentialsException();
@@ -78,7 +96,47 @@ export class AuthenticationService {
     };
   }
 
+  async validateResetPassword(code: string) {
+    const verificationRecord =
+      await this.verificationService.findPasswordResetRequestByCode(code);
+    const user = await this.userService.findOneByEmail(
+      verificationRecord.email,
+    );
+    await this.verificationService.deleteEmailVerificationRecordById(
+      verificationRecord.id,
+    );
+    return {
+      reset_token: await this.jwtService.signAsync(
+        { id: user.id, email: user.email },
+        { expiresIn: '10m' },
+      ),
+    };
+  }
+
+  async resetPassword(userId: string, updatedPassword: string) {
+    const hash = await bcrypt.hash(
+      updatedPassword,
+      AuthenticationService.SALT_ROUNDS,
+    );
+    return await this.userService.updateUserPasswordHash(userId, hash);
+  }
+
+  async requestResetPassword(email: string) {
+    try {
+      await this.userService.findOneByEmail(email);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      return PasswordResetEmailSentSuccessResponse;
+    }
+
+    return await this.verificationService.createPasswordResetRequest(email);
+  }
+
   async compareHash(password: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(password, hash);
+  }
+
+  async onboard(userId: string, onboardDto: AccountOnboardingDto) {
+    return await this.userService.onboardUser(userId, onboardDto);
   }
 }

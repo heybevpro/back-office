@@ -14,8 +14,8 @@ import { VoiceController } from './controller/voice.controller';
           configService.get('LIVEKIT_API_KEY'),
           configService.get('LIVEKIT_API_SECRET'),
           {
-            identity: 'local',
-            ttl: '100m',
+            identity: '',
+            ttl: '10m',
           },
         );
         at.addGrant({ roomJoin: true, room: 'local-room' });

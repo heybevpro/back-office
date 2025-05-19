@@ -2,12 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entity/role.entity';
+import { Organization } from '../../organization/entity/organization.entity';
 
 @Entity()
 export class User {
@@ -33,8 +36,20 @@ export class User {
   })
   role: Role;
 
+  @OneToOne(() => Organization, {
+    onDelete: 'SET NULL',
+    cascade: ['insert'],
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'organization_id', referencedColumnName: 'id' })
+  organization: Organization;
+
   @Column({ type: 'boolean', default: false })
   email_verified: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  onboarding_complete: boolean;
 
   @CreateDateColumn()
   created_at: Date;

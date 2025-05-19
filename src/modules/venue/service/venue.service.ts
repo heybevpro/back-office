@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Venue } from '../entity/venue.entity';
 import { Repository } from 'typeorm';
@@ -32,6 +36,14 @@ export class VenueService {
         organization: { id: createVenueDto.organization },
       }),
     );
+  }
+
+  async findOneById(id: number) {
+    try {
+      return await this.venueRepository.findOneByOrFail({ id });
+    } catch (error) {
+      throw new NotFoundException('Venue not found.', { cause: error });
+    }
   }
 
   async findAllByOrganization(organizationId: number) {

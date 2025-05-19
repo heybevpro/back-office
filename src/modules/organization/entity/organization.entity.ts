@@ -3,10 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Venue } from '../../venue/entity/venue.entity';
+import { User } from '../../user/entity/user.entity';
+import { OrganizationSize } from '../../../utils/constants/organization.constants';
 
 @Entity()
 export class Organization {
@@ -15,6 +18,27 @@ export class Organization {
 
   @Column({ type: 'varchar', length: 100, nullable: false, unique: true })
   name: string;
+
+  @Column({ type: 'text', nullable: false })
+  address_line1: string;
+
+  @Column({ type: 'text', nullable: true })
+  address_line2: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: false })
+  city: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: false })
+  state: string;
+
+  @Column({ type: 'varchar', length: 10, nullable: false })
+  zip: string;
+
+  @Column({ type: 'enum', enum: OrganizationSize, nullable: false })
+  size: OrganizationSize;
+
+  @OneToOne(() => User, (user) => user.organization)
+  user: User;
 
   @OneToMany(() => Venue, (venue) => venue.organization)
   venues: Venue[];

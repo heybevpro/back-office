@@ -16,6 +16,7 @@ describe('OrderController', () => {
       getAllClosedOrders: jest.fn(),
       createTab: jest.fn(),
       createClosedOrder: jest.fn(),
+      closeTab: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -144,6 +145,13 @@ describe('OrderController', () => {
         createClosedOrderDto,
       );
       expect(result).toEqual(mockClosedOrder);
+    });
+  });
+
+  describe('closeTab', () => {
+    it('should call OrderService.closeTab with the correct ID and return the result', async () => {
+      await orderController.closeTab('TAB-ID');
+      expect(orderService.closeTab).toHaveBeenCalledWith('TAB-ID');
     });
   });
 });

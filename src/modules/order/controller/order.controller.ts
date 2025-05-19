@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -11,8 +10,6 @@ import {
 import { OrderService } from '../service/order.service';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { CreateTabDto } from '../dto/create-tab.dto';
-import { CloseTabDto } from '../dto/close-tab.dto';
-import { validateSync } from 'class-validator';
 import { CreateClosedOrderDto } from '../dto/create-closed-order.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -42,14 +39,6 @@ export class OrderController {
 
   @Patch('close/tab/:id')
   closeTab(@Param('id') id: string) {
-    const closeTabDto = new CloseTabDto(id);
-    const err = validateSync(closeTabDto);
-    if (err.length > 0) {
-      throw new BadRequestException('Bad Request', {
-        cause: err,
-        description: err.toString(),
-      });
-    }
     return this.orderService.closeTab(id);
   }
 

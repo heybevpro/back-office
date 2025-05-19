@@ -8,6 +8,10 @@ import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '../../user/entity/user.entity';
+import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
+import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
+import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
+import { OrganizationSize } from '../../../utils/constants/organization.constants';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -39,6 +43,12 @@ describe('AuthenticationController', () => {
         email: createUserDto.email,
       });
     }),
+    requestResetPassword: jest.fn(() => {
+      return Promise.resolve(PasswordResetEmailSentSuccessResponse);
+    }),
+    validateResetPassword: jest.fn(),
+    resetPassword: jest.fn(),
+    onboard: jest.fn(),
   };
 
   const mockAuthGuard = {
@@ -119,6 +129,73 @@ describe('AuthenticationController', () => {
 
       const result = controller.loggedInUserDetails(mockUserPayload);
       expect(result).toEqual(mockUserPayload.user);
+    });
+  });
+
+  describe('request Password Reset', () => {
+    it('should call AuthenticationService.requestPasswordReset with correct parameters', async () => {
+      const mockResetPasswordDto: RequestPasswordResetDto = {
+        email: 'someuser@email.com',
+      };
+      await controller.requestResetPassword(mockResetPasswordDto);
+      expect(
+        mockAuthenticationService.requestResetPassword,
+      ).toHaveBeenCalledWith(mockResetPasswordDto.email);
+    });
+  });
+
+  describe('validate password reset request', () => {
+    it('should call AuthenticationService.validateResetPassword with correct parameters', async () => {
+      const mockValidatePasswordResetDto = {
+        rs: 'VALID_RESET_TOKEN',
+      };
+      await controller.validateResetPassword(mockValidatePasswordResetDto);
+      expect(
+        mockAuthenticationService.validateResetPassword,
+      ).toHaveBeenCalledWith(mockValidatePasswordResetDto.rs);
+    });
+  });
+
+  describe('reset password', () => {
+    it('should call AuthenticationService.validateResetPassword with correct parameters', async () => {
+      const mockRequest = {
+        user: {
+          id: 'VALID-ID',
+        },
+      };
+      const mockResetPasswordDto = {
+        updated_password: 'NEW_PASSWORD',
+      };
+      await controller.resetPassword(mockRequest, mockResetPasswordDto);
+      expect(mockAuthenticationService.resetPassword).toHaveBeenCalledWith(
+        mockRequest.user.id,
+        mockResetPasswordDto.updated_password,
+      );
+    });
+  });
+
+  describe('onboard account', () => {
+    it('should call AuthenticationService.onboard with correct parameters', async () => {
+      const mockRequest = {
+        user: {
+          id: 'VALID-USER-ID',
+        },
+      };
+      const mockOnboardDto: AccountOnboardingDto = {
+        name: 'New Organization',
+        phone: '123-456-7890',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
+      };
+      await controller.onboard(mockRequest, mockOnboardDto);
+      expect(mockAuthenticationService.onboard).toHaveBeenCalledWith(
+        mockRequest.user.id,
+        mockOnboardDto,
+      );
     });
   });
 });

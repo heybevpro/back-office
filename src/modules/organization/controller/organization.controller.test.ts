@@ -3,6 +3,8 @@ import { OrganizationService } from '../service/organization.service';
 import { OrganizationController } from './organization.controller';
 import { Organization } from '../entity/organization.entity';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
+import { User } from '../../user/entity/user.entity';
+import { OrganizationSize } from '../../../utils/constants/organization.constants';
 
 describe('OrganizationController', () => {
   let controller: OrganizationController;
@@ -13,6 +15,13 @@ describe('OrganizationController', () => {
     created_at: new Date(),
     updated_at: new Date(),
     venues: [],
+    user: {} as User,
+    address_line1: '123 Main St',
+    address_line2: 'Apt 4B',
+    city: 'New York',
+    state: 'NY',
+    zip: '10001',
+    size: OrganizationSize.SMALL,
   };
 
   const mockOrganizationService = {
@@ -42,6 +51,13 @@ describe('OrganizationController', () => {
     it('should create a new `Organization`', async () => {
       const mockCreateOrganizationDto: CreateOrganizationDto = {
         name: '<_VALID-ORG-NAME_>',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
+        phone: '123-456-7890',
       };
       expect(await controller.create(mockCreateOrganizationDto)).toEqual(
         mockOrganization,

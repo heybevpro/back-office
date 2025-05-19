@@ -13,6 +13,9 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
 import { RoleService } from '../../role/service/role.service';
 import { Role as RoleLevel } from '../../../utils/constants/role.constants';
+import { Organization } from '../../organization/entity/organization.entity';
+import { OrganizationService } from '../../organization/service/organization.service';
+import { OrganizationSize } from '../../../utils/constants/organization.constants';
 
 describe('UserService', () => {
   let userRepository: Repository<User>;
@@ -24,9 +27,11 @@ describe('UserService', () => {
     email: 'john@email.com',
     password: '<_PASSWORD_>',
     email_verified: true,
+    onboarding_complete: true,
     role: { id: 'Role-ID', role_name: 'VALID_ROLE_NAME' } as unknown as Role,
     created_at: new Date(),
     updated_at: new Date(),
+    organization: {} as Organization,
   };
 
   const mockCreateUserDto: CreateUserDto = {
@@ -38,6 +43,10 @@ describe('UserService', () => {
 
   const mockRoleService = {
     findDefault: jest.fn(() => Promise.resolve(mockUser.role)),
+  };
+
+  const mockOrganizationService = {
+    create: jest.fn(() => Promise.resolve(mockUser.organization)),
   };
 
   beforeEach(async () => {
@@ -52,6 +61,10 @@ describe('UserService', () => {
           provide: RoleService,
           useValue: mockRoleService,
         },
+        {
+          provide: OrganizationService,
+          useValue: mockOrganizationService,
+        },
       ],
     }).compile();
 
@@ -64,6 +77,9 @@ describe('UserService', () => {
   });
 
   describe('find one user by ID', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
     it('should return the user if found', async () => {
       jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(mockUser);
       expect(await service.findOneById('<_ID_>')).toEqual(mockUser);
@@ -72,7 +88,7 @@ describe('UserService', () => {
     it('should throw a Not Found Exception if user is not found', async () => {
       jest
         .spyOn(userRepository, 'findOneOrFail')
-        .mockRejectedValue(new NotFoundException());
+        .mockRejectedValue(new ImATeapotException());
 
       await expect(service.findOneById('<_INVALID-ID_>')).rejects.toThrow(
         NotFoundException,
@@ -195,6 +211,58 @@ describe('UserService', () => {
       jest.spyOn(userRepository, 'save').mockResolvedValue(updatedUser);
       const result = await service.update(mockUser);
       expect(result).toEqual(updatedUser);
+    });
+  });
+
+  describe('updateUserPasswordHash', () => {
+    it('should update the user password field and return the user', async () => {
+      const mockUserId = '<_USER_ID_>';
+      const mockUserPasswordHash = '<_PASSWORD_HASH_NEW_>';
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
+      jest
+        .spyOn(userRepository, 'save')
+        .mockResolvedValue({ ...mockUser, password: mockUserPasswordHash });
+      findOneOrFailSpy.mockResolvedValue(mockUser);
+      expect(
+        await service.updateUserPasswordHash(mockUserId, mockUserPasswordHash),
+      ).toEqual({
+        ...mockUser,
+        password: mockUserPasswordHash,
+      });
+    });
+  });
+
+  describe('onboardUser', () => {
+    it('should update the user email_verified field and return the user', async () => {
+      const mockUserId = '<_USER_ID_>';
+      const mockAccountOnboardingDto = {
+        name: 'Test Organization',
+        phone: '+11234567890',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
+      };
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
+      findOneOrFailSpy.mockResolvedValue(mockUser);
+      const userRepositorySaveSpy = jest.spyOn(userRepository, 'save');
+      userRepositorySaveSpy.mockResolvedValue({
+        ...mockUser,
+        onboarding_complete: true,
+      });
+      const result = await service.onboardUser(
+        mockUserId,
+        mockAccountOnboardingDto,
+      );
+      expect(result).toEqual(mockUser);
+      expect(findOneOrFailSpy).toHaveBeenCalledWith({
+        where: { id: mockUserId },
+      });
+      expect(mockOrganizationService.create).toHaveBeenCalledWith(
+        mockAccountOnboardingDto,
+      );
     });
   });
 });

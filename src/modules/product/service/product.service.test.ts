@@ -2,9 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductService } from './product.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Product } from '../entity/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ProductType } from '../../product-type/entity/product-type.entity';
 import { CreateProductDto } from '../dto/create-product.dto';
+import { UpdateProductQuantityDto } from '../dto/update-product-quantity.dto';
+import {
+  BadRequestException,
+  ImATeapotException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  InsufficientStockException,
+  OutOfStockException,
+} from '../../../excpetions/order.exception';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -82,6 +92,158 @@ describe('ProductService', () => {
         },
         order: { name: 'ASC' },
       });
+    });
+  });
+
+  describe('findAllWithIds', () => {
+    it('should return a list of products', async () => {
+      const mockProducts = [mockProduct];
+      jest.spyOn(productRepository, 'find').mockResolvedValue(mockProducts);
+      expect(await service.findAllWithIds(['1'])).toBe(mockProducts);
+    });
+
+    it('should call the repository with the correct query options', async () => {
+      const productRepositoryFindSpy = jest.spyOn(productRepository, 'find');
+      productRepositoryFindSpy.mockResolvedValue([mockProduct]);
+      await service.findAllWithIds(['1']);
+      expect(productRepositoryFindSpy).toHaveBeenCalledWith({
+        relations: { product_type: true },
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          quantity: true,
+          description: true,
+          created_at: true,
+          updated_at: true,
+          product_type: { id: true, name: true },
+        },
+        where: { id: In(['1']) },
+      });
+    });
+  });
+
+  describe('fetchInventory', () => {
+    it('should return a list of products', async () => {
+      const mockProducts = [mockProduct];
+      jest.spyOn(productRepository, 'find').mockResolvedValue(mockProducts);
+      expect(await service.fetchInventory()).toBe(mockProducts);
+    });
+
+    it('should call the repository with the correct query options', async () => {
+      const productRepositoryFindSpy = jest.spyOn(productRepository, 'find');
+      productRepositoryFindSpy.mockResolvedValue([mockProduct]);
+      await service.fetchInventory();
+      expect(productRepositoryFindSpy).toHaveBeenCalledWith({
+        relations: { product_type: true },
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          quantity: true,
+          description: true,
+          created_at: true,
+          updated_at: true,
+          product_type: { id: true, name: true },
+        },
+        order: { name: 'ASC' },
+      });
+    });
+  });
+
+  describe('updateItemQuantity', () => {
+    it('should return a list of products', async () => {
+      const mockUpdateProductQuantityDto: UpdateProductQuantityDto = {
+        product: '1',
+        quantity: 18,
+      };
+      const productRepositoryFindSpy = jest
+        .spyOn(productRepository, 'findOneByOrFail')
+        .mockResolvedValue(mockProduct);
+      jest.spyOn(productRepository, 'save').mockResolvedValue({
+        ...mockProduct,
+        quantity: mockUpdateProductQuantityDto.quantity,
+      });
+      expect(
+        await service.updateItemQuantity(mockUpdateProductQuantityDto),
+      ).toEqual({
+        ...mockProduct,
+        quantity: mockUpdateProductQuantityDto.quantity,
+      });
+      expect(productRepositoryFindSpy).toHaveBeenCalled();
+    });
+
+    it('should throw a NotFoundError if update fails', async () => {
+      const mockUpdateProductQuantityDto: UpdateProductQuantityDto = {
+        product: '1',
+        quantity: 18,
+      };
+      jest
+        .spyOn(productRepository, 'findOneByOrFail')
+        .mockRejectedValue(new ImATeapotException('Product not found'));
+      await expect(
+        service.updateItemQuantity(mockUpdateProductQuantityDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateMultipleProducts', () => {
+    it('should return a list of updated products products', async () => {
+      const mockProductsToUpdate = [mockProduct];
+      jest
+        .spyOn(productRepository, 'save')
+        .mockResolvedValue([mockProduct] as unknown as Product);
+      expect(
+        await service.updateMultipleProducts(mockProductsToUpdate),
+      ).toEqual(mockProductsToUpdate);
+    });
+
+    it('should throw a BadRequestException if update fails', async () => {
+      const mockProductsToUpdate = [mockProduct];
+      jest
+        .spyOn(productRepository, 'save')
+        .mockRejectedValue(new ImATeapotException('Failed to update'));
+      await expect(
+        service.updateMultipleProducts(mockProductsToUpdate),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('validateAndUpdateItemQuantitiesFromOrder', () => {
+    it('should update product quantities successfully', async () => {
+      const orderDetails = [{ id: '1', quantity: 5 } as Product];
+      jest.spyOn(service, 'findAllWithIds').mockResolvedValue([mockProduct]);
+      jest
+        .spyOn(service, 'updateMultipleProducts')
+        .mockResolvedValue([mockProduct]);
+
+      const result =
+        await service.validateAndUpdateItemQuantitiesFromOrder(orderDetails);
+
+      expect(result).toEqual([mockProduct]);
+      expect(service.findAllWithIds).toHaveBeenCalledWith(['1']);
+      expect(service.updateMultipleProducts).toHaveBeenCalled();
+    });
+
+    it('should throw OutOfStockException if product quantity is zero', async () => {
+      const orderDetails = [{ id: '1', quantity: 5 } as Product];
+      const outOfStockProduct = { ...mockProduct, quantity: 0 };
+      jest
+        .spyOn(service, 'findAllWithIds')
+        .mockResolvedValue([outOfStockProduct]);
+
+      await expect(
+        service.validateAndUpdateItemQuantitiesFromOrder(orderDetails),
+      ).rejects.toThrow(OutOfStockException);
+    });
+
+    it('should throw InsufficientStockException if requested quantity exceeds available stock', async () => {
+      const orderDetails = [{ id: '1', quantity: 15 } as Product];
+      jest.spyOn(service, 'findAllWithIds').mockResolvedValue([mockProduct]);
+
+      await expect(
+        service.validateAndUpdateItemQuantitiesFromOrder(orderDetails),
+      ).rejects.toThrow(InsufficientStockException);
     });
   });
 });

@@ -9,3 +9,10 @@ export interface VerifiedJwtPayload {
   iat: number;
   exp: number;
 }
+
+export interface TemporaryAccessJwtPayload {
+  id: string;
+  email: string;
+  iat: number;
+  exp: number;
+}

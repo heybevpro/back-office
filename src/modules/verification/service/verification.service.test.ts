@@ -17,6 +17,7 @@ import { UserService } from '../../user/service/user.service';
 import { CreateEmailVerificationCodeDto } from '../dto/create-email-verification-code.dto';
 import {
   EmailVerificationSuccessfulResponse,
+  PasswordResetEmailSentSuccessResponse,
   VerificationMessageSentSuccessResponse,
 } from '../../../utils/constants/api-response.constants';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
@@ -51,6 +52,7 @@ describe('VerificationService', () => {
 
   const mockEmailService = {
     sendVerificationEmail: jest.fn(),
+    sendPasswordResetEmail: jest.fn(),
   };
 
   const mockUserService = {
@@ -220,6 +222,20 @@ describe('VerificationService', () => {
     });
   });
 
+  describe('deleteEmailVerificationRecord', () => {
+    it('should delete an email verification record and send an email', async () => {
+      const mockId: number = 999;
+      const mockDeleteResponse = {};
+      const deleteSpy = jest
+        .spyOn(emailVerificationCodeRepository, 'delete')
+        .mockResolvedValue(mockDeleteResponse as DeleteResult);
+      expect(await service.deleteEmailVerificationRecordById(mockId)).toEqual(
+        mockDeleteResponse,
+      );
+      expect(deleteSpy).toHaveBeenCalledWith({ id: mockId });
+    });
+  });
+
   describe('verifyEmail', () => {
     let verifyEmailDto: VerifyEmailDto;
     let email: string;
@@ -296,6 +312,85 @@ describe('VerificationService', () => {
         NotFoundException,
       );
       expect(emailRecordDeleteSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createPasswordResetRequest', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+    it('should return a successful response', async () => {
+      const mockEmailVerificationRecord: EmailVerificationCode = {
+        email: 'test@email.com',
+        verification_code: 'VALID-VERIFICATION-CODE',
+        id: 1,
+        created_at: new Date(),
+        expires_at: new Date(),
+        updated_at: new Date(),
+      };
+      jest
+        .spyOn(emailVerificationCodeRepository, 'create')
+        .mockReturnValue(mockEmailVerificationRecord);
+      jest
+        .spyOn(emailVerificationCodeRepository, 'save')
+        .mockResolvedValue(mockEmailVerificationRecord);
+      expect(
+        await service.createPasswordResetRequest('test@email.com'),
+      ).toEqual(PasswordResetEmailSentSuccessResponse);
+    });
+
+    it('should call the EmailService to send the password reset email', async () => {
+      const mockEmailVerificationRecord: EmailVerificationCode = {
+        email: 'test@email.com',
+        verification_code: 'VALID-VERIFICATION-CODE',
+        id: 1,
+        created_at: new Date(),
+        expires_at: new Date(),
+        updated_at: new Date(),
+      };
+      jest
+        .spyOn(emailVerificationCodeRepository, 'create')
+        .mockReturnValue(mockEmailVerificationRecord);
+      jest
+        .spyOn(emailVerificationCodeRepository, 'save')
+        .mockResolvedValue(mockEmailVerificationRecord);
+      await service.createPasswordResetRequest('test@email.com');
+
+      expect(mockEmailService.sendPasswordResetEmail).toHaveBeenCalled();
+    });
+  });
+
+  describe('findPasswordResetRequestByCode', () => {
+    it('should return a Reset Request if found', async () => {
+      const mockCodeToFind = 'VALID-VERIFICATION-CODE';
+      const mockEmailVerificationRecord: EmailVerificationCode = {
+        email: 'test@email.com',
+        verification_code: 'VALID-VERIFICATION-CODE',
+        id: 1,
+        created_at: new Date(),
+        expires_at: new Date(),
+        updated_at: new Date(),
+      };
+      const findOneByOrFailSpy = jest.spyOn(
+        emailVerificationCodeRepository,
+        'findOneBy',
+      );
+      findOneByOrFailSpy.mockResolvedValue(mockEmailVerificationRecord);
+      expect(
+        await service.findPasswordResetRequestByCode(mockCodeToFind),
+      ).toEqual(mockEmailVerificationRecord);
+    });
+
+    it('should throw a NotFoundException if Verification Record is not found', async () => {
+      const mockCodeToFind = 'VALID-VERIFICATION-CODE';
+      const findOneByOrFailSpy = jest.spyOn(
+        emailVerificationCodeRepository,
+        'findOneBy',
+      );
+      findOneByOrFailSpy.mockResolvedValue(null);
+      await expect(
+        service.findPasswordResetRequestByCode(mockCodeToFind),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });
