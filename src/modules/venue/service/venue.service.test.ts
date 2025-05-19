@@ -22,7 +22,7 @@ describe('VenueService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     product_types: [],
-  };
+  } as unknown as Venue;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

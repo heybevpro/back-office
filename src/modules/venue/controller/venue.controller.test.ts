@@ -19,7 +19,7 @@ describe('VenueController', () => {
     created_at: new Date(),
     updated_at: new Date(),
     product_types: [],
-  };
+  } as unknown as Venue;
 
   const mockVenueService = {
     create: jest.fn().mockResolvedValue(mockVenue),
