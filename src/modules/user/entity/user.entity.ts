@@ -39,7 +39,7 @@ export class User {
   @OneToOne(() => Organization, {
     onDelete: 'SET NULL',
     cascade: ['insert'],
-    eager: true,
+    eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'organization_id', referencedColumnName: 'id' })
