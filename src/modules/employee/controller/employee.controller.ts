@@ -36,7 +36,7 @@ export class EmployeeController {
   @Post('login')
   async login(
     @Body(new ValidationPipe({ whitelist: true })) loginDto: LoginDto,
-  ): Promise<Employee | null> {
+  ): Promise<Employee> {
     return this.employeeService.findByUserPin(loginDto.pin);
   }
 }

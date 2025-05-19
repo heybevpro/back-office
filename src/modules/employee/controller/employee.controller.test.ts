@@ -3,6 +3,7 @@ import { EmployeeController } from '../controller/employee.controller';
 import { EmployeeService } from '../service/employee.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { Employee } from '../entity/employee.entity';
+import { NotFoundException } from '@nestjs/common';
 
 describe('EmployeeController', () => {
   let controller: EmployeeController;
@@ -29,6 +30,7 @@ describe('EmployeeController', () => {
     create: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
+    findByUserPin: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,28 +48,67 @@ describe('EmployeeController', () => {
     service = module.get(EmployeeService);
   });
 
-  it('should create an employee', async () => {
-    const dto = {
-      ...mockEmployee,
-      id: undefined,
-      created_at: undefined,
-      updated_at: undefined,
-    } as unknown as CreateEmployeeDto;
-
-    service.create.mockResolvedValue(mockEmployee);
-    const result = await controller.create(dto);
-
-    expect(service.create).toHaveBeenCalledWith(dto);
-    expect(result).toEqual(mockEmployee);
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 
-  it('should return all employees', async () => {
-    service.findAll.mockResolvedValue([mockEmployee]);
-    expect(await controller.findAll()).toEqual([mockEmployee]);
+  describe('create employee', () => {
+    it('should create and return an employee', async () => {
+      const dto = {
+        ...mockEmployee,
+        id: undefined,
+        created_at: undefined,
+        updated_at: undefined,
+      } as unknown as CreateEmployeeDto;
+
+      service.create.mockResolvedValue(mockEmployee);
+
+      const result = await controller.create(dto);
+
+      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockEmployee);
+    });
   });
 
-  it('should return employee by id', async () => {
-    service.findById.mockResolvedValue(mockEmployee);
-    expect(await controller.findById('uuid-1')).toEqual(mockEmployee);
+  describe('find all employees', () => {
+    it('should return all employees', async () => {
+      service.findAll.mockResolvedValue([mockEmployee]);
+      const result = await controller.findAll();
+
+      expect(service.findAll).toHaveBeenCalledTimes(1);
+      expect(result).toEqual([mockEmployee]);
+    });
+  });
+
+  describe('find employee by id', () => {
+    it('should return employee by id', async () => {
+      service.findById.mockResolvedValue(mockEmployee);
+      const result = await controller.findById('uuid-1');
+
+      expect(service.findById).toHaveBeenCalledWith('uuid-1');
+      expect(result).toEqual(mockEmployee);
+    });
+  });
+
+  describe('login', () => {
+    it('should return employee if pin is correct', async () => {
+      const loginDto = { pin: '123456' };
+      service.findByUserPin.mockResolvedValue(mockEmployee);
+
+      const result = await controller.login(loginDto);
+
+      expect(service.findByUserPin).toHaveBeenCalledWith('123456');
+      expect(result).toEqual(mockEmployee);
+    });
+
+    it('should return null if pin is invalid', async () => {
+      service.findByUserPin.mockRejectedValue(
+        new NotFoundException('Employee not found'),
+      );
+
+      await expect(controller.login({ pin: 'wrongpin' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 });
