@@ -25,7 +25,7 @@ export class UserService {
     try {
       return await this.userRepository.findOneOrFail({
         where: { id },
-        relations: { role: true },
+        relations: { role: true, organization: true },
       });
     } catch (error) {
       throw new NotFoundException('User not found', { cause: error });
