@@ -7,5 +7,5 @@ export enum EnvironmentType {
 export enum EnvironmentVariable {
   PORT = 'port',
   JWT_SECRET = 'jwtSecret',
-  EMAIL_CLIENT_CONFIGURATION = 'emailClientConfiguration',
+  CLOUD_PROVIDER_CONFIGURATION = 'cloudProviderConfiguration',
 }

@@ -78,6 +78,11 @@ export class BVP63_AddingEmployeeTable1742000000000
             isNullable: false,
           },
           {
+            name: 'employee_verified',
+            type: 'boolean',
+            default: false,
+          },
+          {
             name: 'created_at',
             type: 'timestamp',
             default: 'now()',

@@ -18,6 +18,7 @@ import { VoiceModule } from './modules/voice/voice.module';
 import { OrderModule } from './modules/order/order.module';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { DeviceModule } from './modules/device/device.module';
+import { ObjectStoreModule } from './modules/objectStore/objectStore.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { DeviceModule } from './modules/device/device.module';
     OrderModule,
     EmployeeModule,
     DeviceModule,
+    ObjectStoreModule,
   ],
   controllers: [AppController],
   providers: [AppService],

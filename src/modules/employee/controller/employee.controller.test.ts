@@ -22,6 +22,7 @@ describe('EmployeeController', () => {
     phone: '+1234567890',
     venues: [],
     pin: '123456',
+    employee_verified: false,
     created_at: new Date(),
     updated_at: new Date(),
   };

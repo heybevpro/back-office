@@ -30,6 +30,7 @@ describe('EmployeeService', () => {
     phone: '+1987654321',
     venues: [],
     pin: '123456',
+    employee_verified: false,
     created_at: new Date(),
     updated_at: new Date(),
   };

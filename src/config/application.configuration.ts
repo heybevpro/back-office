@@ -1,7 +1,7 @@
 interface IApplicationConfiguration {
   port: number;
   jwtSecret: string;
-  emailClientConfiguration: IEmailClientConfiguration;
+  cloudProviderConfiguration: IEmailClientConfiguration;
 }
 
 interface ICloudProviderCredentials {
@@ -17,7 +17,7 @@ export interface IEmailClientConfiguration {
 export default (): IApplicationConfiguration => ({
   port: +process.env.PORT!,
   jwtSecret: process.env.JWT_SECRET!,
-  emailClientConfiguration: {
+  cloudProviderConfiguration: {
     region: process.env.AWS_REGION!,
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID!,

@@ -46,6 +46,9 @@ export class Employee {
   @Column()
   pin: string;
 
+  @Column({ type: 'boolean', default: false })
+  employee_verified: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 
