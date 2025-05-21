@@ -2,14 +2,18 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from '../../product-type/entity/product-type.entity';
+import { Employee } from '../../employee/entity/employee.entity';
+import { Device } from '../../device/entity/device.entity';
 
 @Entity()
 @Unique(['organization', 'name'])
@@ -43,6 +47,13 @@ export class Venue {
 
   @OneToMany(() => ProductType, (productType) => productType.venue)
   product_types: Array<ProductType>;
+
+  @ManyToOne(() => Employee, (employee) => employee.venues, { nullable: true })
+  employee: Employee;
+
+  @OneToOne(() => Device, (device) => device.venue)
+  @JoinColumn()
+  device: Device;
 
   @CreateDateColumn()
   created_at: Date;
