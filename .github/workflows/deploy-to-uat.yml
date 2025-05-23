@@ -33,11 +33,8 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Generate Commit Hash
-        id: vars
-        run: |
-          calculatedSha=$(git rev-parse --short ${{ github.sha }})
-          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+      - id: commit
+        uses: prompt/actions-commit-hash@v3
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-push
@@ -45,7 +42,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECS_CONTAINER_NAME }}:${{ env.COMMIT_SHORT_SHA }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECS_CONTAINER_NAME }}:${{ steps.commit.outputs.short }}
   deploy:
     name: Deploy Service
     runs-on: ubuntu-latest
@@ -66,8 +63,8 @@ jobs:
         run: |
           aws ecs describe-task-definition --task-definition ${{ vars.ECS_TASK_DEFINITION }} --region ${{ vars.AWS_REGION }} --query taskDefinition > task-definition.json
 
-      - name: Confirm git commit SHA output
-        run: echo ${{ env.COMMIT_SHORT_SHA }}
+      - id: commit
+        uses: prompt/actions-commit-hash@v3
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -75,7 +72,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ vars.ECS_CONTAINER_NAME }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECS_CONTAINER_NAME }}:${{ env.COMMIT_SHORT_SHA }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECS_CONTAINER_NAME }}:${{ steps.commit.outputs.short }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1.4.10
