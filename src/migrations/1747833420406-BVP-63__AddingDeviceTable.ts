@@ -1,4 +1,9 @@
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+} from 'typeorm';
 
 export class BVP63_CreateDeviceTable1747833420406
   implements MigrationInterface
@@ -12,11 +17,13 @@ export class BVP63_CreateDeviceTable1747833420406
             name: 'id',
             type: 'uuid',
             isPrimary: true,
+            isGenerated: false,
             isNullable: false,
           },
           {
             name: 'name',
             type: 'varchar',
+            length: '64',
             isNullable: false,
           },
           {
@@ -27,15 +34,25 @@ export class BVP63_CreateDeviceTable1747833420406
           },
           {
             name: 'created_at',
-            type: 'timestamp',
+            type: 'timestamp with time zone',
             default: 'now()',
           },
           {
             name: 'updated_at',
-            type: 'timestamp',
+            type: 'timestamp with time zone',
             default: 'now()',
           },
         ],
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      'device',
+      new TableForeignKey({
+        columnNames: ['venueId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'venue',
+        onDelete: 'CASCADE',
       }),
     );
   }

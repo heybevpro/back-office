@@ -1,12 +1,11 @@
 import { Venue } from '../../venue/entity/venue.entity';
 import {
   Column,
-  Entity,
-  PrimaryColumn,
   CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryColumn,
   UpdateDateColumn,
-  OneToOne,
-  JoinColumn,
 } from 'typeorm';
 
 @Entity()
@@ -17,8 +16,10 @@ export class Device {
   @Column()
   name: string;
 
-  @OneToOne(() => Venue, (venue) => venue.device)
-  @JoinColumn()
+  @ManyToOne(() => Venue, (venue) => venue.devices, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   venue: Venue;
 
   @CreateDateColumn()
