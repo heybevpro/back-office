@@ -1,12 +1,13 @@
 import { Venue } from '../../venue/entity/venue.entity';
 import {
   Column,
-  Entity,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
-  OneToMany,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Employee {
@@ -40,10 +41,14 @@ export class Employee {
   @Column()
   phone: string;
 
-  @OneToMany(() => Venue, (venue) => venue.employee)
-  venues: Array<Venue>;
+  @ManyToOne(() => Venue, (venue) => venue.employees, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  venue?: Venue;
 
-  @Column()
+  @Exclude()
+  @Column({ unique: true, nullable: false })
   pin: string;
 
   @Column({ type: 'boolean', default: false })

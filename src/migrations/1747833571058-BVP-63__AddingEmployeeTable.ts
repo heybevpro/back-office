@@ -1,4 +1,9 @@
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+} from 'typeorm';
 
 export class BVP63_AddingEmployeeTable1747833571058
   implements MigrationInterface
@@ -84,17 +89,32 @@ export class BVP63_AddingEmployeeTable1747833571058
           },
           {
             name: 'created_at',
-            type: 'timestamp',
+            type: 'timestamp with time zone',
             default: 'now()',
           },
           {
             name: 'updated_at',
-            type: 'timestamp',
+            type: 'timestamp with time zone',
             default: 'now()',
+          },
+          {
+            name: 'venueId',
+            type: 'int',
+            isNullable: true,
           },
         ],
       }),
       true,
+    );
+
+    await queryRunner.createForeignKey(
+      'employee',
+      new TableForeignKey({
+        columnNames: ['venueId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'venue',
+        onDelete: 'SET NULL',
+      }),
     );
   }
 
