@@ -9,7 +9,7 @@ import { DeviceService } from '../service/device.service';
 export class DeviceController {
   constructor(private readonly deviceService: DeviceService) {}
 
-  @Post()
+  @Post('/register')
   async create(@Body() dto: CreateDeviceDto): Promise<Device> {
     return await this.deviceService.create(dto);
   }
