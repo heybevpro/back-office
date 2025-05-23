@@ -11,11 +11,11 @@ export class DeviceController {
 
   @Post()
   async create(@Body() dto: CreateDeviceDto): Promise<Device> {
-    return this.deviceService.create(dto);
+    return await this.deviceService.create(dto);
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<Device> {
-    return this.deviceService.findById(id);
+    return await this.deviceService.findById(id);
   }
 }
