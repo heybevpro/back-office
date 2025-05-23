@@ -1,21 +1,34 @@
 name: Deploy to UAT Environment
 on:
   workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-          - info
-          - warning
-          - debug
-
+permissions: read-all
 jobs:
-  build:
-    name: Build and Push Docker Image
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.7.0
+          cache: 'npm'
+      - name: 📦 Install Dependencies
+        run: npm ci
+      - name: 🎨 Run Linting
+        run: npm run lint
+      - name: ⚙️ Create Build
+        run: npm run build
+      - name: 🧪 Run Unit Tests
+        run: npm run test
+  build:
+    name: Build and Push Docker Image 🐳
+    runs-on: ubuntu-latest
+    outputs:
+      short-commit-hash: ${{steps.commit.outputs.short}}
     environment: staging
 
     steps:
@@ -44,7 +57,7 @@ jobs:
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ steps.commit.outputs.short }}
   deploy:
-    name: Deploy Service
+    name: Deploy Service ☁️
     runs-on: ubuntu-latest
     needs: build
     environment: staging
@@ -59,12 +72,10 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ vars.ECS_TASK_DEFINITION }} --region ${{ vars.AWS_REGION }} --query taskDefinition > task-definition.json
-
-      - id: commit
-        uses: prompt/actions-commit-hash@v3
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -72,10 +83,10 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ vars.ECS_CONTAINER_NAME }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ steps.commit.outputs.short }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ needs.build.outputs.short-commit-hash }}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2.3.2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ vars.ECS_SERVICE_NAME }}
