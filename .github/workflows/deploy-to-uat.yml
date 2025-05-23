@@ -35,7 +35,13 @@ jobs:
 
       - name: Generate Commit Hash
         id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+
+
+      - name: Confirm git commit SHA output
+        run: echo ${{ env.COMMIT_SHORT_SHA }}
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-push
@@ -63,6 +69,16 @@ jobs:
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ vars.ECS_TASK_DEFINITION }} --region ${{ vars.AWS_REGION }} --query taskDefinition > task-definition.json
+
+      - name: Generate Commit Hash
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+
+
+      - name: Confirm git commit SHA output
+        run: echo ${{ env.COMMIT_SHORT_SHA }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
