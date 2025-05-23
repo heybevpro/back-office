@@ -1,17 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Employee } from '../entity/employee.entity';
 import { EmployeeService } from '../service/employee.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
-import { LoginDto } from '../dto/login-request.dto';
+import { EmployeeLoginRequestDto } from '../dto/employee-login-request.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('employee')
@@ -34,9 +26,7 @@ export class EmployeeController {
   }
 
   @Post('login')
-  async login(
-    @Body(new ValidationPipe({ whitelist: true })) loginDto: LoginDto,
-  ): Promise<Employee | null> {
+  async login(@Body() loginDto: EmployeeLoginRequestDto): Promise<Employee> {
     return this.employeeService.findByUserPin(loginDto.pin);
   }
 }
