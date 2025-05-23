@@ -42,7 +42,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECS_CONTAINER_NAME }}:${{ steps.commit.outputs.short }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ steps.commit.outputs.short }}
   deploy:
     name: Deploy Service
     runs-on: ubuntu-latest
@@ -72,7 +72,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ vars.ECS_CONTAINER_NAME }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECS_CONTAINER_NAME }}:${{ steps.commit.outputs.short }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ steps.commit.outputs.short }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1.4.10
