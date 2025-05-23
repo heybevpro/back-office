@@ -10,32 +10,6 @@ describe('VenueService', () => {
   let service: VenueService;
   let venueRepository: Repository<Venue>;
 
-  const mockEmployee = {
-    id: 'employee-uuid',
-    first_name: 'John',
-    last_name: 'Doe',
-    address_line1: '123 Main St',
-    address_line2: undefined,
-    city: 'Sample City',
-    state: 'Sample State',
-    zip: '12345',
-    email: 'john.doe@example.com',
-    phone: '555-1234',
-    pin: '1234',
-    venues: [],
-    employee_verified: false,
-    created_at: new Date(),
-    updated_at: new Date(),
-  };
-
-  const mockDevice = {
-    id: 'device-uuid',
-    name: 'Device One',
-    venue: {} as Venue,
-    created_at: new Date(),
-    updated_at: new Date(),
-  };
-
   const mockVenue: Venue = {
     id: 1,
     name: '<_VALID-VENUE-NAME_>',
@@ -48,8 +22,8 @@ describe('VenueService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     product_types: [],
-    employee: mockEmployee,
-    device: mockDevice,
+    employees: [],
+    devices: [],
   };
 
   beforeEach(async () => {

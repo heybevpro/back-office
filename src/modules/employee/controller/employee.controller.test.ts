@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EmployeeController } from '../controller/employee.controller';
+import { EmployeeController } from './employee.controller';
 import { EmployeeService } from '../service/employee.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { Employee } from '../entity/employee.entity';
 import { NotFoundException } from '@nestjs/common';
+import { Venue } from '../../venue/entity/venue.entity';
 
 describe('EmployeeController', () => {
   let controller: EmployeeController;
@@ -20,7 +21,7 @@ describe('EmployeeController', () => {
     zip: '12345',
     email: 'john@example.com',
     phone: '+1234567890',
-    venues: [],
+    venue: {} as Venue,
     pin: '123456',
     employee_verified: false,
     created_at: new Date(),
@@ -57,9 +58,9 @@ describe('EmployeeController', () => {
     it('should create and return an employee', async () => {
       const dto = {
         ...mockEmployee,
-        id: undefined,
-        created_at: undefined,
-        updated_at: undefined,
+        id: 'EMPLOYEE-ID',
+        created_at: new Date(),
+        updated_at: new Date(),
       } as unknown as CreateEmployeeDto;
 
       service.create.mockResolvedValue(mockEmployee);
@@ -107,7 +108,7 @@ describe('EmployeeController', () => {
         new NotFoundException('Employee not found'),
       );
 
-      await expect(controller.login({ pin: 'wrongpin' })).rejects.toThrow(
+      await expect(controller.login({ pin: 'wrong pin' })).rejects.toThrow(
         NotFoundException,
       );
     });

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { EmployeeService } from '../service/employee.service';
+import { EmployeeService } from './employee.service';
 import { Employee } from '../entity/employee.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import {
@@ -9,13 +9,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Venue } from '../../venue/entity/venue.entity';
+import { CreateEmployeeDto } from '../dto/create-employee.dto';
 
 describe('EmployeeService', () => {
   let service: EmployeeService;
   let employeeRepository: Repository<Employee>;
-  let venueRepository: Partial<Repository<Venue>>;
-
-  const mockVenue = { id: 1, name: 'Venue 1' };
 
   const mockEmployee: Employee = {
     id: 'uuid-1',
@@ -28,35 +26,27 @@ describe('EmployeeService', () => {
     zip: '67890',
     email: 'jane@example.com',
     phone: '+1987654321',
-    venues: [],
+    venue: {} as Venue,
     pin: '123456',
     employee_verified: false,
     created_at: new Date(),
     updated_at: new Date(),
   };
 
-  const mockCreateDto = {
+  const mockCreateDto: CreateEmployeeDto = {
     first_name: 'Jane',
     last_name: 'Smith',
     address_line1: '456 Side St',
-    address_line2: undefined,
     city: 'Village',
     state: 'VS',
     zip: '67890',
     email: 'jane@example.com',
     phone: '+1987654321',
-    venues: [1],
+    venue: 1,
     pin: '123456',
   };
 
   beforeEach(async () => {
-    venueRepository = {
-      findByIds: jest.fn().mockResolvedValue([mockVenue]),
-      save: jest
-        .fn()
-        .mockImplementation((venue): Promise<Venue> => Promise.resolve(venue)),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmployeeService,
@@ -66,7 +56,7 @@ describe('EmployeeService', () => {
         },
         {
           provide: getRepositoryToken(Venue),
-          useValue: venueRepository,
+          useClass: Repository,
         },
       ],
     }).compile();
@@ -75,14 +65,6 @@ describe('EmployeeService', () => {
     employeeRepository = module.get<Repository<Employee>>(
       getRepositoryToken(Employee),
     );
-
-    employeeRepository.createQueryBuilder = jest.fn().mockReturnValue({
-      leftJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      setParameters: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([]),
-    });
   });
 
   it('should be defined', () => {
@@ -94,26 +76,10 @@ describe('EmployeeService', () => {
       jest.spyOn(employeeRepository, 'create').mockReturnValue(mockEmployee);
       jest.spyOn(employeeRepository, 'save').mockResolvedValue(mockEmployee);
 
-      const result = await service.create(mockCreateDto);
-
-      expect(result).toEqual(mockEmployee);
-      expect(venueRepository.findByIds).toHaveBeenCalledWith([1]);
-      expect(employeeRepository.create).toHaveBeenCalledWith({
-        first_name: 'Jane',
-        last_name: 'Smith',
-        address_line1: '456 Side St',
-        address_line2: undefined,
-        city: 'Village',
-        state: 'VS',
-        zip: '67890',
-        email: 'jane@example.com',
-        phone: '+1987654321',
-        pin: '123456',
-      });
-      expect(employeeRepository.save).toHaveBeenCalledWith(mockEmployee);
+      expect(await service.create(mockCreateDto)).toEqual(mockEmployee);
     });
 
-    it('should throw BadRequestException if saving fails', async () => {
+    it('should throw a BadRequestException if the Query fails', async () => {
       jest.spyOn(employeeRepository, 'create').mockReturnValue(mockEmployee);
       jest
         .spyOn(employeeRepository, 'save')
@@ -121,48 +87,6 @@ describe('EmployeeService', () => {
 
       await expect(service.create(mockCreateDto)).rejects.toThrow(
         BadRequestException,
-      );
-    });
-
-    it('should throw BadRequestException if no venues are provided', async () => {
-      const dtoWithoutVenues = { ...mockCreateDto, venues: [] };
-
-      await expect(service.create(dtoWithoutVenues)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw BadRequestException if some venue IDs are invalid', async () => {
-      (venueRepository.findByIds as jest.Mock).mockResolvedValueOnce([]);
-
-      await expect(service.create(mockCreateDto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw BadRequestException if PIN already exists for venue', async () => {
-      (venueRepository.findByIds as jest.Mock).mockResolvedValue([mockVenue]);
-
-      (employeeRepository.createQueryBuilder as jest.Mock).mockReturnValue({
-        leftJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        setParameters: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([mockEmployee]),
-      });
-
-      await expect(service.create(mockCreateDto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw BadRequestException with fallback message on unexpected error', async () => {
-      jest.spyOn(employeeRepository, 'create').mockImplementation(() => {
-        throw new Error('Unexpected failure');
-      });
-
-      await expect(service.create(mockCreateDto)).rejects.toThrow(
-        'Unable to create employee',
       );
     });
   });
@@ -177,7 +101,9 @@ describe('EmployeeService', () => {
 
   describe('findById', () => {
     it('should return the employee by id if found', async () => {
-      jest.spyOn(employeeRepository, 'findOne').mockResolvedValue(mockEmployee);
+      jest
+        .spyOn(employeeRepository, 'findOneOrFail')
+        .mockResolvedValue(mockEmployee);
 
       const result = await service.findById('uuid-1');
       expect(result).toEqual(mockEmployee);

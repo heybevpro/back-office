@@ -2,10 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -48,12 +46,11 @@ export class Venue {
   @OneToMany(() => ProductType, (productType) => productType.venue)
   product_types: Array<ProductType>;
 
-  @ManyToOne(() => Employee, (employee) => employee.venues, { nullable: true })
-  employee: Employee;
+  @OneToMany(() => Employee, (employee) => employee.venue, { nullable: true })
+  employees: Array<Employee>;
 
-  @OneToOne(() => Device, (device) => device.venue)
-  @JoinColumn()
-  device: Device;
+  @OneToMany(() => Device, (device) => device.venue)
+  devices: Array<Device>;
 
   @CreateDateColumn()
   created_at: Date;

@@ -1,20 +1,24 @@
 import {
-  IsArray,
   IsEmail,
   IsNotEmpty,
   IsOptional,
+  IsPhoneNumber,
+  IsPositive,
   IsString,
   Matches,
 } from 'class-validator';
 
 export class CreateEmployeeDto {
   @IsString()
+  @IsNotEmpty()
   first_name: string;
 
   @IsString()
+  @IsNotEmpty()
   last_name: string;
 
   @IsString()
+  @IsNotEmpty()
   address_line1: string;
 
   @IsOptional()
@@ -22,24 +26,28 @@ export class CreateEmployeeDto {
   address_line2?: string;
 
   @IsString()
+  @IsNotEmpty()
   city: string;
 
   @IsString()
   state: string;
 
   @IsString()
+  @IsNotEmpty()
   zip: string;
 
   @IsEmail()
   email: string;
 
-  @Matches(/^\+?[0-9\-\s]{7,15}$/)
+  @IsPhoneNumber('US')
   phone: string;
 
   @IsNotEmpty()
-  @Matches(/^\d{6}$/)
+  @Matches(/^\d{6}$/, {
+    message: 'Invalid PIN Format',
+  })
   pin: string;
 
-  @IsArray()
-  venues: number[];
+  @IsPositive()
+  venue: number;
 }
