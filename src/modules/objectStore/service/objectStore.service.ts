@@ -30,6 +30,16 @@ export class ObjectStoreService {
       throw new BadRequestException('Missing request fields');
     }
 
+    const allowedMimeTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(`Invalid file type: ${file.mimetype}`);
+    }
+
     const key = `documents/${organizationId}/${venueId}/${employeeId}/${uuidv4()}-${file.originalname}`;
 
     const command = new PutObjectCommand({
