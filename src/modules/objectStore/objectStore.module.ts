@@ -1,24 +1,24 @@
 import { Module } from '@nestjs/common';
-import { EmailService } from './service/email.service';
+import { ObjectStoreService } from './service/objectStore.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { SES } from '@aws-sdk/client-ses';
 import { EnvironmentVariable } from '../../utils/constants/environmentType';
+import { S3Upload } from 'livekit-server-sdk';
 
 @Module({
   imports: [ConfigModule],
   providers: [
     {
-      provide: SES,
+      provide: S3Upload,
       useFactory: (configService) => {
-        return new SES(
+        return new S3Upload(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
           configService.get(EnvironmentVariable.CLOUD_PROVIDER_CONFIGURATION),
         );
       },
       inject: [ConfigService],
     },
-    EmailService,
+    ObjectStoreService,
   ],
-  exports: [EmailService],
+  exports: [ObjectStoreService],
 })
-export class EmailModule {}
+export class ObjectStoreModule {}

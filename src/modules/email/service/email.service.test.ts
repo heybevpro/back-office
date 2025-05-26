@@ -18,7 +18,7 @@ describe('EmailService', () => {
         if (key === 'NEXT_CLIENT_URL') {
           return 'https://example.com';
         }
-        if (key === 'EMAIL_CLIENT_CONFIGURATION') {
+        if (key === 'CLOUD_PROVIDER_CONFIGURATION') {
           return { region: 'us-east-1' };
         }
         return null;
