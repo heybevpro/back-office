@@ -102,5 +102,80 @@ describe('ObjectStoreService', () => {
         service.uploadDocument(mockFile, organizationId, venueId, employeeId),
       ).rejects.toThrow(InternalServerErrorException);
     });
+
+    it('should throw BadRequestException for unsupported file type: text/plain', async () => {
+      const invalidFile = {
+        ...mockFile,
+        mimetype: 'text/plain',
+        originalname: 'test.txt',
+      };
+
+      await expect(
+        service.uploadDocument(
+          invalidFile,
+          organizationId,
+          venueId,
+          employeeId,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should allow file type: application/pdf', async () => {
+      s3Mock.on(PutObjectCommand).resolves({});
+
+      const pdfFile = {
+        buffer: Buffer.from('pdf content'),
+        mimetype: 'application/pdf',
+        originalname: 'test.pdf',
+      };
+
+      const result = await service.uploadDocument(
+        pdfFile,
+        organizationId,
+        venueId,
+        employeeId,
+      );
+
+      expect(result).toContain('test.pdf');
+    });
+
+    it('should allow file type: application/vnd.openxmlformats-officedocument.wordprocessingml.document', async () => {
+      s3Mock.on(PutObjectCommand).resolves({});
+
+      const docxFile = {
+        buffer: Buffer.from('docx content'),
+        mimetype:
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        originalname: 'test.docx',
+      };
+
+      const result = await service.uploadDocument(
+        docxFile,
+        organizationId,
+        venueId,
+        employeeId,
+      );
+
+      expect(result).toContain('test.docx');
+    });
+
+    it('should allow file type: image/jpeg', async () => {
+      s3Mock.on(PutObjectCommand).resolves({});
+
+      const jpgFile = {
+        buffer: Buffer.from('jpg content'),
+        mimetype: 'image/jpeg',
+        originalname: 'test.jpg',
+      };
+
+      const result = await service.uploadDocument(
+        jpgFile,
+        organizationId,
+        venueId,
+        employeeId,
+      );
+
+      expect(result).toContain('test.jpg');
+    });
   });
 });
