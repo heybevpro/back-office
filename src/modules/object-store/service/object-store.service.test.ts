@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
-import { ObjectStoreService } from './objectStore.service';
+import { ObjectStoreService } from './object-store.service';
 
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mocked-uuid'),
@@ -15,9 +15,9 @@ const s3Mock = mockClient(S3Client);
 
 describe('ObjectStoreService', () => {
   let service: ObjectStoreService;
-  const organizationId = 'organizationId';
-  const venueId = 'venueId';
-  const employeeId = 'employeeId';
+  const mockOrganizationId = '<_ORGANIZATION-ID_>';
+  const mockVenueId = '<_VENUE-ID_>';
+  const mockEmployeeId = '<_EMPLOYEE-ID_>';
 
   beforeEach(async () => {
     s3Mock.reset();
@@ -41,35 +41,37 @@ describe('ObjectStoreService', () => {
     };
 
     it('should throw BadRequestException when file is not provided', async () => {
+      const file = null;
       await expect(
         service.uploadDocument(
-          null as unknown as {
-            buffer: Buffer;
-            mimetype: string;
-            originalname: string;
-          },
-          organizationId,
-          venueId,
-          employeeId,
+          file as never,
+          mockOrganizationId,
+          mockVenueId,
+          mockEmployeeId,
         ),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw BadRequestException when organizationId is missing', async () => {
+    it('should throw BadRequestException when mockOrganizationId is missing', async () => {
       await expect(
-        service.uploadDocument(mockFile, '', venueId, employeeId),
+        service.uploadDocument(mockFile, '', mockVenueId, mockEmployeeId),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw BadRequestException when venueId is missing', async () => {
+    it('should throw BadRequestException when mockVenueId is missing', async () => {
       await expect(
-        service.uploadDocument(mockFile, organizationId, '', employeeId),
+        service.uploadDocument(
+          mockFile,
+          mockOrganizationId,
+          '',
+          mockEmployeeId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw BadRequestException when employeeId is missing', async () => {
+    it('should throw BadRequestException when mockEmployeeId is missing', async () => {
       await expect(
-        service.uploadDocument(mockFile, organizationId, venueId, ''),
+        service.uploadDocument(mockFile, mockOrganizationId, mockVenueId, ''),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -78,18 +80,20 @@ describe('ObjectStoreService', () => {
 
       const result = await service.uploadDocument(
         mockFile,
-        organizationId,
-        venueId,
-        employeeId,
+        mockOrganizationId,
+        mockVenueId,
+        mockEmployeeId,
       );
 
-      expect(result).toBe(
-        `documents/${organizationId}/${venueId}/${employeeId}/mocked-uuid-test.pdf`,
-      );
+      const expectedKey = `documents/${mockOrganizationId}/${mockVenueId}/${mockEmployeeId}/mocked-uuid-test.pdf`;
 
-      expect(s3Mock.calls()[0].args[0].input).toEqual({
+      expect(result).toBe(expectedKey);
+
+      const [putCommand] = s3Mock.commandCalls(PutObjectCommand);
+
+      expect(putCommand.args[0].input).toEqual({
         Bucket: process.env.S3_BUCKET_NAME,
-        Key: `documents/${organizationId}/${venueId}/${employeeId}/mocked-uuid-test.pdf`,
+        Key: expectedKey,
         Body: mockFile.buffer,
         ContentType: mockFile.mimetype,
       });
@@ -99,7 +103,12 @@ describe('ObjectStoreService', () => {
       s3Mock.on(PutObjectCommand).rejects(new Error('S3 failure'));
 
       await expect(
-        service.uploadDocument(mockFile, organizationId, venueId, employeeId),
+        service.uploadDocument(
+          mockFile,
+          mockOrganizationId,
+          mockVenueId,
+          mockEmployeeId,
+        ),
       ).rejects.toThrow(InternalServerErrorException);
     });
 
@@ -113,14 +122,14 @@ describe('ObjectStoreService', () => {
       await expect(
         service.uploadDocument(
           invalidFile,
-          organizationId,
-          venueId,
-          employeeId,
+          mockOrganizationId,
+          mockVenueId,
+          mockEmployeeId,
         ),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should allow file type: application/pdf', async () => {
+    it('should allow file type: pdf', async () => {
       s3Mock.on(PutObjectCommand).resolves({});
 
       const pdfFile = {
@@ -131,15 +140,15 @@ describe('ObjectStoreService', () => {
 
       const result = await service.uploadDocument(
         pdfFile,
-        organizationId,
-        venueId,
-        employeeId,
+        mockOrganizationId,
+        mockVenueId,
+        mockEmployeeId,
       );
 
       expect(result).toContain('test.pdf');
     });
 
-    it('should allow file type: application/vnd.openxmlformats-officedocument.wordprocessingml.document', async () => {
+    it('should allow file type: docx', async () => {
       s3Mock.on(PutObjectCommand).resolves({});
 
       const docxFile = {
@@ -151,15 +160,15 @@ describe('ObjectStoreService', () => {
 
       const result = await service.uploadDocument(
         docxFile,
-        organizationId,
-        venueId,
-        employeeId,
+        mockOrganizationId,
+        mockVenueId,
+        mockEmployeeId,
       );
 
       expect(result).toContain('test.docx');
     });
 
-    it('should allow file type: image/jpeg', async () => {
+    it('should allow file type: jpg', async () => {
       s3Mock.on(PutObjectCommand).resolves({});
 
       const jpgFile = {
@@ -170,9 +179,9 @@ describe('ObjectStoreService', () => {
 
       const result = await service.uploadDocument(
         jpgFile,
-        organizationId,
-        venueId,
-        employeeId,
+        mockOrganizationId,
+        mockVenueId,
+        mockEmployeeId,
       );
 
       expect(result).toContain('test.jpg');
