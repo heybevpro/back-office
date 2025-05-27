@@ -1,11 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
 import { ObjectStoreService } from './object-store.service';
+import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mocked-uuid'),
@@ -40,41 +38,6 @@ describe('ObjectStoreService', () => {
       originalname: 'test.pdf',
     };
 
-    it('should throw BadRequestException when file is not provided', async () => {
-      const file = null;
-      await expect(
-        service.uploadDocument(
-          file as never,
-          mockOrganizationId,
-          mockVenueId,
-          mockEmployeeId,
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw BadRequestException when mockOrganizationId is missing', async () => {
-      await expect(
-        service.uploadDocument(mockFile, '', mockVenueId, mockEmployeeId),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw BadRequestException when mockVenueId is missing', async () => {
-      await expect(
-        service.uploadDocument(
-          mockFile,
-          mockOrganizationId,
-          '',
-          mockEmployeeId,
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw BadRequestException when mockEmployeeId is missing', async () => {
-      await expect(
-        service.uploadDocument(mockFile, mockOrganizationId, mockVenueId, ''),
-      ).rejects.toThrow(BadRequestException);
-    });
-
     it('should upload a document and return the S3 key', async () => {
       s3Mock.on(PutObjectCommand).resolves({});
 
@@ -99,8 +62,10 @@ describe('ObjectStoreService', () => {
       });
     });
 
-    it('should log and throw InternalServerErrorException when upload fails', async () => {
-      s3Mock.on(PutObjectCommand).rejects(new Error('S3 failure'));
+    it('should log and throw S3UploadFailedException when upload fails', async () => {
+      s3Mock
+        .on(PutObjectCommand)
+        .rejects(new Error('Simulated S3 upload failure'));
 
       await expect(
         service.uploadDocument(
@@ -109,7 +74,7 @@ describe('ObjectStoreService', () => {
           mockVenueId,
           mockEmployeeId,
         ),
-      ).rejects.toThrow(InternalServerErrorException);
+      ).rejects.toThrow(S3UploadFailedException);
     });
 
     it('should throw BadRequestException for unsupported file type: text/plain', async () => {
@@ -185,6 +150,20 @@ describe('ObjectStoreService', () => {
       );
 
       expect(result).toContain('test.jpg');
+    });
+  });
+
+  describe('S3UploadFailedException', () => {
+    it('should format the message with details', () => {
+      const err = new S3UploadFailedException('Upload timed out');
+      expect(err.message).toBe(
+        'Document upload to S3 failed. Upload timed out',
+      );
+    });
+
+    it('should format the message without details', () => {
+      const err = new S3UploadFailedException();
+      expect(err.message).toBe('Document upload to S3 failed. ');
     });
   });
 });

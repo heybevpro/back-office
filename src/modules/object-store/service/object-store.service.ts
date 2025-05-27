@@ -1,19 +1,15 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { S3, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
+import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 
 @Injectable()
 export class ObjectStoreService {
   private readonly logger = new Logger(ObjectStoreService.name);
-  private readonly s3: S3Client;
+  private readonly s3: S3;
 
   constructor() {
-    this.s3 = new S3Client({ region: 'us-east-2' });
+    this.s3 = new S3({ region: 'us-east-2' });
   }
 
   async uploadDocument(
@@ -22,14 +18,6 @@ export class ObjectStoreService {
     venueId: string,
     employeeId: string,
   ): Promise<string> {
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
-    }
-
-    if (!organizationId || !venueId || !employeeId) {
-      throw new BadRequestException('Missing request fields');
-    }
-
     const allowedMimeTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -54,7 +42,7 @@ export class ObjectStoreService {
       return key;
     } catch (error: unknown) {
       this.logger.error('Failed to upload document to S3', error);
-      throw new InternalServerErrorException('Document upload failed');
+      throw new S3UploadFailedException((error as Error).message);
     }
   }
 }
