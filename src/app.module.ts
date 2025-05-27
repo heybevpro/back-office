@@ -18,6 +18,8 @@ import { VoiceModule } from './modules/voice/voice.module';
 import { OrderModule } from './modules/order/order.module';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { DeviceModule } from './modules/device/device.module';
+import { CartContentModule } from './modules/cart-content/cart-content.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { DeviceModule } from './modules/device/device.module';
     OrderModule,
     EmployeeModule,
     DeviceModule,
+    CartContentModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],

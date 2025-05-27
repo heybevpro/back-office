@@ -1,0 +1,70 @@
+describe('CartController', () => {
+  // let controller: CartController;
+  // const mockUser: User = {
+  //   id: 'VALID_ID',
+  //   first_name: 'John',
+  //   last_name: 'Doe',
+  //   password: '<_PASSWORD_>',
+  //   email: 'john@email.com',
+  //   email_verified: true,
+  //   onboarding_complete: true,
+  //   role: 'ADMIN' as unknown as Role,
+  //   created_at: new Date(),
+  //   updated_at: new Date(),
+  //   organization: {} as Organization,
+  // };
+
+  // const mockUserService = {
+  //   findOneById: jest.fn((id: string) => {
+  //     if (id === 'VALID_ID') return Promise.resolve(mockUser);
+  //     throw new NotFoundException();
+  //   }),
+  //   findAll: jest.fn(() => Promise.resolve([mockUser])),
+  //   findAllExceptLoggedInUser: jest.fn(() => Promise.resolve([mockUser])),
+  // };
+  beforeEach(async () => {
+    // const module: TestingModule = await Test.createTestingModule({
+    //   controllers: [CartController],
+    //   providers: [{ provide: UserService, useValue: mockUserService }],
+    // }).compile();
+    // controller = module.get<CartController>(CartController);
+  });
+
+  it('should be defined', () => {
+    // expect(controller).toBeDefined();
+  });
+
+  // describe('find user by ID', () => {
+  //   it('should return the user if found', async () => {
+  //     expect(await controller.findById('VALID_ID')).toEqual(mockUser);
+  //     expect(mockUserService.findOneById).toHaveBeenCalledTimes(1);
+  //     expect(mockUserService.findOneById).toHaveBeenCalledWith('VALID_ID');
+  //   });
+  //   it('should throw a NotFoundException if user us not found', async () => {
+  //     await expect(controller.findById('INVALID_ID')).rejects.toThrow(
+  //       NotFoundException,
+  //     );
+  //     expect(mockUserService.findOneById).toHaveBeenCalledWith('INVALID_ID');
+  //   });
+  // });
+
+  // describe('find all users', () => {
+  //   it('should return all users', async () => {
+  //     expect(await controller.findAll()).toEqual([mockUser]);
+  //     expect(mockUserService.findAll).toHaveBeenCalledTimes(1);
+  //   });
+  // });
+
+  // describe('find all users except logged in user', () => {
+  //   it('should return all users except logged in user', async () => {
+  //     expect(
+  //       await controller.findAllExceptLoggedInUser({
+  //         user: { id: '<_LOGGED_IN_USER_ID_>' },
+  //       }),
+  //     ).toEqual([mockUser]);
+  //     expect(mockUserService.findAllExceptLoggedInUser).toHaveBeenCalledTimes(
+  //       1,
+  //     );
+  //   });
+  // });
+});
