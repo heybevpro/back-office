@@ -16,6 +16,8 @@ import { ProductTypeModule } from './modules/product-type/product-type.module';
 import { ProductModule } from './modules/product/product.module';
 import { VoiceModule } from './modules/voice/voice.module';
 import { OrderModule } from './modules/order/order.module';
+import { EmployeeModule } from './modules/employee/employee.module';
+import { DeviceModule } from './modules/device/device.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { OrderModule } from './modules/order/order.module';
     ProductModule,
     VoiceModule,
     OrderModule,
+    EmployeeModule,
+    DeviceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

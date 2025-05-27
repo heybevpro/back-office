@@ -10,6 +10,8 @@ import {
 } from 'typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from '../../product-type/entity/product-type.entity';
+import { Employee } from '../../employee/entity/employee.entity';
+import { Device } from '../../device/entity/device.entity';
 
 @Entity()
 @Unique(['organization', 'name'])
@@ -43,6 +45,12 @@ export class Venue {
 
   @OneToMany(() => ProductType, (productType) => productType.venue)
   product_types: Array<ProductType>;
+
+  @OneToMany(() => Employee, (employee) => employee.venue, { nullable: true })
+  employees: Array<Employee>;
+
+  @OneToMany(() => Device, (device) => device.venue)
+  devices: Array<Device>;
 
   @CreateDateColumn()
   created_at: Date;

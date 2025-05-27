@@ -6,7 +6,6 @@ import { Organization } from '../../organization/entity/organization.entity';
 
 describe('VenueController', () => {
   let controller: VenueController;
-
   const mockVenue: Venue = {
     id: 1,
     name: '<_VALID-VENUE-NAME_>',
@@ -19,6 +18,8 @@ describe('VenueController', () => {
     created_at: new Date(),
     updated_at: new Date(),
     product_types: [],
+    employees: [],
+    devices: [],
   };
 
   const mockVenueService = {

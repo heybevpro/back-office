@@ -22,6 +22,8 @@ describe('VenueService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     product_types: [],
+    employees: [],
+    devices: [],
   };
 
   beforeEach(async () => {
