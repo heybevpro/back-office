@@ -1,15 +1,15 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { S3, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 
 @Injectable()
 export class ObjectStoreService {
   private readonly logger = new Logger(ObjectStoreService.name);
-  private readonly s3: S3;
+  private readonly s3: S3Client;
 
   constructor() {
-    this.s3 = new S3({ region: 'us-east-2' });
+    this.s3 = new S3Client({ region: 'us-east-2' });
   }
 
   async uploadDocument(
