@@ -1,0 +1,96 @@
+name: Deploy to UAT Environment
+on:
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.7.0
+          cache: 'npm'
+      - name: 📦 Install Dependencies
+        run: npm ci
+      - name: 🎨 Run Linting
+        run: npm run lint
+      - name: ⚙️ Create Build
+        run: npm run build
+      - name: 🧪 Run Unit Tests
+        run: npm run test
+  build:
+    name: Build and Push Docker Image 🐳
+    runs-on: ubuntu-latest
+    outputs:
+      short-commit-hash: ${{steps.commit.outputs.short}}
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHub_to_AWS_via_OIDC
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - id: commit
+        uses: prompt/actions-commit-hash@v3
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ steps.commit.outputs.short }}
+  deploy:
+    name: Deploy Service ☁️
+    runs-on: ubuntu-latest
+    needs: build
+    environment: staging
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHub_to_AWS_via_OIDC
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ vars.ECS_TASK_DEFINITION }} --region ${{ vars.AWS_REGION }} --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.1.2
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ vars.ECS_CONTAINER_NAME }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ needs.build.outputs.short-commit-hash }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2.3.2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ vars.ECS_SERVICE_NAME }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          wait-for-service-stability: true
