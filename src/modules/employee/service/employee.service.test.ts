@@ -73,10 +73,19 @@ describe('EmployeeService', () => {
 
   describe('create', () => {
     it('should create and return a new employee', async () => {
+      jest.spyOn(employeeRepository, 'findOne').mockResolvedValue(null);
       jest.spyOn(employeeRepository, 'create').mockReturnValue(mockEmployee);
       jest.spyOn(employeeRepository, 'save').mockResolvedValue(mockEmployee);
 
       expect(await service.create(mockCreateDto)).toEqual(mockEmployee);
+    });
+
+    it('should throw BadRequestException if pin already exists for venue', async () => {
+      jest.spyOn(employeeRepository, 'findOne').mockResolvedValue(mockEmployee);
+
+      await expect(service.create(mockCreateDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw a BadRequestException if the Query fails', async () => {
