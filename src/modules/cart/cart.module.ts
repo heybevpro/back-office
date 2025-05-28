@@ -6,10 +6,11 @@ import { CartController } from './controller/cart.controller';
 import { RoleModule } from '../role/role.module';
 import { OrganizationModule } from '../organization/organization.module';
 import { Employee } from '../employee/entity/employee.entity';
+import { CartContent } from '../cart-content/entity/cart-content.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Cart, Employee]),
+    TypeOrmModule.forFeature([Cart, Employee, CartContent]),
     forwardRef(() => RoleModule),
     OrganizationModule,
   ],
