@@ -10,15 +10,9 @@ import { EnvironmentVariable } from '../../utils/constants/environmentType';
     {
       provide: SES,
       useFactory: (configService: ConfigService): SES => {
-        const sesConfig = configService.get<SESClientConfig>(
+        const sesConfig = configService.getOrThrow<SESClientConfig>(
           EnvironmentVariable.CLOUD_PROVIDER_CONFIGURATION,
         );
-
-        if (!sesConfig) {
-          throw new Error(
-            `Missing SES configuration for key: ${EnvironmentVariable.CLOUD_PROVIDER_CONFIGURATION}`,
-          );
-        }
 
         return new SES(sesConfig);
       },

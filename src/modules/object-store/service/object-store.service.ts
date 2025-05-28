@@ -1,11 +1,10 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 
 @Injectable()
 export class ObjectStoreService {
-  private readonly logger = new Logger(ObjectStoreService.name);
   private readonly s3: S3Client;
 
   constructor() {
@@ -41,7 +40,6 @@ export class ObjectStoreService {
       await this.s3.send(command);
       return key;
     } catch (error: unknown) {
-      this.logger.error('Failed to upload document to S3', error);
       throw new S3UploadFailedException((error as Error).message);
     }
   }

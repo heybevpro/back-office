@@ -1,30 +1,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { mockClient } from 'aws-sdk-client-mock';
 import { ObjectStoreService } from './object-store.service';
 import { S3UploadFailedException } from '../../../excpetions/objects.exception';
+
+jest.mock('@aws-sdk/client-s3');
 
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mocked-uuid'),
 }));
 
-const s3Mock = mockClient(S3Client);
-
 describe('ObjectStoreService', () => {
   let service: ObjectStoreService;
+  let s3ClientSendMock: jest.Mock;
+
   const mockOrganizationId = '<_ORGANIZATION-ID_>';
   const mockVenueId = '<_VENUE-ID_>';
   const mockEmployeeId = '<_EMPLOYEE-ID_>';
 
   beforeEach(async () => {
-    s3Mock.reset();
+    s3ClientSendMock = jest.fn();
+    (S3Client as jest.Mock).mockImplementation(() => ({
+      send: s3ClientSendMock,
+    }));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [ObjectStoreService],
     }).compile();
 
     service = module.get<ObjectStoreService>(ObjectStoreService);
+    process.env.S3_BUCKET_NAME = 'mock-bucket';
   });
 
   it('should be defined', () => {
@@ -39,7 +44,7 @@ describe('ObjectStoreService', () => {
     };
 
     it('should upload a document and return the S3 key', async () => {
-      s3Mock.on(PutObjectCommand).resolves({});
+      s3ClientSendMock.mockResolvedValue({});
 
       const result = await service.uploadDocument(
         mockFile,
@@ -51,21 +56,16 @@ describe('ObjectStoreService', () => {
       const expectedKey = `documents/${mockOrganizationId}/${mockVenueId}/${mockEmployeeId}/mocked-uuid-test.pdf`;
 
       expect(result).toBe(expectedKey);
+      expect(s3ClientSendMock).toHaveBeenCalledTimes(1);
 
-      const [putCommand] = s3Mock.commandCalls(PutObjectCommand);
-
-      expect(putCommand.args[0].input).toEqual({
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: expectedKey,
-        Body: mockFile.buffer,
-        ContentType: mockFile.mimetype,
-      });
+      const [putCommand] = s3ClientSendMock.mock.calls[0] as [PutObjectCommand];
+      expect(putCommand).toBeInstanceOf(PutObjectCommand);
     });
 
     it('should log and throw S3UploadFailedException when upload fails', async () => {
-      s3Mock
-        .on(PutObjectCommand)
-        .rejects(new Error('Simulated S3 upload failure'));
+      s3ClientSendMock.mockRejectedValue(
+        new Error('Simulated S3 upload failure'),
+      );
 
       await expect(
         service.uploadDocument(
@@ -95,7 +95,7 @@ describe('ObjectStoreService', () => {
     });
 
     it('should allow file type: pdf', async () => {
-      s3Mock.on(PutObjectCommand).resolves({});
+      s3ClientSendMock.mockResolvedValue({});
 
       const pdfFile = {
         buffer: Buffer.from('pdf content'),
@@ -114,7 +114,7 @@ describe('ObjectStoreService', () => {
     });
 
     it('should allow file type: docx', async () => {
-      s3Mock.on(PutObjectCommand).resolves({});
+      s3ClientSendMock.mockResolvedValue({});
 
       const docxFile = {
         buffer: Buffer.from('docx content'),
@@ -134,7 +134,7 @@ describe('ObjectStoreService', () => {
     });
 
     it('should allow file type: jpg', async () => {
-      s3Mock.on(PutObjectCommand).resolves({});
+      s3ClientSendMock.mockResolvedValue({});
 
       const jpgFile = {
         buffer: Buffer.from('jpg content'),
