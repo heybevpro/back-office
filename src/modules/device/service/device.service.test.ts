@@ -9,26 +9,29 @@ import { DeviceService } from './device.service';
 describe('DeviceService', () => {
   let service: DeviceService;
   let deviceRepository: jest.Mocked<Partial<Repository<Device>>>;
-
-  const mockVenue: Venue = {
-    id: 1,
-    name: 'Test Venue',
-    device: null,
-  } as unknown as Venue;
+  let venueRepository: jest.Mocked<Partial<Repository<Venue>>>;
 
   const mockDevice: Device = {
     id: '<_VALID-DEVICE-ID_>',
     name: 'Unit Test Device',
-    venue: mockVenue,
+    venue: {},
   } as Device;
 
   beforeEach(async () => {
+    venueRepository = {
+      findOne: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DeviceService,
         {
           provide: getRepositoryToken(Device),
           useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(Venue),
+          useValue: venueRepository,
         },
       ],
     }).compile();
@@ -45,12 +48,51 @@ describe('DeviceService', () => {
         venue: 1,
       };
 
+      jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(null);
+      jest
+        .spyOn(venueRepository, 'findOne')
+        .mockResolvedValue({ id: 1 } as Venue);
       jest.spyOn(deviceRepository, 'create').mockReturnValue(mockDevice);
       jest.spyOn(deviceRepository, 'save').mockResolvedValue(mockDevice);
 
       const result = await service.create(createDevicePayload);
 
       expect(result).toEqual(mockDevice);
+    });
+
+    it('should throw BadRequestException if device with same ID exists', async () => {
+      const createDevicePayload = {
+        id: '<_VALID-DEVICE-ID_>',
+        name: 'Unit Test Device',
+        venue: 1,
+      };
+
+      jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(mockDevice);
+
+      await expect(service.create(createDevicePayload)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.create(createDevicePayload)).rejects.toThrow(
+        /Device with serial number <_VALID-DEVICE-ID_> is already registered./,
+      );
+    });
+
+    it('should throw BadRequestException if venue not found', async () => {
+      const createDevicePayload = {
+        id: '<_VALID-DEVICE-ID_>',
+        name: 'Unit Test Device',
+        venue: 1,
+      };
+
+      jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(venueRepository, 'findOne').mockResolvedValue(null);
+
+      await expect(service.create(createDevicePayload)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.create(createDevicePayload)).rejects.toThrow(
+        /Venue with ID 1 not found./,
+      );
     });
 
     it('should throw BadRequestException if Query fails', async () => {
@@ -60,6 +102,10 @@ describe('DeviceService', () => {
         venue: 1,
       };
 
+      jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(null);
+      jest
+        .spyOn(venueRepository, 'findOne')
+        .mockResolvedValue({ id: 1 } as Venue);
       jest.spyOn(deviceRepository, 'create').mockReturnValue(mockDevice);
       jest.spyOn(deviceRepository, 'save').mockRejectedValue(new Error());
 

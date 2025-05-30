@@ -30,7 +30,6 @@ export class BVP63_CreateDeviceTable1747833420406
             name: 'venueId',
             type: 'int',
             isNullable: true,
-            isUnique: true,
           },
           {
             name: 'created_at',
