@@ -17,7 +17,6 @@ export class CartController {
     @Param('cartId') cartId: number,
     @Body() dto: RemoveFromCartDto,
   ) {
-    console.log(dto);
     return this.cartService.removeFromCart(cartId, dto);
   }
 

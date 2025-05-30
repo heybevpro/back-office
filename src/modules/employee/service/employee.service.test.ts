@@ -2,7 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EmployeeService } from './employee.service';
 import { Employee } from '../entity/employee.entity';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { Cart } from '../../cart/entity/cart.entity';
+import {
+  DataSource,
+  EntityManager,
+  EntityNotFoundError,
+  Repository,
+} from 'typeorm';
 import {
   BadRequestException,
   ImATeapotException,
@@ -14,6 +20,8 @@ import { CreateEmployeeDto } from '../dto/create-employee.dto';
 describe('EmployeeService', () => {
   let service: EmployeeService;
   let employeeRepository: Repository<Employee>;
+  // let cartRepository: Repository<Cart>;
+  let dataSource: DataSource;
 
   const mockEmployee: Employee = {
     id: 'uuid-1',
@@ -26,7 +34,7 @@ describe('EmployeeService', () => {
     zip: '67890',
     email: 'jane@example.com',
     phone: '+1987654321',
-    venue: {} as Venue,
+    venue: { id: 1 } as Venue,
     pin: '123456',
     employee_verified: false,
     created_at: new Date(),
@@ -58,6 +66,16 @@ describe('EmployeeService', () => {
           provide: getRepositoryToken(Venue),
           useClass: Repository,
         },
+        {
+          provide: getRepositoryToken(Cart),
+          useClass: Repository,
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -65,6 +83,8 @@ describe('EmployeeService', () => {
     employeeRepository = module.get<Repository<Employee>>(
       getRepositoryToken(Employee),
     );
+    // cartRepository = module.get<Repository<Cart>>(getRepositoryToken(Cart));
+    dataSource = module.get<DataSource>(DataSource);
   });
 
   it('should be defined', () => {
@@ -73,17 +93,24 @@ describe('EmployeeService', () => {
 
   describe('create', () => {
     it('should create and return a new employee', async () => {
-      jest.spyOn(employeeRepository, 'create').mockReturnValue(mockEmployee);
-      jest.spyOn(employeeRepository, 'save').mockResolvedValue(mockEmployee);
+      (dataSource.transaction as jest.Mock).mockImplementation(
+        async (cb: (manager: EntityManager) => Promise<unknown>) => {
+          const mockManager = {
+            create: jest.fn().mockReturnValue(mockEmployee),
+            save: jest.fn().mockResolvedValue(mockEmployee),
+          } as unknown as EntityManager;
+          return await cb(mockManager);
+        },
+      );
 
-      expect(await service.create(mockCreateDto)).toEqual(mockEmployee);
+      const result = await service.create(mockCreateDto);
+      expect(result).toEqual(mockEmployee);
     });
 
     it('should throw a BadRequestException if the Query fails', async () => {
-      jest.spyOn(employeeRepository, 'create').mockReturnValue(mockEmployee);
-      jest
-        .spyOn(employeeRepository, 'save')
-        .mockRejectedValue(new ImATeapotException());
+      (dataSource.transaction as jest.Mock).mockImplementation(() => {
+        throw new ImATeapotException();
+      });
 
       await expect(service.create(mockCreateDto)).rejects.toThrow(
         BadRequestException,

@@ -1,5 +1,5 @@
-import { CartContent } from 'src/modules/cart-content/entity/cart-content.entity';
-import { Employee } from 'src/modules/employee/entity/employee.entity';
+import { CartContent } from '../../cart-content/entity/cart-content.entity';
+import { Employee } from '../../employee/entity/employee.entity';
 import {
   Entity,
   JoinColumn,
