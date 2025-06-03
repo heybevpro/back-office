@@ -129,7 +129,7 @@ export class UserService {
 
     if (existingBusiness) {
       throw new BadRequestException(
-        `An employee with business name ${existingBusiness.name} is already registered.`,
+        `Business name ${existingBusiness.name} is already registered.`,
       );
     }
 
