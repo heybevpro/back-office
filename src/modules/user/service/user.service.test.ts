@@ -47,6 +47,7 @@ describe('UserService', () => {
 
   const mockOrganizationService = {
     create: jest.fn(() => Promise.resolve(mockUser.organization)),
+    findOne: jest.fn(() => Promise.resolve(null)),
   };
 
   beforeEach(async () => {

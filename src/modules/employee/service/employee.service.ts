@@ -16,19 +16,30 @@ export class EmployeeService {
   ) {}
 
   async create(createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
-    const { pin, venue: venueId } = createEmployeeDto;
+    const { pin, venue: venueId, email } = createEmployeeDto;
 
     try {
-      const existing = await this.employeeRepository.findOne({
+      const existingEmail = await this.employeeRepository.findOne({
+        where: { email },
+      });
+
+      if (existingEmail) {
+        throw new BadRequestException(
+          `An employee with email ${email} is already registered.`,
+        );
+      }
+
+      const existingPinForVenue = await this.employeeRepository.findOne({
         where: {
           pin,
           venue: { id: venueId },
         },
+        relations: { venue: true },
       });
 
-      if (existing) {
+      if (existingPinForVenue) {
         throw new BadRequestException(
-          `An employee with pin '${pin}' already exists in venue '${venueId}'`,
+          `An employee with pin ${pin} is already registered for this venue.`,
         );
       }
 
@@ -38,7 +49,7 @@ export class EmployeeService {
       });
       return await this.employeeRepository.save(employee);
     } catch (err) {
-      throw new BadRequestException('Failed to create employee', {
+      throw new BadRequestException(err, {
         cause: err,
       });
     }
