@@ -104,4 +104,28 @@ describe('OrganizationService', () => {
       expect(await service.findAll()).toEqual([mockOrganization]);
     });
   });
+
+  describe('findOne', () => {
+    it('should return an organization by name', async () => {
+      const orgName = '<_VALID-ORG-NAME_>';
+      const findOneSpy = jest
+        .spyOn(organizationRepository, 'findOne')
+        .mockResolvedValue(mockOrganization);
+
+      const result = await service.findOne(orgName);
+      expect(findOneSpy).toHaveBeenCalledWith({ where: { name: orgName } });
+      expect(result).toEqual(mockOrganization);
+    });
+
+    it('should return null if organization not found', async () => {
+      const orgName = '<_NON-EXISTENT-ORG_>';
+      const findOneSpy = jest
+        .spyOn(organizationRepository, 'findOne')
+        .mockResolvedValue(null);
+
+      const result = await service.findOne(orgName);
+      expect(findOneSpy).toHaveBeenCalledWith({ where: { name: orgName } });
+      expect(result).toBeNull();
+    });
+  });
 });
