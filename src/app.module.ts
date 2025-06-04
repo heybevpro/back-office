@@ -18,6 +18,7 @@ import { VoiceModule } from './modules/voice/voice.module';
 import { OrderModule } from './modules/order/order.module';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { DeviceModule } from './modules/device/device.module';
+import { EmployeeInvitationModule } from './modules/employee-invitation/employee-invitation.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { DeviceModule } from './modules/device/device.module';
     OrderModule,
     EmployeeModule,
     DeviceModule,
+    EmployeeInvitationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
