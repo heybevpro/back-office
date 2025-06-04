@@ -3,11 +3,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { EmployeeInvitation } from '../../employee-invitation/entity/employee-invitation.entity';
 
 @Entity()
 export class Employee {
@@ -53,6 +56,10 @@ export class Employee {
 
   @Column({ type: 'boolean', default: false })
   employee_verified: boolean;
+
+  @OneToOne(() => EmployeeInvitation, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn()
+  employee_invite: EmployeeInvitation;
 
   @CreateDateColumn()
   created_at: Date;

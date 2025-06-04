@@ -50,4 +50,8 @@ export class CreateEmployeeDto {
 
   @IsPositive()
   venue: number;
+
+  @IsString()
+  @IsNotEmpty()
+  employee_invite_id: string;
 }
