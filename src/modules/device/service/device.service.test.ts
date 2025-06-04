@@ -4,24 +4,55 @@ import { Device } from '../entity/device.entity';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Repository } from 'typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { VenueService } from '../../venue/service/venue.service';
 import { DeviceService } from './device.service';
+import { Organization } from '../../organization/entity/organization.entity';
+import {
+  DeviceConflictException,
+  VenueNotFoundException,
+} from '../../../excpetions/device.exception';
 
 describe('DeviceService', () => {
-  let service: DeviceService;
+  let deviceService: DeviceService;
+  let venueService: jest.Mocked<VenueService>;
   let deviceRepository: jest.Mocked<Partial<Repository<Device>>>;
-  let venueRepository: jest.Mocked<Partial<Repository<Venue>>>;
 
   const mockDevice: Device = {
     id: '<_VALID-DEVICE-ID_>',
     name: 'Unit Test Device',
-    venue: {},
-  } as Device;
+    venue: {} as Venue,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  const mockOrganization = {
+    id: 1,
+    name: 'Mock Org',
+    created_at: new Date(),
+    updated_at: new Date(),
+  } as Organization;
+
+  const mockVenue: Venue = {
+    id: 1,
+    name: 'Mock Venue',
+    organization: mockOrganization,
+    address: '',
+    city: '',
+    state: '',
+    phone_number: '',
+    capacity: 3,
+    created_at: new Date(),
+    updated_at: new Date(),
+    employees: [],
+    product_types: [],
+    devices: [],
+  };
+
+  const mockVenueService = {
+    findOneById: jest.fn(),
+  };
 
   beforeEach(async () => {
-    venueRepository = {
-      findOne: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DeviceService,
@@ -30,13 +61,14 @@ describe('DeviceService', () => {
           useClass: Repository,
         },
         {
-          provide: getRepositoryToken(Venue),
-          useValue: venueRepository,
+          provide: VenueService,
+          useValue: mockVenueService,
         },
       ],
     }).compile();
 
-    service = module.get<DeviceService>(DeviceService);
+    deviceService = module.get(DeviceService);
+    venueService = module.get(VenueService);
     deviceRepository = module.get(getRepositoryToken(Device));
   });
 
@@ -49,13 +81,11 @@ describe('DeviceService', () => {
       };
 
       jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(null);
-      jest
-        .spyOn(venueRepository, 'findOne')
-        .mockResolvedValue({ id: 1 } as Venue);
+      jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
       jest.spyOn(deviceRepository, 'create').mockReturnValue(mockDevice);
       jest.spyOn(deviceRepository, 'save').mockResolvedValue(mockDevice);
 
-      const result = await service.create(createDevicePayload);
+      const result = await deviceService.create(createDevicePayload);
 
       expect(result).toEqual(mockDevice);
     });
@@ -69,11 +99,8 @@ describe('DeviceService', () => {
 
       jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(mockDevice);
 
-      await expect(service.create(createDevicePayload)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.create(createDevicePayload)).rejects.toThrow(
-        /Device with serial number <_VALID-DEVICE-ID_> is already registered./,
+      await expect(deviceService.create(createDevicePayload)).rejects.toThrow(
+        DeviceConflictException,
       );
     });
 
@@ -85,13 +112,12 @@ describe('DeviceService', () => {
       };
 
       jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(null);
-      jest.spyOn(venueRepository, 'findOne').mockResolvedValue(null);
+      jest
+        .spyOn(venueService, 'findOneById')
+        .mockRejectedValue(new VenueNotFoundException(1));
 
-      await expect(service.create(createDevicePayload)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.create(createDevicePayload)).rejects.toThrow(
-        /Venue with ID 1 not found./,
+      await expect(deviceService.create(createDevicePayload)).rejects.toThrow(
+        VenueNotFoundException,
       );
     });
 
@@ -104,12 +130,12 @@ describe('DeviceService', () => {
 
       jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(null);
       jest
-        .spyOn(venueRepository, 'findOne')
+        .spyOn(venueService, 'findOneById')
         .mockResolvedValue({ id: 1 } as Venue);
       jest.spyOn(deviceRepository, 'create').mockReturnValue(mockDevice);
       jest.spyOn(deviceRepository, 'save').mockRejectedValue(new Error());
 
-      await expect(service.create(createDevicePayload)).rejects.toThrow(
+      await expect(deviceService.create(createDevicePayload)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -119,7 +145,7 @@ describe('DeviceService', () => {
     it('should return device with venue if found', async () => {
       jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(mockDevice);
 
-      const result = await service.findById('device-uuid');
+      const result = await deviceService.findById('device-uuid');
 
       expect(result).toEqual(mockDevice);
       expect(deviceRepository.findOne).toHaveBeenCalledWith({
@@ -131,7 +157,7 @@ describe('DeviceService', () => {
     it('should throw NotFoundException if device not found', async () => {
       jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(null);
 
-      await expect(service.findById('invalid-id')).rejects.toThrow(
+      await expect(deviceService.findById('invalid-id')).rejects.toThrow(
         NotFoundException,
       );
     });
