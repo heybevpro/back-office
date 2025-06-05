@@ -28,4 +28,10 @@ export class OrganizationService {
   async findAll(): Promise<Organization[]> {
     return await this.organizationRepository.find();
   }
+
+  async findOne(name: string): Promise<Organization | null> {
+    return await this.organizationRepository.findOne({
+      where: { name },
+    });
+  }
 }

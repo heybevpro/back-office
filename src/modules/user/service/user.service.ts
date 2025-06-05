@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -121,6 +122,17 @@ export class UserService {
     const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
     });
+
+    const existingBusiness = await this.organizationService.findOne(
+      accountOnboardingDto.name,
+    );
+
+    if (existingBusiness) {
+      throw new BadRequestException(
+        `Business name ${existingBusiness.name} is already registered.`,
+      );
+    }
+
     user.organization =
       await this.organizationService.create(accountOnboardingDto);
     user.onboarding_complete = true;

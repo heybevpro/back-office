@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserService } from './user.service';
 import {
+  BadRequestException,
   ConflictException,
   ImATeapotException,
   NotFoundException,
@@ -47,6 +48,7 @@ describe('UserService', () => {
 
   const mockOrganizationService = {
     create: jest.fn(() => Promise.resolve(mockUser.organization)),
+    findOne: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -203,6 +205,31 @@ describe('UserService', () => {
       });
       expect(saveUserSpy).toHaveBeenCalledWith(mockUser);
     });
+
+    it('should throw BadRequestException if business already exists', async () => {
+      const mockUserId = '<_USER_ID_>';
+      const mockAccountOnboardingDto = {
+        name: 'Existing Business',
+        phone: '+11234567890',
+        address_line1: '123 Main St',
+        address_line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        size: OrganizationSize.SMALL,
+      };
+
+      const existingBusiness = { name: 'Existing Business' } as Organization;
+
+      jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(mockUser);
+      jest
+        .spyOn(mockOrganizationService, 'findOne')
+        .mockResolvedValue(existingBusiness);
+
+      await expect(
+        service.onboardUser(mockUserId, mockAccountOnboardingDto),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('update', () => {
@@ -247,6 +274,7 @@ describe('UserService', () => {
       };
       const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
       findOneOrFailSpy.mockResolvedValue(mockUser);
+      jest.spyOn(mockOrganizationService, 'findOne').mockResolvedValue(null);
       const userRepositorySaveSpy = jest.spyOn(userRepository, 'save');
       userRepositorySaveSpy.mockResolvedValue({
         ...mockUser,
