@@ -5,7 +5,7 @@ import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
 import { EmailService } from '../../email/service/email.service';
 import { Status } from '../../../utils/constants/employee.constants';
-import { Venue } from '../../venue/entity/venue.entity';
+import { VenueService } from '../../venue/service/venue.service';
 
 @Injectable()
 export class EmployeeInvitationService {
@@ -13,9 +13,7 @@ export class EmployeeInvitationService {
     @InjectRepository(EmployeeInvitation)
     private readonly employeeInvitationRepository: Repository<EmployeeInvitation>,
 
-    @InjectRepository(Venue)
-    private readonly venueRepository: Repository<Venue>,
-
+    private readonly venueService: VenueService,
     private readonly emailService: EmailService,
   ) {}
 
@@ -68,9 +66,7 @@ export class EmployeeInvitationService {
         this.employeeInvitationRepository,
       );
 
-      const organization = await this.venueRepository.findOneOrFail({
-        where: { id: venue },
-      });
+      const organization = await this.venueService.findOneById(venue);
 
       await this.emailService.sendEmployeeInvitationEmail(
         email,
@@ -85,7 +81,10 @@ export class EmployeeInvitationService {
       });
       return await this.employeeInvitationRepository.save(employeeInvite);
     } catch (err) {
-      throw new BadRequestException(err, {
+      if (err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new BadRequestException('Failed to create invitation', {
         cause: err,
       });
     }

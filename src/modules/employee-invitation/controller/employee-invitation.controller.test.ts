@@ -1,29 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
-// import { Status } from '../../../utils/constants/employee.constants';
 import { EmployeeInvitationController } from './employee-invitation.controller';
 import { EmployeeInvitationService } from '../service/employee-invitation.service';
-// import { EmployeeInvitation } from '../entity/employee-invitation.entity';
-// import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
+import { EmployeeInvitation } from '../entity/employee-invitation.entity';
+import { Status } from '../../../utils/constants/employee.constants';
+import { Venue } from '../../venue/entity/venue.entity';
+import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
 
 describe('EmployeeInvitationController', () => {
   let controller: EmployeeInvitationController;
-  // let service: jest.Mocked<EmployeeInvitationService>;
+  let service: jest.Mocked<EmployeeInvitationService>;
 
-  // FIXME: fix mock data
-  // const mockEmployeeInvitation: EmployeeInvitation = {
-  //   id: '<VALID_ID>',
-  //   email: 'john@example.com',
-  //   pin: '123456',
-  //   status: Status.OnboardingPending,
-  //   created_at: new Date(),
-  //   updated_at: new Date(),
-  // } as EmployeeInvitation;
+  const mockInvitation: EmployeeInvitation = {
+    id: 'invitation-123',
+    email: 'employee@example.com',
+    pin: '654321',
+    venue: {} as Venue,
+    status: Status.OnboardingPending,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
 
-  const mockEmployeeInvitationService = {
+  const mockService: Partial<jest.Mocked<EmployeeInvitationService>> = {
     create: jest.fn(),
-    findAll: jest.fn(),
-    findById: jest.fn(),
-    findByUserPin: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -32,7 +30,7 @@ describe('EmployeeInvitationController', () => {
       providers: [
         {
           provide: EmployeeInvitationService,
-          useValue: mockEmployeeInvitationService,
+          useValue: mockService,
         },
       ],
     }).compile();
@@ -40,28 +38,26 @@ describe('EmployeeInvitationController', () => {
     controller = module.get<EmployeeInvitationController>(
       EmployeeInvitationController,
     );
-    // service = module.get(EmployeeInvitationService);
+    service = module.get(EmployeeInvitationService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  // describe('create employee', () => {
-  //   it('should create and return an employee', async () => {
-  //     const dto = {
-  //       ...mockEmployeeInvitation,
-  //       id: 'EMPLOYEE-ID',
-  //       created_at: new Date(),
-  //       updated_at: new Date(),
-  //     } as unknown as CreateEmployeeInvitationDto;
+  describe('sendInvite', () => {
+    it('should call service.create with DTO and return the result', async () => {
+      const dto: CreateEmployeeInvitationDto = {
+        email: 'employee@example.com',
+        venue: 1,
+      };
 
-  //     service.create.mockResolvedValue(mockEmployeeInvitation);
+      jest.spyOn(service, 'create').mockResolvedValue(mockInvitation);
 
-  //     const result = await controller.create(dto);
+      const result = await controller.sendInvite(dto);
 
-  //     // expect(service.create).toHaveBeenCalledWith(dto);
-  //     // expect(result).toEqual(mockEmployeeInvitation);
-  //   });
-  // });
+      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockInvitation);
+    });
+  });
 });

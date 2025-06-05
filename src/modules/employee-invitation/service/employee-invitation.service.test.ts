@@ -2,29 +2,50 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeeInvitationService } from './employee-invitation.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
-import { Venue } from '../../venue/entity/venue.entity';
+import { Repository } from 'typeorm';
 import { EmailService } from '../../email/service/email.service';
-// import { Repository } from 'typeorm';
-
-const mockEmployeeInvitationRepo = () => ({
-  findOne: jest.fn(),
-  create: jest.fn(),
-  save: jest.fn(),
-});
-
-const mockVenueRepo = () => ({
-  findOneOrFail: jest.fn(),
-});
-
-const mockEmailService = () => ({
-  sendEmployeeInvitationEmail: jest.fn(),
-});
+import { VenueService } from '../../venue/service/venue.service';
+import { BadRequestException } from '@nestjs/common';
+import { Status } from '../../../utils/constants/employee.constants';
+import { Venue } from '../../venue/entity/venue.entity';
+import { Organization } from 'src/modules/organization/entity/organization.entity';
 
 describe('EmployeeInvitationService', () => {
   let service: EmployeeInvitationService;
-  // let invitationRepo: jest.Mocked<Repository<EmployeeInvitation>>;
-  // let venueRepo: jest.Mocked<Repository<Venue>>;
-  // let emailService: jest.Mocked<EmailService>;
+  let invitationRepository: jest.Mocked<Repository<EmployeeInvitation>>;
+  let emailService: jest.Mocked<EmailService>;
+  let venueService: jest.Mocked<VenueService>;
+
+  const mockVenue: Venue = {
+    id: 1,
+    name: 'Mock Venue',
+    address: '',
+    city: '',
+    state: '',
+    phone_number: '',
+    capacity: 100,
+    organization: {
+      id: 1,
+      name: 'Mock Org',
+      created_at: new Date(),
+      updated_at: new Date(),
+    } as Organization,
+    employees: [],
+    devices: [],
+    product_types: [],
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  const mockInvitation: EmployeeInvitation = {
+    id: 'inv-123',
+    email: 'test@example.com',
+    pin: '123456',
+    status: Status.OnboardingPending,
+    venue: mockVenue,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,113 +53,116 @@ describe('EmployeeInvitationService', () => {
         EmployeeInvitationService,
         {
           provide: getRepositoryToken(EmployeeInvitation),
-          useFactory: mockEmployeeInvitationRepo,
+          useClass: Repository,
         },
-        { provide: getRepositoryToken(Venue), useFactory: mockVenueRepo },
-        { provide: EmailService, useFactory: mockEmailService },
+        {
+          provide: EmailService,
+          useValue: {
+            sendEmployeeInvitationEmail: jest.fn(),
+          },
+        },
+        {
+          provide: VenueService,
+          useValue: {
+            findOneById: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<EmployeeInvitationService>(EmployeeInvitationService);
-    // invitationRepo = module.get(getRepositoryToken(EmployeeInvitation));
-    // venueRepo = module.get(getRepositoryToken(Venue));
-    // emailService = module.get(EmailService);
+    invitationRepository = module.get(getRepositoryToken(EmployeeInvitation));
+    emailService = module.get(EmailService);
+    venueService = module.get(VenueService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('generatePin', () => {
+    it('should generate a 6-digit pin as string', () => {
+      const pin = service.generatePin();
+      expect(pin).toHaveLength(6);
+      expect(typeof pin).toBe('string');
+    });
   });
 
-  // describe('create', () => {
-  //   const dto = {
-  //     email: 'test@example.com',
-  //     venue: 1,
-  //   };
+  describe('generateUniquePinForVenue', () => {
+    it('should generate a unique pin within maxAttempts', async () => {
+      const mockRepo: Partial<Repository<EmployeeInvitation>> = {
+        findOne: jest.fn().mockResolvedValue(null),
+      };
+      const repo = mockRepo as Repository<EmployeeInvitation>;
 
-  //   it('should create and save an invitation if no existing one and venue exists', async () => {
-  //     invitationRepo.findOne.mockResolvedValue(null);
-  //     venueRepo.findOneOrFail.mockResolvedValue({
-  //       id: 1,
-  //       name: 'Test Venue',
-  //     } as Venue);
-  //     invitationRepo.create.mockReturnValue({
-  //       ...dto,
-  //       pin: '123456',
-  //       venue: { id: 1 },
-  //     });
-  //     invitationRepo.save.mockResolvedValue({ id: 1, ...dto, pin: '123456' });
+      const pin = await service.generateUniquePinForVenue(1, repo);
+      expect(pin).toHaveLength(6);
+    });
 
-  //     jest
-  //       .spyOn(service, 'generateUniquePinForVenue')
-  //       .mockResolvedValue('123456');
+    it('should throw error if unable to generate a unique pin', async () => {
+      const mockRepo: Partial<Repository<EmployeeInvitation>> = {
+        findOne: jest.fn().mockResolvedValue(mockInvitation),
+      };
+      const repo = mockRepo as Repository<EmployeeInvitation>;
+      await expect(
+        service.generateUniquePinForVenue(1, repo, 2),
+      ).rejects.toThrow('Failed to generate unique PIN for venue');
+    });
+  });
 
-  //     const result = await service.create(dto);
+  describe('create', () => {
+    const dto = {
+      email: 'test@example.com',
+      venue: 1,
+    };
 
-  //     expect(service.generateUniquePinForVenue).toHaveBeenCalledWith(
-  //       1,
-  //       invitationRepo,
-  //     );
-  //     expect(emailService.sendEmployeeInvitationEmail).toHaveBeenCalledWith(
-  //       'test@example.com',
-  //       '123456',
-  //       'Test Venue',
-  //     );
-  //     expect(invitationRepo.create).toHaveBeenCalledWith({
-  //       ...dto,
-  //       pin: '123456',
-  //       venue: { id: 1 },
-  //     });
-  //     expect(invitationRepo.save).toHaveBeenCalled();
-  //     expect(result).toEqual({ id: 1, ...dto, pin: '123456' });
-  //   });
+    it('should throw if invitation already exists and not rejected', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOne')
+        .mockResolvedValue(mockInvitation);
 
-  //   // it('should throw if an existing invitation is not rejected', async () => {
-  //   //   invitationRepo.findOne.mockResolvedValue({
-  //   //     status: Status.OnboardingPending,
-  //   //   });
+      await expect(service.create(dto)).rejects.toThrow(
+        new BadRequestException('Invitation already exists'),
+      );
+    });
 
-  //   //   await expect(service.create(dto)).rejects.toThrow(BadRequestException);
-  //   //   expect(service.generateUniquePinForVenue).not.toHaveBeenCalled();
-  //   // });
+    it('should create and return an invitation', async () => {
+      jest.spyOn(invitationRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
 
-  //   // it('should allow re-invitation if existing invitation was rejected', async () => {
-  //   //   invitationRepo.findOne.mockResolvedValue({ status: Status.Rejected });
-  //   //   venueRepo.findOneOrFail.mockResolvedValue({
-  //   //     id: 1,
-  //   //     name: 'Test Venue',
-  //   //   } as Venue);
-  //   //   jest
-  //   //     .spyOn(service, 'generateUniquePinForVenue')
-  //   //     .mockResolvedValue('999999');
-  //   //   invitationRepo.create.mockReturnValue({
-  //   //     ...dto,
-  //   //     pin: '999999',
-  //   //     venue: { id: 1 },
-  //   //   });
-  //   //   invitationRepo.save.mockResolvedValue({ id: 2, ...dto, pin: '999999' });
+      const createdInvitation: EmployeeInvitation = {
+        ...mockInvitation,
+        pin: '123456',
+      };
 
-  //   //   const result = await service.create(dto);
+      jest
+        .spyOn(invitationRepository, 'create')
+        .mockReturnValue(createdInvitation);
+      jest
+        .spyOn(invitationRepository, 'save')
+        .mockResolvedValue(createdInvitation);
 
-  //   //   expect(result).toEqual({ id: 2, ...dto, pin: '999999' });
-  //   // });
+      jest
+        .spyOn(service, 'generateUniquePinForVenue')
+        .mockResolvedValue('123456');
 
-  //   // it('should throw if venue not found', async () => {
-  //   //   invitationRepo.findOne.mockResolvedValue(null);
-  //   //   venueRepo.findOneOrFail.mockRejectedValue(new Error('Venue not found'));
-  //   //   jest
-  //   //     .spyOn(service, 'generateUniquePinForVenue')
-  //   //     .mockResolvedValue('123123');
+      const result = await service.create(dto);
 
-  //   //   await expect(service.create(dto)).rejects.toThrow(BadRequestException);
-  //   // });
+      expect(emailService.sendEmployeeInvitationEmail).toHaveBeenCalledWith(
+        dto.email,
+        '123456',
+        mockVenue.name,
+      );
+      expect(invitationRepository.create).toHaveBeenCalledWith({
+        ...dto,
+        pin: '123456',
+        venue: { id: dto.venue },
+      });
+      expect(result).toEqual(createdInvitation);
+    });
 
-  //   // it('should throw if generating unique PIN fails', async () => {
-  //   //   jest
-  //   //     .spyOn(service, 'generateUniquePinForVenue')
-  //   //     .mockRejectedValue(new Error('PIN generation failed'));
-  //   //   invitationRepo.findOne.mockResolvedValue(null);
+    it('should wrap and rethrow any unexpected errors as BadRequestException', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOne')
+        .mockRejectedValue(new Error('Unexpected DB Error'));
 
-  //   //   await expect(service.create(dto)).rejects.toThrow(BadRequestException);
-  //   // });
-  // });
+      await expect(service.create(dto)).rejects.toThrow(BadRequestException);
+    });
+  });
 });

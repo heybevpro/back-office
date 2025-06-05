@@ -117,4 +117,44 @@ describe('EmailService', () => {
       expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalled();
     });
   });
+
+  describe('sendEmployeeInvitationEmail', () => {
+    it('should send an invitation email with correct parameters', async () => {
+      sesClientMock.sendTemplatedEmail.mockResolvedValue({} as never);
+
+      const email = 'testuser@example.com';
+      const pin = '654321';
+      const organizationName = 'Test Org';
+      const inviteVerificationUrl = `https://example.com/lead/join?pin=${pin}`;
+
+      await service.sendEmployeeInvitationEmail(email, pin, organizationName);
+
+      expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalledWith({
+        Source: 'hey@hey-bev.com',
+        Template: EmailTemplates.EmployeeInvitation,
+        TemplateData: JSON.stringify({
+          pin,
+          organizationName,
+          inviteVerificationUrl,
+        }),
+        Destination: { ToAddresses: [email.toLowerCase()] },
+      });
+    });
+
+    it('should throw a FailedToSendEmailException if SES fails', async () => {
+      sesClientMock.sendTemplatedEmail.mockRejectedValue(
+        new Error('SES Failure') as never,
+      );
+
+      const email = 'testuser@example.com';
+      const pin = '654321';
+      const organizationName = 'Test Org';
+
+      await expect(
+        service.sendEmployeeInvitationEmail(email, pin, organizationName),
+      ).rejects.toThrow(FailedToSendEmailException);
+
+      expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalled();
+    });
+  });
 });
