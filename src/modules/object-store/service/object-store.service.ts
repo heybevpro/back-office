@@ -36,8 +36,8 @@ export class ObjectStoreService {
       await this.s3.send(command);
       const bucketName = process.env.S3_BUCKET_NAME;
       const region = 'us-east-2';
-
       const fileUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+  
       return fileUrl;
     } catch (error: unknown) {
       throw new S3UploadFailedException((error as Error).message);
