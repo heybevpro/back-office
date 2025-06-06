@@ -14,7 +14,7 @@ export class ObjectStoreService {
   async uploadDocument(
     file: { buffer: Buffer; mimetype: string; originalname: string },
     organizationId: string,
-    venueId: string,
+    venueId: number,
     employeeId: string,
   ): Promise<string> {
     const allowedMimeTypes = ['application/pdf', 'image/jpeg'];

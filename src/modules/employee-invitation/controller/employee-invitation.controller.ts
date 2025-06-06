@@ -25,7 +25,7 @@ export class EmployeeInvitationController {
   async sendInvite(
     @Body() dto: CreateEmployeeInvitationDto,
   ): Promise<EmployeeInvitation> {
-    return this.employeeInvitationService.create(dto);
+    return await this.employeeInvitationService.create(dto);
   }
 
   @Put('/onboard')
@@ -35,6 +35,6 @@ export class EmployeeInvitationController {
     @UploadedFile()
     file: { buffer: Buffer; mimetype: string; originalname: string },
   ): Promise<EmployeeInvitation> {
-    return this.employeeInvitationService.onboard(dto, file);
+    return await this.employeeInvitationService.onboard(dto, file);
   }
 }

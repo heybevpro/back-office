@@ -34,7 +34,7 @@ export class EmployeeInvitation {
 
   @ManyToOne(() => Venue, (venue) => venue.employees, {
     nullable: false,
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'venueId' })
   venue: Venue;

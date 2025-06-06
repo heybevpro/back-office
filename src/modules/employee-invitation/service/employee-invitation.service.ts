@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
@@ -28,9 +24,12 @@ export class EmployeeInvitationService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
+  /**
+   * @deprecated This system-generated PIN method will be replaced by user-provided PIN entry in the future.
+   * Ensure client-side input validation and backend uniqueness checks when migrating.
+   */
   async generateUniquePinForVenue(
     venueId: number,
-    repository: Repository<EmployeeInvitation>,
     maxAttempts = 5,
   ): Promise<string> {
     let attempt = 0;
@@ -38,7 +37,7 @@ export class EmployeeInvitationService {
     while (attempt < maxAttempts) {
       const pin = this.generatePin();
 
-      const existing = await repository.findOne({
+      const existing = await this.employeeInvitationRepository.findOne({
         where: {
           pin,
           venue: { id: venueId },
@@ -71,10 +70,7 @@ export class EmployeeInvitationService {
         throw new BadRequestException('Invitation already exists');
       }
 
-      const uniquePin = await this.generateUniquePinForVenue(
-        venue,
-        this.employeeInvitationRepository,
-      );
+      const uniquePin = await this.generateUniquePinForVenue(venue);
 
       const fetchedVenue = await this.venueService.findOneById(venue);
 
@@ -82,6 +78,7 @@ export class EmployeeInvitationService {
         email,
         uniquePin,
         fetchedVenue.organization.name,
+        fetchedVenue.name,
       );
 
       const employeeInvite = this.employeeInvitationRepository.create({
@@ -104,35 +101,43 @@ export class EmployeeInvitationService {
     metadata: CreateEmployeeMetadataDto,
     file: { buffer: Buffer; mimetype: string; originalname: string },
   ): Promise<EmployeeInvitation> {
+    if (!file) {
+      throw new BadRequestException('Uploaded document is required');
+    }
+    const invitation = await this.employeeInvitationRepository.findOneOrFail({
+      where: { pin: metadata.pin },
+    });
+    if (invitation.status !== EmployeeInvitationStatus.Onboarding) {
+      throw new BadRequestException(
+        `Cannot onboard. Current status is '${invitation.status}'`,
+      );
+    }
+
+    const venue = await this.venueService.findOneById(invitation.venue.id);
+    const organizationId = venue.organization.id;
+
+    let uploadedFileUrl: string;
     try {
-      if (!file) {
-        throw new BadRequestException('File is required');
-      }
-
-      const invitation = await this.employeeInvitationRepository.findOneOrFail({
-        where: { pin: metadata.pin },
-      });
-      if (!invitation) {
-        throw new NotFoundException('Invitation not found');
-      }
-
-      const venue = await this.venueService.findOneById(metadata.venue);
-      const organizationId = venue.organization.id;
-
-      const uploadedFileUrl = await this.objectStoreService.uploadDocument(
+      uploadedFileUrl = await this.objectStoreService.uploadDocument(
         file,
         organizationId.toString(),
-        metadata.venue.toString(),
+        invitation.venue.id,
         invitation.id,
       );
-
-      invitation.userMetadata = metadata;
-      invitation.documentUrl = uploadedFileUrl;
-      invitation.status = EmployeeInvitationStatus.Review;
-
-      return await this.employeeInvitationRepository.save(invitation);
     } catch (err) {
       throw new BadRequestException(err, {
+        cause: err,
+      });
+    }
+
+    invitation.userMetadata = metadata;
+    invitation.documentUrl = uploadedFileUrl;
+    invitation.status = EmployeeInvitationStatus.Review;
+
+    try {
+      return await this.employeeInvitationRepository.save(invitation);
+    } catch (err) {
+      throw new BadRequestException('Failed to save onboarding data', {
         cause: err,
       });
     }

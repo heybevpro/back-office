@@ -126,8 +126,14 @@ describe('EmailService', () => {
       const pin = '654321';
       const organizationName = 'Test Org';
       const inviteVerificationUrl = `https://example.com/lead/join?pin=${pin}`;
+      const venueName = '<_VALID-VENUE-NAME_>';
 
-      await service.sendEmployeeInvitationEmail(email, pin, organizationName);
+      await service.sendEmployeeInvitationEmail(
+        email,
+        pin,
+        organizationName,
+        venueName,
+      );
 
       expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalledWith({
         Source: 'hey@hey-bev.com',
@@ -135,6 +141,7 @@ describe('EmailService', () => {
         TemplateData: JSON.stringify({
           pin,
           organizationName,
+          venueName,
           inviteVerificationUrl,
         }),
         Destination: { ToAddresses: [email.toLowerCase()] },
@@ -149,9 +156,15 @@ describe('EmailService', () => {
       const email = 'testuser@example.com';
       const pin = '654321';
       const organizationName = 'Test Org';
+      const venueName = '<_VALID-VENUE-NAME_>';
 
       await expect(
-        service.sendEmployeeInvitationEmail(email, pin, organizationName),
+        service.sendEmployeeInvitationEmail(
+          email,
+          pin,
+          organizationName,
+          venueName,
+        ),
       ).rejects.toThrow(FailedToSendEmailException);
 
       expect(sesClientMock.sendTemplatedEmail).toHaveBeenCalled();

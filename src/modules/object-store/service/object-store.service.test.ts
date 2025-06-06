@@ -15,7 +15,7 @@ describe('ObjectStoreService', () => {
   let s3ClientSendMock: jest.Mock;
 
   const mockOrganizationId = '<_ORGANIZATION-ID_>';
-  const mockVenueId = '<_VENUE-ID_>';
+  const mockVenueId = 1;
   const mockEmployeeId = '<_EMPLOYEE-ID_>';
 
   beforeEach(async () => {

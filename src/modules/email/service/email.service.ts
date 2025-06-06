@@ -45,6 +45,7 @@ export class EmailService {
     email: string,
     pin: string,
     organizationName: string,
+    venueName: string,
   ) {
     const inviteVerificationUrl = `${this.configService.get('NEXT_CLIENT_URL')}/lead/join?pin=${pin}`;
     try {
@@ -54,6 +55,7 @@ export class EmailService {
         TemplateData: JSON.stringify({
           pin,
           organizationName,
+          venueName,
           inviteVerificationUrl,
         }),
         Destination: { ToAddresses: [email.toLowerCase()] },

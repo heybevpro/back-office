@@ -1,11 +1,8 @@
-import { Type } from 'class-transformer';
 import {
   IsEmail,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
-  IsPositive,
   IsString,
   Matches,
 } from 'class-validator';
@@ -32,10 +29,12 @@ export class CreateEmployeeMetadataDto {
   city: string;
 
   @IsString()
+  @IsNotEmpty()
   state: string;
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\d{5}(-\d{4})?$/, { message: 'Invalid ZIP code format' })
   zip: string;
 
   @IsEmail()
@@ -49,9 +48,4 @@ export class CreateEmployeeMetadataDto {
     message: 'Invalid PIN Format',
   })
   pin: string;
-
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  venue: number;
 }

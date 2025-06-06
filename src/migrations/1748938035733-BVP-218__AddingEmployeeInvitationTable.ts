@@ -42,7 +42,7 @@ export class BVP218_AddingEmployeeInvitationTable1748938035733
           {
             name: 'venueId',
             type: 'int',
-            isNullable: true,
+            isNullable: false,
           },
           {
             name: 'userMetadata',

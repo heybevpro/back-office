@@ -10,6 +10,8 @@ import { EmployeeInvitationStatus } from '../../../utils/constants/employee.cons
 import { Venue } from '../../venue/entity/venue.entity';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
+import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
+import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 
 describe('EmployeeInvitationService', () => {
   let service: EmployeeInvitationService;
@@ -97,23 +99,20 @@ describe('EmployeeInvitationService', () => {
 
   describe('generateUniquePinForVenue', () => {
     it('should generate a unique pin within maxAttempts', async () => {
-      const mockRepo: Partial<Repository<EmployeeInvitation>> = {
-        findOne: jest.fn().mockResolvedValue(null),
-      };
-      const repo = mockRepo as Repository<EmployeeInvitation>;
+      jest.spyOn(invitationRepository, 'findOne').mockResolvedValue(null);
 
-      const pin = await service.generateUniquePinForVenue(1, repo);
+      const pin = await service.generateUniquePinForVenue(1);
       expect(pin).toHaveLength(6);
     });
 
     it('should throw error if unable to generate a unique pin', async () => {
-      const mockRepo: Partial<Repository<EmployeeInvitation>> = {
-        findOne: jest.fn().mockResolvedValue(mockInvitation),
-      };
-      const repo = mockRepo as Repository<EmployeeInvitation>;
-      await expect(
-        service.generateUniquePinForVenue(1, repo, 2),
-      ).rejects.toThrow('Failed to generate unique PIN for venue');
+      jest
+        .spyOn(invitationRepository, 'findOne')
+        .mockResolvedValue(mockInvitation);
+
+      await expect(service.generateUniquePinForVenue(1, 2)).rejects.toThrow(
+        'Failed to generate unique PIN for venue',
+      );
     });
   });
 
@@ -159,6 +158,7 @@ describe('EmployeeInvitationService', () => {
         dto.email,
         '123456',
         mockVenue.organization.name,
+        mockVenue.name,
       );
       expect(invitationRepository.create).toHaveBeenCalledWith({
         ...dto,
@@ -174,6 +174,141 @@ describe('EmployeeInvitationService', () => {
         .mockRejectedValue(new Error('Unexpected DB Error'));
 
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('onboard', () => {
+    const mockFile = {
+      buffer: Buffer.from('dummy'),
+      mimetype: 'application/pdf',
+      originalname: 'test.pdf',
+    };
+
+    const mockMetadata: CreateEmployeeMetadataDto = {
+      first_name: 'Jane',
+      last_name: 'Doe',
+      address_line1: '123 Main St',
+      address_line2: 'Apt 4B',
+      city: 'New York',
+      state: 'NY',
+      zip: '10001',
+      email: 'jane.doe@example.com',
+      phone: '+11234567890',
+      pin: '123456',
+    };
+
+    it('should throw BadRequestException if file is missing', async () => {
+      const mockMetadataNoFile = { ...mockMetadata };
+
+      await expect(
+        service.onboard(mockMetadataNoFile, undefined as any),
+      ).rejects.toThrow(
+        new BadRequestException('Uploaded document is required'),
+      );
+    });
+
+    it('should throw BadRequestException if invitation is not found', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockRejectedValue(new BadRequestException('Not found'));
+
+      await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException if invitation is not in Onboarding status', async () => {
+      const invalidStatusInvitation = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Review,
+      };
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue(invalidStatusInvitation as EmployeeInvitation);
+
+      await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException if file upload fails', async () => {
+      const uploadError = new S3UploadFailedException();
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue({ ...mockInvitation });
+
+      jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
+
+      jest
+        .spyOn(service['objectStoreService'], 'uploadDocument')
+        .mockRejectedValue(uploadError);
+
+      await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should upload file, update metadata, and return updated invitation', async () => {
+      const saveSpy = jest
+        .spyOn(invitationRepository, 'save')
+        .mockResolvedValue({
+          ...mockInvitation,
+          userMetadata: mockMetadata,
+          documentUrl: 'https://mocked-url.com/document.pdf',
+          status: EmployeeInvitationStatus.Review,
+        });
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue({ ...mockInvitation } as EmployeeInvitation);
+
+      jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
+
+      const result = await service.onboard(mockMetadata, mockFile);
+
+      expect(invitationRepository.findOneOrFail).toHaveBeenCalledWith({
+        where: { pin: mockMetadata.pin },
+      });
+
+      expect(venueService.findOneById).toHaveBeenCalledWith(
+        mockInvitation.venue.id,
+      );
+      expect(saveSpy).toHaveBeenCalled();
+
+      expect(result.userMetadata).toEqual(mockMetadata);
+      expect(result.documentUrl).toBe('https://mocked-url.com/document.pdf');
+      expect(result.status).toBe(EmployeeInvitationStatus.Review);
+    });
+
+    it('should throw BadRequestException if saving invitation fails', async () => {
+      const saveError = new Error('DB save failed');
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue({ ...mockInvitation });
+
+      jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
+
+      jest
+        .spyOn(service['objectStoreService'], 'uploadDocument')
+        .mockResolvedValue('https://mocked-url.com/document.pdf');
+
+      jest.spyOn(invitationRepository, 'save').mockRejectedValue(saveError);
+
+      await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should wrap other errors in BadRequestException', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockRejectedValue(new BadRequestException('Unexpected'));
+
+      await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });
