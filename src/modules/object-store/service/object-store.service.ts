@@ -17,11 +17,7 @@ export class ObjectStoreService {
     venueId: string,
     employeeId: string,
   ): Promise<string> {
-    const allowedMimeTypes = [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/jpeg',
-    ];
+    const allowedMimeTypes = ['application/pdf', 'image/jpeg'];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(`Invalid file type: ${file.mimetype}`);
@@ -38,7 +34,11 @@ export class ObjectStoreService {
 
     try {
       await this.s3.send(command);
-      return key;
+      const bucketName = process.env.S3_BUCKET_NAME;
+      const region = 'us-east-2';
+
+      const fileUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+      return fileUrl;
     } catch (error: unknown) {
       throw new S3UploadFailedException((error as Error).message);
     }

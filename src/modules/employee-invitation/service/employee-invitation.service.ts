@@ -1,11 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
 import { EmailService } from '../../email/service/email.service';
-import { Status } from '../../../utils/constants/employee.constants';
+import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { VenueService } from '../../venue/service/venue.service';
+import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
 
 @Injectable()
 export class EmployeeInvitationService {
@@ -15,6 +21,7 @@ export class EmployeeInvitationService {
 
     private readonly venueService: VenueService,
     private readonly emailService: EmailService,
+    private readonly objectStoreService: ObjectStoreService,
   ) {}
 
   generatePin(): string {
@@ -57,7 +64,10 @@ export class EmployeeInvitationService {
           where: { email },
         });
 
-      if (existingInvitation && existingInvitation.status !== Status.Rejected) {
+      if (
+        existingInvitation &&
+        existingInvitation.status !== EmployeeInvitationStatus.Rejected
+      ) {
         throw new BadRequestException('Invitation already exists');
       }
 
@@ -66,12 +76,12 @@ export class EmployeeInvitationService {
         this.employeeInvitationRepository,
       );
 
-      const organization = await this.venueService.findOneById(venue);
+      const fetchedVenue = await this.venueService.findOneById(venue);
 
       await this.emailService.sendEmployeeInvitationEmail(
         email,
         uniquePin,
-        organization.name,
+        fetchedVenue.organization.name,
       );
 
       const employeeInvite = this.employeeInvitationRepository.create({
@@ -85,6 +95,44 @@ export class EmployeeInvitationService {
         throw err;
       }
       throw new BadRequestException('Failed to create invitation', {
+        cause: err,
+      });
+    }
+  }
+
+  async onboard(
+    metadata: CreateEmployeeMetadataDto,
+    file: { buffer: Buffer; mimetype: string; originalname: string },
+  ): Promise<EmployeeInvitation> {
+    try {
+      if (!file) {
+        throw new BadRequestException('File is required');
+      }
+
+      const invitation = await this.employeeInvitationRepository.findOneOrFail({
+        where: { pin: metadata.pin },
+      });
+      if (!invitation) {
+        throw new NotFoundException('Invitation not found');
+      }
+
+      const venue = await this.venueService.findOneById(metadata.venue);
+      const organizationId = venue.organization.id;
+
+      const uploadedFileUrl = await this.objectStoreService.uploadDocument(
+        file,
+        organizationId.toString(),
+        metadata.venue.toString(),
+        invitation.id,
+      );
+
+      invitation.userMetadata = metadata;
+      invitation.documentUrl = uploadedFileUrl;
+      invitation.status = EmployeeInvitationStatus.Review;
+
+      return await this.employeeInvitationRepository.save(invitation);
+    } catch (err) {
+      throw new BadRequestException(err, {
         cause: err,
       });
     }

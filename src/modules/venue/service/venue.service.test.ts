@@ -97,14 +97,14 @@ describe('VenueService', () => {
 
   describe('findOneById', () => {
     it('should find a venue by ID and return it', async () => {
-      const findOneByOrFailSpy = jest.spyOn(venueRepository, 'findOneByOrFail');
+      const findOneByOrFailSpy = jest.spyOn(venueRepository, 'findOneOrFail');
       findOneByOrFailSpy.mockResolvedValue(mockVenue);
       expect(await service.findOneById(1)).toEqual(mockVenue);
       expect(findOneByOrFailSpy).toHaveBeenCalled();
     });
 
     it('should throw a NotFoundException if the venue is not found', async () => {
-      const findOneByOrFailSpy = jest.spyOn(venueRepository, 'findOneByOrFail');
+      const findOneByOrFailSpy = jest.spyOn(venueRepository, 'findOneOrFail');
       findOneByOrFailSpy.mockRejectedValue(
         new QueryFailedError('Not Found', [], new Error()),
       );

@@ -6,15 +6,16 @@ import { Repository } from 'typeorm';
 import { EmailService } from '../../email/service/email.service';
 import { VenueService } from '../../venue/service/venue.service';
 import { BadRequestException } from '@nestjs/common';
-import { Status } from '../../../utils/constants/employee.constants';
+import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
-import { Organization } from 'src/modules/organization/entity/organization.entity';
+import { Organization } from '../../organization/entity/organization.entity';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
 
 describe('EmployeeInvitationService', () => {
   let service: EmployeeInvitationService;
-  let invitationRepository: jest.Mocked<Repository<EmployeeInvitation>>;
-  let emailService: jest.Mocked<EmailService>;
-  let venueService: jest.Mocked<VenueService>;
+  let invitationRepository: Repository<EmployeeInvitation>;
+  let emailService: EmailService;
+  let venueService: VenueService;
 
   const mockVenue: Venue = {
     id: 1,
@@ -41,7 +42,7 @@ describe('EmployeeInvitationService', () => {
     id: 'inv-123',
     email: 'test@example.com',
     pin: '123456',
-    status: Status.OnboardingPending,
+    status: EmployeeInvitationStatus.Onboarding,
     venue: mockVenue,
     created_at: new Date(),
     updated_at: new Date(),
@@ -67,13 +68,23 @@ describe('EmployeeInvitationService', () => {
             findOneById: jest.fn(),
           },
         },
+        {
+          provide: ObjectStoreService,
+          useValue: {
+            uploadDocument: jest
+              .fn()
+              .mockResolvedValue('https://mocked-url.com/document.pdf'),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<EmployeeInvitationService>(EmployeeInvitationService);
-    invitationRepository = module.get(getRepositoryToken(EmployeeInvitation));
-    emailService = module.get(EmailService);
-    venueService = module.get(VenueService);
+    invitationRepository = module.get<Repository<EmployeeInvitation>>(
+      getRepositoryToken(EmployeeInvitation),
+    );
+    emailService = module.get<EmailService>(EmailService);
+    venueService = module.get<VenueService>(VenueService);
   });
 
   describe('generatePin', () => {
@@ -147,7 +158,7 @@ describe('EmployeeInvitationService', () => {
       expect(emailService.sendEmployeeInvitationEmail).toHaveBeenCalledWith(
         dto.email,
         '123456',
-        mockVenue.name,
+        mockVenue.organization.name,
       );
       expect(invitationRepository.create).toHaveBeenCalledWith({
         ...dto,

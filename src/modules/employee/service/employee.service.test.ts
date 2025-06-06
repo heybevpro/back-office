@@ -15,7 +15,6 @@ describe('EmployeeService', () => {
   let service: EmployeeService;
   let employeeRepository: Repository<Employee>;
 
-  // FIXME: fix mock data
   const mockEmployee: Employee = {
     id: 'uuid-1',
     first_name: 'Jane',

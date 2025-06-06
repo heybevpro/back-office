@@ -10,7 +10,6 @@ describe('EmployeeController', () => {
   let controller: EmployeeController;
   let service: jest.Mocked<EmployeeService>;
 
-  // FIXME: fix mock data
   const mockEmployee: Employee = {
     id: 'uuid-1',
     first_name: 'John',

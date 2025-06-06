@@ -40,7 +40,11 @@ export class VenueService {
 
   async findOneById(id: number) {
     try {
-      return await this.venueRepository.findOneByOrFail({ id });
+      // TODO: discuss before making the change
+      return await this.venueRepository.findOneOrFail({
+        where: { id },
+        relations: { organization: true },
+      });
     } catch (error) {
       throw new NotFoundException('Venue not found.', { cause: error });
     }

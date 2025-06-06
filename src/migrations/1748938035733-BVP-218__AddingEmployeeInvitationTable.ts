@@ -1,4 +1,4 @@
-import { Status } from 'src/utils/constants/employee.constants';
+import { EmployeeInvitationStatus } from 'src/utils/constants/employee.constants';
 import {
   MigrationInterface,
   QueryRunner,
@@ -36,7 +36,7 @@ export class BVP218_AddingEmployeeInvitationTable1748938035733
             name: 'status',
             type: 'enum',
             isNullable: false,
-            enum: Object.values(Status),
+            enum: Object.values(EmployeeInvitationStatus),
             default: `'onboarding_pending'`,
           },
           {
@@ -47,6 +47,11 @@ export class BVP218_AddingEmployeeInvitationTable1748938035733
           {
             name: 'userMetadata',
             type: 'jsonb',
+            isNullable: true,
+          },
+          {
+            name: 'documentUrl',
+            type: 'varchar',
             isNullable: true,
           },
           {

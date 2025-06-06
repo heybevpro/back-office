@@ -8,17 +8,15 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Status } from '../../../utils/constants/employee.constants';
+import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
-import { IsEmail, IsOptional } from 'class-validator';
-import { CreateEmployeeDto } from '../../employee/dto/create-employee.dto';
+import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
 
 @Entity()
 export class EmployeeInvitation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @IsEmail()
   @Column({ type: 'varchar', unique: true })
   email: string;
 
@@ -28,22 +26,24 @@ export class EmployeeInvitation {
 
   @Column({
     type: 'enum',
-    enum: Status,
+    enum: EmployeeInvitationStatus,
     nullable: false,
-    default: Status.OnboardingPending,
+    default: EmployeeInvitationStatus.Onboarding,
   })
-  status: Status;
+  status: EmployeeInvitationStatus;
 
   @ManyToOne(() => Venue, (venue) => venue.employees, {
-    nullable: true,
+    nullable: false,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'venueId' })
   venue: Venue;
 
-  @IsOptional()
   @Column({ type: 'jsonb', nullable: true })
-  userMetadata?: CreateEmployeeDto;
+  userMetadata?: CreateEmployeeMetadataDto;
+
+  @Column({ nullable: true })
+  documentUrl?: string;
 
   @CreateDateColumn()
   created_at: Date;

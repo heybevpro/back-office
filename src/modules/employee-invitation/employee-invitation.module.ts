@@ -5,12 +5,14 @@ import { EmployeeInvitation } from './entity/employee-invitation.entity';
 import { EmployeeInvitationController } from './controller/employee-invitation.controller';
 import { EmailModule } from '../email/email.module';
 import { VenueModule } from '../venue/venue.module';
+import { ObjectStoreModule } from '../object-store/object-store.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([EmployeeInvitation]),
     EmailModule,
     VenueModule,
+    ObjectStoreModule,
   ],
   providers: [EmployeeInvitationService],
   exports: [EmployeeInvitationService],

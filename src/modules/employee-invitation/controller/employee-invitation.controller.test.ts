@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeeInvitationController } from './employee-invitation.controller';
 import { EmployeeInvitationService } from '../service/employee-invitation.service';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
-import { Status } from '../../../utils/constants/employee.constants';
+import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
 import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
 
@@ -15,7 +15,7 @@ describe('EmployeeInvitationController', () => {
     email: 'employee@example.com',
     pin: '654321',
     venue: {} as Venue,
-    status: Status.OnboardingPending,
+    status: EmployeeInvitationStatus.Onboarding,
     created_at: new Date(),
     updated_at: new Date(),
   };
