@@ -40,4 +40,29 @@ export class EmailService {
       throw new FailedToSendEmailException();
     }
   }
+
+  async sendEmployeeInvitationEmail(
+    email: string,
+    pin: string,
+    organizationName: string,
+    venueName: string,
+  ) {
+    const inviteVerificationUrl = `${this.configService.get('NEXT_CLIENT_URL')}/lead/join?pin=${pin}`;
+    try {
+      await this.sesClient.sendTemplatedEmail({
+        Source: 'hey@hey-bev.com',
+        Template: EmailTemplates.EmployeeInvitation,
+        TemplateData: JSON.stringify({
+          pin,
+          organizationName,
+          venueName,
+          inviteVerificationUrl,
+        }),
+        Destination: { ToAddresses: [email.toLowerCase()] },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new FailedToSendEmailException();
+    }
+  }
 }

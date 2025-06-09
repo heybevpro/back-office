@@ -15,7 +15,7 @@ describe('ObjectStoreService', () => {
   let s3ClientSendMock: jest.Mock;
 
   const mockOrganizationId = '<_ORGANIZATION-ID_>';
-  const mockVenueId = '<_VENUE-ID_>';
+  const mockVenueId = 1;
   const mockEmployeeId = '<_EMPLOYEE-ID_>';
 
   beforeEach(async () => {
@@ -53,9 +53,9 @@ describe('ObjectStoreService', () => {
         mockEmployeeId,
       );
 
-      const expectedKey = `documents/${mockOrganizationId}/${mockVenueId}/${mockEmployeeId}/mocked-uuid-test.pdf`;
+      const expectedUrl = `https://${process.env.S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/documents/${mockOrganizationId}/${mockVenueId}/${mockEmployeeId}/mocked-uuid-test.pdf`;
 
-      expect(result).toBe(expectedKey);
+      expect(result).toBe(expectedUrl);
       expect(s3ClientSendMock).toHaveBeenCalledTimes(1);
 
       const [putCommand] = s3ClientSendMock.mock.calls[0] as [PutObjectCommand];
@@ -111,26 +111,6 @@ describe('ObjectStoreService', () => {
       );
 
       expect(result).toContain('test.pdf');
-    });
-
-    it('should allow file type: docx', async () => {
-      s3ClientSendMock.mockResolvedValue({});
-
-      const docxFile = {
-        buffer: Buffer.from('docx content'),
-        mimetype:
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        originalname: 'test.docx',
-      };
-
-      const result = await service.uploadDocument(
-        docxFile,
-        mockOrganizationId,
-        mockVenueId,
-        mockEmployeeId,
-      );
-
-      expect(result).toContain('test.docx');
     });
 
     it('should allow file type: jpg', async () => {

@@ -31,7 +31,7 @@ describe('EmployeeService', () => {
     employee_verified: false,
     created_at: new Date(),
     updated_at: new Date(),
-  };
+  } as Employee;
 
   const mockCreateDto: CreateEmployeeDto = {
     first_name: 'Jane',
@@ -44,6 +44,7 @@ describe('EmployeeService', () => {
     phone: '+1987654321',
     venue: 1,
     pin: '123456',
+    employee_invite_id: 'test',
   };
 
   beforeEach(async () => {

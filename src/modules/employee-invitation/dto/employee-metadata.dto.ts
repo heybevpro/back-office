@@ -3,12 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
-  IsPositive,
   IsString,
   Matches,
 } from 'class-validator';
 
-export class CreateEmployeeDto {
+export class CreateEmployeeMetadataDto {
   @IsString()
   @IsNotEmpty()
   first_name: string;
@@ -30,10 +29,12 @@ export class CreateEmployeeDto {
   city: string;
 
   @IsString()
+  @IsNotEmpty()
   state: string;
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\d{5}(-\d{4})?$/, { message: 'Invalid ZIP code format' })
   zip: string;
 
   @IsEmail()
@@ -47,11 +48,4 @@ export class CreateEmployeeDto {
     message: 'Invalid PIN Format',
   })
   pin: string;
-
-  @IsPositive()
-  venue: number;
-
-  @IsString()
-  @IsNotEmpty()
-  employee_invite_id: string;
 }

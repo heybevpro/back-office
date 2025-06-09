@@ -26,7 +26,7 @@ describe('EmployeeController', () => {
     employee_verified: false,
     created_at: new Date(),
     updated_at: new Date(),
-  };
+  } as Employee;
 
   const mockEmployeeService = {
     create: jest.fn(),
