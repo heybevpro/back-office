@@ -26,7 +26,7 @@ describe('EmployeeService', () => {
     zip: '67890',
     email: 'jane@example.com',
     phone: '+1987654321',
-    venue: {} as Venue,
+    venue: { id: 1 } as Venue,
     pin: '123456',
     employee_verified: false,
     created_at: new Date(),
@@ -168,6 +168,14 @@ describe('EmployeeService', () => {
       await expect(service.findByUserPin('123456')).rejects.toThrow(
         'Database crash',
       );
+    });
+  });
+  describe('findEmployeeByVenueId', () => {
+    it('should return employye list employees match criteria', async () => {
+      jest.spyOn(employeeRepository, 'find').mockResolvedValue([mockEmployee]);
+
+      const result = await service.findAllEmployeeByStatus(1);
+      expect(result).toEqual([mockEmployee]);
     });
   });
 });

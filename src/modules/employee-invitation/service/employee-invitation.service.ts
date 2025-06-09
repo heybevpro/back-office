@@ -142,4 +142,11 @@ export class EmployeeInvitationService {
       });
     }
   }
+  async findAllByVenueId(venueId: number): Promise<EmployeeInvitation[]> {
+    return this.employeeInvitationRepository.find({
+      where: { venue: { id: venueId } },
+      relations: ['venue'],
+      order: { created_at: 'DESC' },
+    });
+  }
 }

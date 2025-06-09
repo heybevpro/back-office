@@ -89,4 +89,14 @@ export class EmployeeService {
       throw error;
     }
   }
+
+  async findAllEmployeeByStatus(venueId?: number): Promise<Employee[]> {
+    return this.employeeRepository.find({
+      where: {
+        venue: { id: venueId },
+      },
+      relations: ['venue'],
+      order: { created_at: 'DESC' },
+    });
+  }
 }

@@ -6,6 +6,8 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { EmployeeInvitationService } from '../service/employee-invitation.service';
@@ -36,5 +38,12 @@ export class EmployeeInvitationController {
     file: { buffer: Buffer; mimetype: string; originalname: string },
   ): Promise<EmployeeInvitation> {
     return await this.employeeInvitationService.onboard(dto, file);
+  }
+
+  @Get('by-venue/:venueId')
+  async findAllByVenueId(
+    @Param('venueId') venueId: number,
+  ): Promise<EmployeeInvitation[]> {
+    return await this.employeeInvitationService.findAllByVenueId(venueId);
   }
 }

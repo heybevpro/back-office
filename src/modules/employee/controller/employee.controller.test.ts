@@ -21,7 +21,7 @@ describe('EmployeeController', () => {
     zip: '12345',
     email: 'john@example.com',
     phone: '+1234567890',
-    venue: {} as Venue,
+    venue: { id: 1 } as Venue,
     pin: '123456',
     employee_verified: false,
     created_at: new Date(),
@@ -33,6 +33,7 @@ describe('EmployeeController', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     findByUserPin: jest.fn(),
+    findAllEmployeeByStatus: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -111,6 +112,15 @@ describe('EmployeeController', () => {
       await expect(controller.login({ pin: 'wrong pin' })).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('find registered employee by venue id', () => {
+    it('should return  employee list', async () => {
+      service.findAllEmployeeByStatus.mockResolvedValue([mockEmployee]);
+      const result = await controller.findAllEmployeeByStatus(1);
+      expect(service.findAllEmployeeByStatus).toHaveBeenCalledWith(1);
+      expect(result).toEqual([mockEmployee]);
     });
   });
 });
