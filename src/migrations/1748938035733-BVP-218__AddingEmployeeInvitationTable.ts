@@ -37,7 +37,7 @@ export class BVP218_AddingEmployeeInvitationTable1748938035733
             type: 'enum',
             isNullable: false,
             enum: Object.values(EmployeeInvitationStatus),
-            default: `'onboarding_pending'`,
+            default: `'onboarding'`,
           },
           {
             name: 'venueId',
