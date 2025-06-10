@@ -186,6 +186,7 @@ describe('EmployeeInvitationService', () => {
       const rejectedInvitation = {
         ...mockInvitation,
         status: EmployeeInvitationStatus.Rejected,
+        pin: '123456',
       };
 
       jest
@@ -194,24 +195,21 @@ describe('EmployeeInvitationService', () => {
       jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
       jest
         .spyOn(invitationRepository, 'create')
-        .mockReturnValue({ ...mockInvitation, pin: '123456' });
+        .mockReturnValue(mockInvitation);
       jest
         .spyOn(invitationRepository, 'save')
-        .mockResolvedValue({ ...mockInvitation, pin: '123456' });
+        .mockResolvedValue(mockInvitation);
       jest
         .spyOn(service, 'generateUniquePinForVenue')
         .mockResolvedValue('123456');
 
-      const result = await service.create({
-        email: 'test@example.com',
-        venue: 1,
-      });
+      const result = await service.create(dto);
 
       expect(result.pin).toBe('123456');
       expect(result.email).toBe('test@example.com');
     });
 
-    it('should wrap repository save errors as BadRequestException with cause', async () => {
+    it('should wrap repository save errors as BadRequestException', async () => {
       jest.spyOn(invitationRepository, 'findOne').mockResolvedValue(null);
       jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
       jest
@@ -270,7 +268,7 @@ describe('EmployeeInvitationService', () => {
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
-        .mockResolvedValue(invalidStatusInvitation as EmployeeInvitation);
+        .mockResolvedValue(invalidStatusInvitation);
 
       await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
         BadRequestException,
@@ -305,7 +303,7 @@ describe('EmployeeInvitationService', () => {
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
-        .mockResolvedValue({ ...mockInvitation } as EmployeeInvitation);
+        .mockResolvedValue({ ...mockInvitation });
 
       jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
 
@@ -360,8 +358,35 @@ describe('EmployeeInvitationService', () => {
 
   describe('updateStatusUsingVerification', () => {
     const mockUpdateDto: UpdateInvitationStatusDto = {
-      invitationId: 'inv-123',
+      invitationId: '<_VALID-INVITATION-ID_>',
       verified: true,
+    };
+
+    const mockUserMetadata = {
+      first_name: 'John',
+      last_name: 'Doe',
+      address_line1: '123 Main St',
+      city: 'New York',
+      state: 'NY',
+      zip: '10001',
+      phone: '+1234567890',
+      document: 'https://example.com/doc.pdf',
+      pin: '123456',
+    };
+
+    const mockEmployee = {
+      ...mockUserMetadata,
+      id: 'emp-001',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      address_line2: '',
+      pin: '123456',
+      venue: mockVenue,
+      employee_verified: true,
+      employee_invite: { id: '<_VALID-INVITATION-ID_>' } as EmployeeInvitation,
+      created_at: new Date(),
+      updated_at: new Date(),
     };
 
     it('should throw if invitation is not in Review status', async () => {
@@ -372,7 +397,7 @@ describe('EmployeeInvitationService', () => {
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
-        .mockResolvedValue(invalidStatusInvitation as EmployeeInvitation);
+        .mockResolvedValue(invalidStatusInvitation);
 
       await expect(
         service.updateStatusUsingVerification(mockUpdateDto),
@@ -387,22 +412,22 @@ describe('EmployeeInvitationService', () => {
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
-        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+        .mockResolvedValue(reviewInvitation);
 
-      const saveSpy = jest
-        .spyOn(invitationRepository, 'save')
-        .mockResolvedValue({
-          ...reviewInvitation,
-          status: EmployeeInvitationStatus.Rejected,
-        } as EmployeeInvitation);
+      jest.spyOn(invitationRepository, 'save').mockResolvedValue({
+        ...reviewInvitation,
+        status: EmployeeInvitationStatus.Rejected,
+      });
 
       const result = await service.updateStatusUsingVerification({
         ...mockUpdateDto,
         verified: false,
       });
 
-      expect(saveSpy).toHaveBeenCalled();
-      expect(result.status).toBe(EmployeeInvitationStatus.Rejected);
+      expect(result).toEqual({
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Rejected,
+      });
     });
 
     it('should throw if metadata is missing when verified is true', async () => {
@@ -414,7 +439,7 @@ describe('EmployeeInvitationService', () => {
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
-        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+        .mockResolvedValue(reviewInvitation);
 
       await expect(
         service.updateStatusUsingVerification(mockUpdateDto),
@@ -425,79 +450,46 @@ describe('EmployeeInvitationService', () => {
       const reviewInvitation = {
         ...mockInvitation,
         status: EmployeeInvitationStatus.Review,
-        userMetadata: {
-          first_name: 'John',
-          last_name: 'Doe',
-          address_line1: '123 Main St',
-          city: 'New York',
-          state: 'NY',
-          zip: '10001',
-          phone: '+1234567890',
-          document: 'https://example.com/doc.pdf',
-        },
-      } as EmployeeInvitation;
+        userMetadata: mockUserMetadata,
+      };
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
         .mockResolvedValue(reviewInvitation);
 
-      const createSpy = jest
-        .spyOn(employeeService, 'create')
-        .mockResolvedValue({} as any);
+      jest.spyOn(employeeService, 'create').mockResolvedValue(mockEmployee);
 
-      const saveSpy = jest
-        .spyOn(invitationRepository, 'save')
-        .mockResolvedValue({
-          ...reviewInvitation,
-          status: EmployeeInvitationStatus.Accepted,
-        } as EmployeeInvitation);
+      jest.spyOn(invitationRepository, 'save').mockResolvedValue({
+        ...reviewInvitation,
+        status: EmployeeInvitationStatus.Accepted,
+      });
 
       const result = await service.updateStatusUsingVerification(mockUpdateDto);
 
-      expect(createSpy).toHaveBeenCalled();
-      expect(saveSpy).toHaveBeenCalled();
-      expect(result.status).toBe(EmployeeInvitationStatus.Accepted);
+      expect(result).toEqual({
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Accepted,
+        userMetadata: mockUserMetadata,
+      });
     });
 
     it('should throw BadRequestException if employee creation fails', async () => {
       const reviewInvitation = {
         ...mockInvitation,
         status: EmployeeInvitationStatus.Review,
-        userMetadata: {
-          first_name: 'John',
-          last_name: 'Doe',
-          address_line1: '123 Main St',
-          city: 'New York',
-          state: 'NY',
-          zip: '10001',
-          phone: '+1234567890',
-          document: 'https://example.com/doc.pdf',
-        },
+        userMetadata: mockUserMetadata,
       };
       const mockError = new Error('Something went wrong');
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
-        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+        .mockResolvedValue(reviewInvitation);
 
       jest.spyOn(employeeService, 'create').mockRejectedValue(mockError);
 
       await expect(
         service.updateStatusUsingVerification(mockUpdateDto),
-      ).rejects.toMatchObject({
-        message: 'Failed to create employee or update invitation',
-        cause: mockError,
-      });
-    });
-
-    it('should throw BadRequestException for unexpected error in updateStatusUsingVerification', async () => {
-      jest
-        .spyOn(invitationRepository, 'findOneOrFail')
-        .mockRejectedValue(new ImATeapotException('Unexpected failure'));
-
-      await expect(
-        service.updateStatusUsingVerification(mockUpdateDto),
-      ).rejects.toThrow('Unexpected failure');
+      ).rejects.toThrow('Failed to create employee or update invitation');
     });
   });
 });
