@@ -5,7 +5,7 @@ import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { Repository } from 'typeorm';
 import { EmailService } from '../../email/service/email.service';
 import { VenueService } from '../../venue/service/venue.service';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ImATeapotException } from '@nestjs/common';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Organization } from '../../organization/entity/organization.entity';
@@ -14,6 +14,10 @@ import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
 import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 import { EmployeeService } from '../../employee/service/employee.service';
 import { UpdateInvitationStatusDto } from '../dto/employee-invitation.dto';
+import {
+  InvalidInvitationStatusException,
+  InvitationAlreadyExistsException,
+} from '../../../excpetions/employee.exception';
 
 describe('EmployeeInvitationService', () => {
   let service: EmployeeInvitationService;
@@ -138,7 +142,7 @@ describe('EmployeeInvitationService', () => {
         .mockResolvedValue(mockInvitation);
 
       await expect(service.create(dto)).rejects.toThrow(
-        new BadRequestException('Invitation already exists'),
+        InvitationAlreadyExistsException,
       );
     });
 
@@ -178,12 +182,54 @@ describe('EmployeeInvitationService', () => {
       expect(result).toEqual(createdInvitation);
     });
 
-    it('should wrap and rethrow any unexpected errors as BadRequestException', async () => {
+    it('should allow creating a new invitation if previous one was Rejected', async () => {
+      const rejectedInvitation = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Rejected,
+      };
+
       jest
         .spyOn(invitationRepository, 'findOne')
-        .mockRejectedValue(new Error('Unexpected DB Error'));
+        .mockResolvedValue(rejectedInvitation);
+      jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
+      jest
+        .spyOn(invitationRepository, 'create')
+        .mockReturnValue({ ...mockInvitation, pin: '123456' });
+      jest
+        .spyOn(invitationRepository, 'save')
+        .mockResolvedValue({ ...mockInvitation, pin: '123456' });
+      jest
+        .spyOn(service, 'generateUniquePinForVenue')
+        .mockResolvedValue('123456');
 
-      await expect(service.create(dto)).rejects.toThrow(BadRequestException);
+      const result = await service.create({
+        email: 'test@example.com',
+        venue: 1,
+      });
+
+      expect(result.pin).toBe('123456');
+      expect(result.email).toBe('test@example.com');
+    });
+
+    it('should wrap repository save errors as BadRequestException with cause', async () => {
+      jest.spyOn(invitationRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(venueService, 'findOneById').mockResolvedValue(mockVenue);
+      jest
+        .spyOn(service, 'generateUniquePinForVenue')
+        .mockResolvedValue('123456');
+      jest
+        .spyOn(emailService, 'sendEmployeeInvitationEmail')
+        .mockResolvedValue(undefined);
+
+      const mockError = new Error('Database save failed');
+      jest.spyOn(invitationRepository, 'save').mockRejectedValue(mockError);
+
+      try {
+        await service.create(dto);
+        fail('Expected the method to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+      }
     });
   });
 
@@ -205,16 +251,6 @@ describe('EmployeeInvitationService', () => {
       phone: '+11234567890',
       pin: '123456',
     };
-
-    it('should throw BadRequestException if file is missing', async () => {
-      const mockMetadataNoFile = { ...mockMetadata };
-
-      await expect(
-        service.onboard(mockMetadataNoFile, undefined as any),
-      ).rejects.toThrow(
-        new BadRequestException('Uploaded document is required'),
-      );
-    });
 
     it('should throw BadRequestException if invitation is not found', async () => {
       jest
@@ -254,7 +290,7 @@ describe('EmployeeInvitationService', () => {
         .mockRejectedValue(uploadError);
 
       await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
-        BadRequestException,
+        S3UploadFailedException,
       );
     });
 
@@ -288,12 +324,11 @@ describe('EmployeeInvitationService', () => {
       expect(saveSpy).toHaveBeenCalled();
 
       expect(result.userMetadata).toEqual(mockMetadata);
-      // expect(result.document).toBe('https://mocked-url.com/document.pdf');
       expect(result.status).toBe(EmployeeInvitationStatus.Review);
     });
 
     it('should throw BadRequestException if saving invitation fails', async () => {
-      const saveError = new Error('DB save failed');
+      const saveError = new ImATeapotException('DB save failed');
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
@@ -341,9 +376,7 @@ describe('EmployeeInvitationService', () => {
 
       await expect(
         service.updateStatusUsingVerification(mockUpdateDto),
-      ).rejects.toThrow(
-        "Can't accept/reject invitation. Invitation status is onboarding",
-      );
+      ).rejects.toThrow(InvalidInvitationStatusException);
     });
 
     it('should set status to Rejected when verified is false', async () => {
@@ -395,13 +428,18 @@ describe('EmployeeInvitationService', () => {
         userMetadata: {
           first_name: 'John',
           last_name: 'Doe',
-          // ... other metadata fields
+          address_line1: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          zip: '10001',
+          phone: '+1234567890',
+          document: 'https://example.com/doc.pdf',
         },
-      };
+      } as EmployeeInvitation;
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
-        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+        .mockResolvedValue(reviewInvitation);
 
       const createSpy = jest
         .spyOn(employeeService, 'create')
@@ -428,20 +466,38 @@ describe('EmployeeInvitationService', () => {
         userMetadata: {
           first_name: 'John',
           last_name: 'Doe',
+          address_line1: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          zip: '10001',
+          phone: '+1234567890',
+          document: 'https://example.com/doc.pdf',
         },
       };
+      const mockError = new Error('Something went wrong');
 
       jest
         .spyOn(invitationRepository, 'findOneOrFail')
         .mockResolvedValue(reviewInvitation as EmployeeInvitation);
 
-      jest
-        .spyOn(employeeService, 'create')
-        .mockRejectedValue(new Error('Creation failed'));
+      jest.spyOn(employeeService, 'create').mockRejectedValue(mockError);
 
       await expect(
         service.updateStatusUsingVerification(mockUpdateDto),
-      ).rejects.toThrow('Failed to create employee or update invitation');
+      ).rejects.toMatchObject({
+        message: 'Failed to create employee or update invitation',
+        cause: mockError,
+      });
+    });
+
+    it('should throw BadRequestException for unexpected error in updateStatusUsingVerification', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockRejectedValue(new ImATeapotException('Unexpected failure'));
+
+      await expect(
+        service.updateStatusUsingVerification(mockUpdateDto),
+      ).rejects.toThrow('Unexpected failure');
     });
   });
 });

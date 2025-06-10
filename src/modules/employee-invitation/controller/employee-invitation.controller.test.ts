@@ -4,8 +4,12 @@ import { EmployeeInvitationService } from '../service/employee-invitation.servic
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
-import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
+import {
+  CreateEmployeeInvitationDto,
+  UpdateInvitationStatusDto,
+} from '../dto/employee-invitation.dto';
 import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
+import { ImATeapotException } from '@nestjs/common';
 
 describe('EmployeeInvitationController', () => {
   let controller: EmployeeInvitationController;
@@ -24,6 +28,7 @@ describe('EmployeeInvitationController', () => {
   const mockService: Partial<jest.Mocked<EmployeeInvitationService>> = {
     create: jest.fn(),
     onboard: jest.fn(),
+    updateStatusUsingVerification: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -102,6 +107,39 @@ describe('EmployeeInvitationController', () => {
 
       await expect(controller.onboard(dto, mockFile)).rejects.toThrow(
         'Onboarding failed',
+      );
+    });
+  });
+
+  describe('updateStatus', () => {
+    const dto: UpdateInvitationStatusDto = {
+      invitationId: '<_VALID-INVITATION-ID_>',
+      verified: true,
+    };
+
+    it('should call service.updateStatusUsingVerification and return the result', async () => {
+      const mockResult = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Accepted,
+      };
+
+      jest
+        .spyOn(service, 'updateStatusUsingVerification')
+        .mockResolvedValue(mockResult);
+
+      const result = await controller.updateStatus(dto);
+
+      expect(service.updateStatusUsingVerification).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockResult);
+    });
+
+    it('should propagate errors from updateStatusUsingVerification', async () => {
+      jest
+        .spyOn(service, 'updateStatusUsingVerification')
+        .mockRejectedValue(new ImATeapotException('Update failed'));
+
+      await expect(controller.updateStatus(dto)).rejects.toThrow(
+        'Update failed',
       );
     });
   });
