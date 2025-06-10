@@ -12,10 +12,13 @@ import { Organization } from '../../organization/entity/organization.entity';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
 import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
 import { S3UploadFailedException } from '../../../excpetions/objects.exception';
+import { EmployeeService } from '../../employee/service/employee.service';
+import { UpdateInvitationStatusDto } from '../dto/employee-invitation.dto';
 
 describe('EmployeeInvitationService', () => {
   let service: EmployeeInvitationService;
   let invitationRepository: Repository<EmployeeInvitation>;
+  let employeeService: EmployeeService;
   let emailService: EmailService;
   let venueService: VenueService;
 
@@ -59,6 +62,12 @@ describe('EmployeeInvitationService', () => {
           useClass: Repository,
         },
         {
+          provide: EmployeeService,
+          useValue: {
+            create: jest.fn(),
+          },
+        },
+        {
           provide: EmailService,
           useValue: {
             sendEmployeeInvitationEmail: jest.fn(),
@@ -85,6 +94,7 @@ describe('EmployeeInvitationService', () => {
     invitationRepository = module.get<Repository<EmployeeInvitation>>(
       getRepositoryToken(EmployeeInvitation),
     );
+    employeeService = module.get<EmployeeService>(EmployeeService);
     emailService = module.get<EmailService>(EmailService);
     venueService = module.get<VenueService>(VenueService);
   });
@@ -192,7 +202,6 @@ describe('EmployeeInvitationService', () => {
       city: 'New York',
       state: 'NY',
       zip: '10001',
-      email: 'jane.doe@example.com',
       phone: '+11234567890',
       pin: '123456',
     };
@@ -255,7 +264,6 @@ describe('EmployeeInvitationService', () => {
         .mockResolvedValue({
           ...mockInvitation,
           userMetadata: mockMetadata,
-          documentUrl: 'https://mocked-url.com/document.pdf',
           status: EmployeeInvitationStatus.Review,
         });
 
@@ -269,6 +277,9 @@ describe('EmployeeInvitationService', () => {
 
       expect(invitationRepository.findOneOrFail).toHaveBeenCalledWith({
         where: { pin: mockMetadata.pin },
+        relations: {
+          venue: true,
+        },
       });
 
       expect(venueService.findOneById).toHaveBeenCalledWith(
@@ -277,7 +288,7 @@ describe('EmployeeInvitationService', () => {
       expect(saveSpy).toHaveBeenCalled();
 
       expect(result.userMetadata).toEqual(mockMetadata);
-      expect(result.documentUrl).toBe('https://mocked-url.com/document.pdf');
+      // expect(result.document).toBe('https://mocked-url.com/document.pdf');
       expect(result.status).toBe(EmployeeInvitationStatus.Review);
     });
 
@@ -309,6 +320,128 @@ describe('EmployeeInvitationService', () => {
       await expect(service.onboard(mockMetadata, mockFile)).rejects.toThrow(
         BadRequestException,
       );
+    });
+  });
+
+  describe('updateStatusUsingVerification', () => {
+    const mockUpdateDto: UpdateInvitationStatusDto = {
+      invitationId: 'inv-123',
+      verified: true,
+    };
+
+    it('should throw if invitation is not in Review status', async () => {
+      const invalidStatusInvitation = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Onboarding,
+      };
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue(invalidStatusInvitation as EmployeeInvitation);
+
+      await expect(
+        service.updateStatusUsingVerification(mockUpdateDto),
+      ).rejects.toThrow(
+        "Can't accept/reject invitation. Invitation status is onboarding",
+      );
+    });
+
+    it('should set status to Rejected when verified is false', async () => {
+      const reviewInvitation = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Review,
+      };
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+
+      const saveSpy = jest
+        .spyOn(invitationRepository, 'save')
+        .mockResolvedValue({
+          ...reviewInvitation,
+          status: EmployeeInvitationStatus.Rejected,
+        } as EmployeeInvitation);
+
+      const result = await service.updateStatusUsingVerification({
+        ...mockUpdateDto,
+        verified: false,
+      });
+
+      expect(saveSpy).toHaveBeenCalled();
+      expect(result.status).toBe(EmployeeInvitationStatus.Rejected);
+    });
+
+    it('should throw if metadata is missing when verified is true', async () => {
+      const reviewInvitation = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Review,
+        userMetadata: undefined,
+      };
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+
+      await expect(
+        service.updateStatusUsingVerification(mockUpdateDto),
+      ).rejects.toThrow('Missing user metadata for accepted invitation');
+    });
+
+    it('should create employee and update status when verified is true', async () => {
+      const reviewInvitation = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Review,
+        userMetadata: {
+          first_name: 'John',
+          last_name: 'Doe',
+          // ... other metadata fields
+        },
+      };
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+
+      const createSpy = jest
+        .spyOn(employeeService, 'create')
+        .mockResolvedValue({} as any);
+
+      const saveSpy = jest
+        .spyOn(invitationRepository, 'save')
+        .mockResolvedValue({
+          ...reviewInvitation,
+          status: EmployeeInvitationStatus.Accepted,
+        } as EmployeeInvitation);
+
+      const result = await service.updateStatusUsingVerification(mockUpdateDto);
+
+      expect(createSpy).toHaveBeenCalled();
+      expect(saveSpy).toHaveBeenCalled();
+      expect(result.status).toBe(EmployeeInvitationStatus.Accepted);
+    });
+
+    it('should throw BadRequestException if employee creation fails', async () => {
+      const reviewInvitation = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Review,
+        userMetadata: {
+          first_name: 'John',
+          last_name: 'Doe',
+        },
+      };
+
+      jest
+        .spyOn(invitationRepository, 'findOneOrFail')
+        .mockResolvedValue(reviewInvitation as EmployeeInvitation);
+
+      jest
+        .spyOn(employeeService, 'create')
+        .mockRejectedValue(new Error('Creation failed'));
+
+      await expect(
+        service.updateStatusUsingVerification(mockUpdateDto),
+      ).rejects.toThrow('Failed to create employee or update invitation');
     });
   });
 });

@@ -40,10 +40,7 @@ export class EmployeeInvitation {
   venue: Venue;
 
   @Column({ type: 'jsonb', nullable: true })
-  userMetadata?: CreateEmployeeMetadataDto;
-
-  @Column({ nullable: true })
-  documentUrl?: string;
+  userMetadata?: CreateEmployeeMetadataDto & { document?: string };
 
   @CreateDateColumn()
   created_at: Date;

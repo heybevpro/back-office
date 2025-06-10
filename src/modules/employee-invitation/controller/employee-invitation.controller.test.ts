@@ -72,7 +72,6 @@ describe('EmployeeInvitationController', () => {
       city: 'New York',
       state: 'NY',
       zip: '10001',
-      email: 'john.doe@example.com',
       phone: '+1234567890',
       pin: '654321',
     };

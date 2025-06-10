@@ -2,12 +2,17 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
-import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
+import {
+  CreateEmployeeInvitationDto,
+  UpdateInvitationStatusDto,
+} from '../dto/employee-invitation.dto';
 import { EmailService } from '../../email/service/email.service';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { VenueService } from '../../venue/service/venue.service';
 import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
+import { CreateEmployeeDto } from '../../employee/dto/create-employee.dto';
+import { EmployeeService } from '../../employee/service/employee.service';
 
 @Injectable()
 export class EmployeeInvitationService {
@@ -15,6 +20,7 @@ export class EmployeeInvitationService {
     @InjectRepository(EmployeeInvitation)
     private readonly employeeInvitationRepository: Repository<EmployeeInvitation>,
 
+    private readonly employeeService: EmployeeService,
     private readonly venueService: VenueService,
     private readonly emailService: EmailService,
     private readonly objectStoreService: ObjectStoreService,
@@ -104,9 +110,12 @@ export class EmployeeInvitationService {
     if (!file) {
       throw new BadRequestException('Uploaded document is required');
     }
+
     const invitation = await this.employeeInvitationRepository.findOneOrFail({
       where: { pin: metadata.pin },
+      relations: { venue: true },
     });
+
     if (invitation.status !== EmployeeInvitationStatus.Onboarding) {
       throw new BadRequestException(
         `Cannot onboard. Current status is '${invitation.status}'`,
@@ -114,6 +123,7 @@ export class EmployeeInvitationService {
     }
 
     const venue = await this.venueService.findOneById(invitation.venue.id);
+
     const organizationId = venue.organization.id;
 
     let uploadedFileUrl: string;
@@ -130,8 +140,10 @@ export class EmployeeInvitationService {
       });
     }
 
-    invitation.userMetadata = metadata;
-    invitation.documentUrl = uploadedFileUrl;
+    invitation.userMetadata = {
+      ...metadata,
+      document: uploadedFileUrl,
+    };
     invitation.status = EmployeeInvitationStatus.Review;
 
     try {
@@ -140,6 +152,57 @@ export class EmployeeInvitationService {
       throw new BadRequestException('Failed to save onboarding data', {
         cause: err,
       });
+    }
+  }
+
+  async updateStatusUsingVerification(
+    dto: UpdateInvitationStatusDto,
+  ): Promise<EmployeeInvitation> {
+    const invitation = await this.employeeInvitationRepository.findOneOrFail({
+      where: { id: dto.invitationId },
+      relations: { venue: true },
+    });
+
+    if (invitation.status !== EmployeeInvitationStatus.Review) {
+      throw new BadRequestException(
+        `Can't accept/reject invitation. Invitation status is ${invitation.status.toLowerCase()}`,
+      );
+    }
+
+    if (!dto.verified) {
+      invitation.status = EmployeeInvitationStatus.Rejected;
+      return await this.employeeInvitationRepository.save(invitation);
+    }
+
+    if (!invitation.userMetadata) {
+      throw new BadRequestException(
+        'Missing user metadata for accepted invitation',
+      );
+    }
+
+    const metadata = invitation.userMetadata;
+
+    const createEmployeeDto: CreateEmployeeDto = {
+      ...metadata,
+      venue: invitation.venue.id,
+      pin: invitation.pin,
+      email: invitation.email,
+      // FIXME: remove this empty check
+      document: '',
+    };
+
+    try {
+      await this.employeeService.create(createEmployeeDto, invitation);
+
+      invitation.status = EmployeeInvitationStatus.Accepted;
+      return await this.employeeInvitationRepository.save(invitation);
+    } catch (err) {
+      throw new BadRequestException(
+        'Failed to create employee or update invitation',
+        {
+          cause: err,
+        },
+      );
     }
   }
 }

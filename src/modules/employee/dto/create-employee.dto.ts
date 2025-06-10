@@ -5,6 +5,7 @@ import {
   IsPhoneNumber,
   IsPositive,
   IsString,
+  IsUrl,
   Matches,
 } from 'class-validator';
 
@@ -51,7 +52,7 @@ export class CreateEmployeeDto {
   @IsPositive()
   venue: number;
 
-  @IsString()
+  @IsUrl()
   @IsNotEmpty()
-  employee_invite_id: string;
+  document: string;
 }

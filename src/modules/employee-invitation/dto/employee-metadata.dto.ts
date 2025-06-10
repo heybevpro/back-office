@@ -1,5 +1,4 @@
 import {
-  IsEmail,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
@@ -36,9 +35,6 @@ export class CreateEmployeeMetadataDto {
   @IsNotEmpty()
   @Matches(/^\d{5}(-\d{4})?$/, { message: 'Invalid ZIP code format' })
   zip: string;
-
-  @IsEmail()
-  email: string;
 
   @IsPhoneNumber('US')
   phone: string;
