@@ -15,7 +15,7 @@ export class ObjectStoreService {
     file: { buffer: Buffer; mimetype: string; originalname: string },
     organizationId: string,
     venueId: number,
-    employeeId: string,
+    invitationId: string,
   ): Promise<string> {
     const allowedMimeTypes = ['application/pdf', 'image/jpeg'];
 
@@ -23,7 +23,7 @@ export class ObjectStoreService {
       throw new BadRequestException(`Invalid file type: ${file.mimetype}`);
     }
 
-    const key = `documents/${organizationId}/${venueId}/${employeeId}/${uuidv4()}-${file.originalname}`;
+    const key = `documents/organization/${organizationId}/venue/${venueId}/invitations/${invitationId}/${uuidv4()}-${file.originalname}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,

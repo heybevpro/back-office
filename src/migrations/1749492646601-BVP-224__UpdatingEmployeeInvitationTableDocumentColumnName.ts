@@ -4,12 +4,6 @@ export class BVP224_UpdatingEmployeeInvitationTableDocumentColumnName17494926466
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      UPDATE employee_invitation
-      SET "userMetadata" = "userMetadata" || jsonb_build_object('document', "documentUrl")
-      WHERE "documentUrl" IS NOT NULL
-    `);
-
     await queryRunner.dropColumn('employee_invitation', 'documentUrl');
   }
 
@@ -22,17 +16,5 @@ export class BVP224_UpdatingEmployeeInvitationTableDocumentColumnName17494926466
         isNullable: true,
       }),
     );
-
-    await queryRunner.query(`
-      UPDATE employee_invitation
-      SET "documentUrl" = "userMetadata"->>'document'
-      WHERE "userMetadata"->>'document' IS NOT NULL
-    `);
-
-    await queryRunner.query(`
-      UPDATE employee_invitation
-      SET "userMetadata" = "userMetadata" - 'document'
-      WHERE "userMetadata"->>'document' IS NOT NULL
-    `);
   }
 }
