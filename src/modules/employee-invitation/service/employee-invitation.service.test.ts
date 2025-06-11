@@ -328,7 +328,7 @@ describe('EmployeeInvitationService', () => {
 
       expect(invitationRepository.find).toHaveBeenCalledWith({
         where: { venue: { id: venueId } },
-        relations: ['venue'],
+        relations: { venue: true },
         order: { created_at: 'DESC' },
       });
       expect(result).toEqual(mockInvitations);
@@ -342,7 +342,7 @@ describe('EmployeeInvitationService', () => {
 
       expect(invitationRepository.find).toHaveBeenCalledWith({
         where: { venue: { id: venueId } },
-        relations: ['venue'],
+        relations: { venue: true },
         order: { created_at: 'DESC' },
       });
       expect(result).toEqual([]);

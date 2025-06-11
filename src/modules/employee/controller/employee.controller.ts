@@ -39,9 +39,9 @@ export class EmployeeController {
   }
 
   @Get('venue/:venueId')
-  async findAllEmployeeByStatus(
+  async findAllEmployeeByVenue(
     @Param('venueId', new ParseIntPipe()) venueId: number,
   ): Promise<Employee[]> {
-    return this.employeeService.findAllEmployeeByStatus(venueId);
+    return this.employeeService.findAllEmployeeByVenue(venueId);
   }
 }

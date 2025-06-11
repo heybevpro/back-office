@@ -143,10 +143,16 @@ export class EmployeeInvitationService {
     }
   }
   async findAllByVenueId(venueId: number): Promise<EmployeeInvitation[]> {
-    return this.employeeInvitationRepository.find({
-      where: { venue: { id: venueId } },
-      relations: ['venue'],
-      order: { created_at: 'DESC' },
-    });
+    try {
+      return this.employeeInvitationRepository.find({
+        where: { venue: { id: venueId } },
+        relations: { venue: true },
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      throw new BadRequestException('Failed to fetch data', {
+        cause: error,
+      });
+    }
   }
 }

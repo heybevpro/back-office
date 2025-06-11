@@ -90,13 +90,19 @@ export class EmployeeService {
     }
   }
 
-  async findAllEmployeeByStatus(venueId?: number): Promise<Employee[]> {
-    return this.employeeRepository.find({
-      where: {
-        venue: { id: venueId },
-      },
-      relations: ['venue'],
-      order: { created_at: 'DESC' },
-    });
+  async findAllEmployeeByVenue(venueId?: number): Promise<Employee[]> {
+    try {
+      return this.employeeRepository.find({
+        where: {
+          venue: { id: venueId },
+        },
+        relations: { venue: true },
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      throw new BadRequestException('Employees not found', {
+        cause: error,
+      });
+    }
   }
 }
