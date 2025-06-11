@@ -3,6 +3,7 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  IsUrl,
   Matches,
 } from 'class-validator';
 
@@ -44,4 +45,10 @@ export class CreateEmployeeMetadataDto {
     message: 'Invalid PIN Format',
   })
   pin: string;
+}
+
+export class CreateEmployeeMetadataDtoWithDoc extends CreateEmployeeMetadataDto {
+  @IsUrl()
+  @IsNotEmpty()
+  document: string;
 }

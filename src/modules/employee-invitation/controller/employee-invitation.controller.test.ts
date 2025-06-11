@@ -6,10 +6,11 @@ import { EmployeeInvitationStatus } from '../../../utils/constants/employee.cons
 import { Venue } from '../../venue/entity/venue.entity';
 import {
   CreateEmployeeInvitationDto,
+  LoginDto,
   UpdateInvitationStatusDto,
 } from '../dto/employee-invitation.dto';
 import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
-import { ImATeapotException } from '@nestjs/common';
+import { ImATeapotException, NotFoundException } from '@nestjs/common';
 
 describe('EmployeeInvitationController', () => {
   let controller: EmployeeInvitationController;
@@ -29,6 +30,7 @@ describe('EmployeeInvitationController', () => {
     create: jest.fn(),
     onboard: jest.fn(),
     updateStatusUsingVerification: jest.fn(),
+    findByInvitationPin: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -141,6 +143,28 @@ describe('EmployeeInvitationController', () => {
       await expect(controller.updateStatus(dto)).rejects.toThrow(
         'Update failed',
       );
+    });
+  });
+
+  describe('login', () => {
+    const dto: LoginDto = { pin: '123456' };
+
+    it('should return employee invitation if pin is correct', async () => {
+      jest
+        .spyOn(service, 'findByInvitationPin')
+        .mockResolvedValue(mockInvitation);
+
+      const result = await controller.getStatus(dto);
+
+      expect(service.findByInvitationPin).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockInvitation);
+    });
+
+    it('should throw error if pin is not found', async () => {
+      const error = new NotFoundException('Invitation not found');
+      jest.spyOn(service, 'findByInvitationPin').mockRejectedValue(error);
+
+      await expect(controller.getStatus(dto)).rejects.toThrow(error);
     });
   });
 });

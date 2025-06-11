@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   Post,
   Put,
   UploadedFile,
@@ -50,7 +49,7 @@ export class EmployeeInvitationController {
     );
   }
 
-  @Get('/get-status')
+  @Post('/login')
   async getStatus(@Body() dto: LoginDto) {
     return await this.employeeInvitationService.findByInvitationPin(dto);
   }

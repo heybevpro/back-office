@@ -2,15 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeeInvitationService } from './employee-invitation.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { EmailService } from '../../email/service/email.service';
 import { VenueService } from '../../venue/service/venue.service';
-import { BadRequestException, ImATeapotException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ImATeapotException,
+  NotFoundException,
+} from '@nestjs/common';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
-import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
+import { CreateEmployeeMetadataDtoWithDoc } from '../dto/employee-metadata.dto';
 import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 import { EmployeeService } from '../../employee/service/employee.service';
 import { UpdateInvitationStatusDto } from '../dto/employee-invitation.dto';
@@ -238,7 +242,7 @@ describe('EmployeeInvitationService', () => {
       originalname: 'test.pdf',
     };
 
-    const mockMetadata: CreateEmployeeMetadataDto = {
+    const mockMetadata: CreateEmployeeMetadataDtoWithDoc = {
       first_name: 'Jane',
       last_name: 'Doe',
       address_line1: '123 Main St',
@@ -248,6 +252,7 @@ describe('EmployeeInvitationService', () => {
       zip: '10001',
       phone: '+11234567890',
       pin: '123456',
+      document: 'testDoc.pdf',
     };
 
     it('should throw BadRequestException if invitation is not found', async () => {
@@ -490,6 +495,43 @@ describe('EmployeeInvitationService', () => {
       await expect(
         service.updateStatusUsingVerification(mockUpdateDto),
       ).rejects.toThrow('Failed to create employee or update invitation');
+    });
+  });
+
+  describe('findByInvitationPin', () => {
+    const dto = {
+      pin: '123456',
+    };
+
+    it('should return employee invitation for valid pin', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOneByOrFail')
+        .mockResolvedValue(mockInvitation);
+
+      const result = await service.findByInvitationPin(dto);
+      expect(result).toEqual(mockInvitation);
+    });
+
+    it('should throw NotFoundException if pin not found', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOneByOrFail')
+        .mockRejectedValue(
+          new EntityNotFoundError(EmployeeInvitation, { pin: '999999' }),
+        );
+
+      await expect(service.findByInvitationPin(dto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should rethrow unknown errors from findByInvitationPin', async () => {
+      jest
+        .spyOn(invitationRepository, 'findOneByOrFail')
+        .mockRejectedValue(new Error('Database crash'));
+
+      await expect(service.findByInvitationPin(dto)).rejects.toThrow(
+        'Database crash',
+      );
     });
   });
 });
