@@ -6,14 +6,7 @@ export class BVP224_UpdatingEmployeeInvitationTableDocumentColumnName17494926466
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       UPDATE employee_invitation
-      SET "userMetadata" = 
-        CASE 
-          WHEN "userMetadata" IS NULL AND "documentUrl" IS NOT NULL 
-            THEN jsonb_build_object('documentUrl', "documentUrl")
-          WHEN "userMetadata" IS NOT NULL AND "documentUrl" IS NOT NULL 
-            THEN "userMetadata" || jsonb_build_object('documentUrl', "documentUrl")
-          ELSE "userMetadata"
-        END
+      SET "userMetadata" = "userMetadata" || jsonb_build_object('document', "documentUrl")
       WHERE "documentUrl" IS NOT NULL
     `);
 
@@ -32,14 +25,14 @@ export class BVP224_UpdatingEmployeeInvitationTableDocumentColumnName17494926466
 
     await queryRunner.query(`
       UPDATE employee_invitation
-      SET "documentUrl" = ("userMetadata"->>'documentUrl')::varchar
-      WHERE "userMetadata"->>'documentUrl' IS NOT NULL
+      SET "documentUrl" = "userMetadata"->>'document'
+      WHERE "userMetadata"->>'document' IS NOT NULL
     `);
 
     await queryRunner.query(`
       UPDATE employee_invitation
-      SET "userMetadata" = "userMetadata" - 'documentUrl'
-      WHERE "userMetadata"->>'documentUrl' IS NOT NULL
+      SET "userMetadata" = "userMetadata" - 'document'
+      WHERE "userMetadata"->>'document' IS NOT NULL
     `);
   }
 }
