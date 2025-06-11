@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Put,
   UploadedFile,
@@ -11,6 +12,7 @@ import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { EmployeeInvitationService } from '../service/employee-invitation.service';
 import {
   CreateEmployeeInvitationDto,
+  LoginDto,
   UpdateInvitationStatusDto,
 } from '../dto/employee-invitation.dto';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
@@ -46,5 +48,10 @@ export class EmployeeInvitationController {
     return await this.employeeInvitationService.updateStatusUsingVerification(
       dto,
     );
+  }
+
+  @Get('/get-status')
+  async getStatus(@Body() dto: LoginDto) {
+    return await this.employeeInvitationService.findByInvitationPin(dto);
   }
 }

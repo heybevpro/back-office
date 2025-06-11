@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import {
   CreateEmployeeInvitationDto,
+  LoginDto,
   UpdateInvitationStatusDto,
 } from '../dto/employee-invitation.dto';
 import { EmailService } from '../../email/service/email.service';
@@ -185,6 +190,21 @@ export class EmployeeInvitationService {
           cause: err,
         },
       );
+    }
+  }
+
+  async findByInvitationPin(dto: LoginDto): Promise<EmployeeInvitation> {
+    try {
+      return await this.employeeInvitationRepository.findOneByOrFail({
+        pin: dto.pin,
+      });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException(
+          'Employee Invitation not found for the provided PIN',
+        );
+      }
+      throw error;
     }
   }
 }

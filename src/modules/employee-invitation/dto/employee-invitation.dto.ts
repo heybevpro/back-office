@@ -1,6 +1,7 @@
 import {
   IsBoolean,
   IsEmail,
+  IsNotEmpty,
   IsPositive,
   IsString,
   IsUUID,
@@ -21,4 +22,10 @@ export class UpdateInvitationStatusDto {
 
   @IsBoolean()
   verified: boolean;
+}
+
+export class LoginDto {
+  @IsString()
+  @IsNotEmpty()
+  pin: string;
 }
