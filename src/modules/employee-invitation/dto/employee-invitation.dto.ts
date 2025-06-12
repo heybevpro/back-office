@@ -1,4 +1,11 @@
-import { IsEmail, IsPositive } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsPositive,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateEmployeeInvitationDto {
   @IsEmail()
@@ -6,4 +13,19 @@ export class CreateEmployeeInvitationDto {
 
   @IsPositive()
   venue: number;
+}
+
+export class UpdateInvitationStatusDto {
+  @IsString()
+  @IsUUID()
+  invitationId: string;
+
+  @IsBoolean()
+  verified: boolean;
+}
+
+export class LoginDto {
+  @IsString()
+  @IsNotEmpty()
+  pin: string;
 }

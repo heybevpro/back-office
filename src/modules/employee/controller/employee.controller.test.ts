@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeeController } from './employee.controller';
 import { EmployeeService } from '../service/employee.service';
-import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { Employee } from '../entity/employee.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Venue } from '../../venue/entity/venue.entity';
@@ -52,24 +51,6 @@ describe('EmployeeController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
-  });
-
-  describe('create employee', () => {
-    it('should create and return an employee', async () => {
-      const dto = {
-        ...mockEmployee,
-        id: 'EMPLOYEE-ID',
-        created_at: new Date(),
-        updated_at: new Date(),
-      } as unknown as CreateEmployeeDto;
-
-      service.create.mockResolvedValue(mockEmployee);
-
-      const result = await controller.create(dto);
-
-      expect(service.create).toHaveBeenCalledWith(dto);
-      expect(result).toEqual(mockEmployee);
-    });
   });
 
   describe('find all employees', () => {

@@ -1,13 +1,28 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
-import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
+import {
+  CreateEmployeeInvitationDto,
+  LoginDto,
+  UpdateInvitationStatusDto,
+} from '../dto/employee-invitation.dto';
 import { EmailService } from '../../email/service/email.service';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { VenueService } from '../../venue/service/venue.service';
 import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
+import { CreateEmployeeDto } from '../../employee/dto/create-employee.dto';
+import { EmployeeService } from '../../employee/service/employee.service';
+import {
+  InvalidInvitationStatusException,
+  InvitationAlreadyExistsException,
+  MissingDataException,
+} from '../../../excpetions/employee.exception';
 
 @Injectable()
 export class EmployeeInvitationService {
@@ -15,6 +30,7 @@ export class EmployeeInvitationService {
     @InjectRepository(EmployeeInvitation)
     private readonly employeeInvitationRepository: Repository<EmployeeInvitation>,
 
+    private readonly employeeService: EmployeeService,
     private readonly venueService: VenueService,
     private readonly emailService: EmailService,
     private readonly objectStoreService: ObjectStoreService,
@@ -57,30 +73,28 @@ export class EmployeeInvitationService {
   ): Promise<EmployeeInvitation> {
     const { email, venue } = createEmployeeInvitationDto;
 
+    const existingInvitation = await this.employeeInvitationRepository.findOne({
+      where: { email },
+    });
+
+    if (
+      existingInvitation &&
+      existingInvitation.status !== EmployeeInvitationStatus.Rejected
+    ) {
+      throw new InvitationAlreadyExistsException(email);
+    }
+
+    const uniquePin = await this.generateUniquePinForVenue(venue);
+    const fetchedVenue = await this.venueService.findOneById(venue);
+
+    await this.emailService.sendEmployeeInvitationEmail(
+      email,
+      uniquePin,
+      fetchedVenue.organization.name,
+      fetchedVenue.name,
+    );
+
     try {
-      const existingInvitation =
-        await this.employeeInvitationRepository.findOne({
-          where: { email },
-        });
-
-      if (
-        existingInvitation &&
-        existingInvitation.status !== EmployeeInvitationStatus.Rejected
-      ) {
-        throw new BadRequestException('Invitation already exists');
-      }
-
-      const uniquePin = await this.generateUniquePinForVenue(venue);
-
-      const fetchedVenue = await this.venueService.findOneById(venue);
-
-      await this.emailService.sendEmployeeInvitationEmail(
-        email,
-        uniquePin,
-        fetchedVenue.organization.name,
-        fetchedVenue.name,
-      );
-
       const employeeInvite = this.employeeInvitationRepository.create({
         ...createEmployeeInvitationDto,
         pin: uniquePin,
@@ -88,10 +102,7 @@ export class EmployeeInvitationService {
       });
       return await this.employeeInvitationRepository.save(employeeInvite);
     } catch (err) {
-      if (err instanceof BadRequestException) {
-        throw err;
-      }
-      throw new BadRequestException('Failed to create invitation', {
+      throw new BadRequestException('Failed to save employee invitation.', {
         cause: err,
       });
     }
@@ -101,37 +112,29 @@ export class EmployeeInvitationService {
     metadata: CreateEmployeeMetadataDto,
     file: { buffer: Buffer; mimetype: string; originalname: string },
   ): Promise<EmployeeInvitation> {
-    if (!file) {
-      throw new BadRequestException('Uploaded document is required');
-    }
     const invitation = await this.employeeInvitationRepository.findOneOrFail({
       where: { pin: metadata.pin },
+      relations: { venue: true },
     });
+
     if (invitation.status !== EmployeeInvitationStatus.Onboarding) {
-      throw new BadRequestException(
-        `Cannot onboard. Current status is '${invitation.status}'`,
-      );
+      throw new InvalidInvitationStatusException(invitation.status);
     }
 
     const venue = await this.venueService.findOneById(invitation.venue.id);
     const organizationId = venue.organization.id;
 
-    let uploadedFileUrl: string;
-    try {
-      uploadedFileUrl = await this.objectStoreService.uploadDocument(
-        file,
-        organizationId.toString(),
-        invitation.venue.id,
-        invitation.id,
-      );
-    } catch (err) {
-      throw new BadRequestException(err, {
-        cause: err,
-      });
-    }
+    const uploadedFileUrl = await this.objectStoreService.uploadDocument(
+      file,
+      organizationId.toString(),
+      invitation.venue.id,
+      invitation.id,
+    );
 
-    invitation.userMetadata = metadata;
-    invitation.documentUrl = uploadedFileUrl;
+    invitation.userMetadata = {
+      ...metadata,
+      document: uploadedFileUrl,
+    };
     invitation.status = EmployeeInvitationStatus.Review;
 
     try {
@@ -140,6 +143,68 @@ export class EmployeeInvitationService {
       throw new BadRequestException('Failed to save onboarding data', {
         cause: err,
       });
+    }
+  }
+
+  async updateStatusUsingVerification(
+    dto: UpdateInvitationStatusDto,
+  ): Promise<EmployeeInvitation> {
+    const invitation = await this.employeeInvitationRepository.findOneOrFail({
+      where: { id: dto.invitationId },
+      relations: { venue: true },
+    });
+
+    if (invitation.status !== EmployeeInvitationStatus.Review) {
+      throw new InvalidInvitationStatusException(invitation.status);
+    }
+
+    if (!dto.verified) {
+      invitation.status = EmployeeInvitationStatus.Rejected;
+      return await this.employeeInvitationRepository.save(invitation);
+    }
+
+    if (!invitation.userMetadata || !invitation.userMetadata.document) {
+      throw new MissingDataException();
+    }
+
+    const metadata = invitation.userMetadata;
+
+    const createEmployeeDto: CreateEmployeeDto = {
+      ...metadata,
+      venue: invitation.venue.id,
+      pin: invitation.pin,
+      email: invitation.email,
+      document: invitation.userMetadata.document,
+    };
+
+    try {
+      await this.employeeService.create(createEmployeeDto, invitation);
+
+      invitation.status = EmployeeInvitationStatus.Accepted;
+
+      return await this.employeeInvitationRepository.save(invitation);
+    } catch (err) {
+      throw new BadRequestException(
+        'Failed to create employee or update invitation',
+        {
+          cause: err,
+        },
+      );
+    }
+  }
+
+  async findByInvitationPin(dto: LoginDto): Promise<EmployeeInvitation> {
+    try {
+      return await this.employeeInvitationRepository.findOneByOrFail({
+        pin: dto.pin,
+      });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException(
+          'Employee Invitation not found for the provided PIN',
+        );
+      }
+      throw error;
     }
   }
 }

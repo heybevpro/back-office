@@ -4,8 +4,13 @@ import { EmployeeInvitationService } from '../service/employee-invitation.servic
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
-import { CreateEmployeeInvitationDto } from '../dto/employee-invitation.dto';
+import {
+  CreateEmployeeInvitationDto,
+  LoginDto,
+  UpdateInvitationStatusDto,
+} from '../dto/employee-invitation.dto';
 import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
+import { ImATeapotException, NotFoundException } from '@nestjs/common';
 
 describe('EmployeeInvitationController', () => {
   let controller: EmployeeInvitationController;
@@ -24,6 +29,8 @@ describe('EmployeeInvitationController', () => {
   const mockService: Partial<jest.Mocked<EmployeeInvitationService>> = {
     create: jest.fn(),
     onboard: jest.fn(),
+    updateStatusUsingVerification: jest.fn(),
+    findByInvitationPin: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -72,7 +79,6 @@ describe('EmployeeInvitationController', () => {
       city: 'New York',
       state: 'NY',
       zip: '10001',
-      email: 'john.doe@example.com',
       phone: '+1234567890',
       pin: '654321',
     };
@@ -104,6 +110,61 @@ describe('EmployeeInvitationController', () => {
       await expect(controller.onboard(dto, mockFile)).rejects.toThrow(
         'Onboarding failed',
       );
+    });
+  });
+
+  describe('updateStatus', () => {
+    const dto: UpdateInvitationStatusDto = {
+      invitationId: '<_VALID-INVITATION-ID_>',
+      verified: true,
+    };
+
+    it('should call service.updateStatusUsingVerification and return the result', async () => {
+      const mockResult = {
+        ...mockInvitation,
+        status: EmployeeInvitationStatus.Accepted,
+      };
+
+      jest
+        .spyOn(service, 'updateStatusUsingVerification')
+        .mockResolvedValue(mockResult);
+
+      const result = await controller.updateStatus(dto);
+
+      expect(service.updateStatusUsingVerification).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockResult);
+    });
+
+    it('should propagate errors from updateStatusUsingVerification', async () => {
+      jest
+        .spyOn(service, 'updateStatusUsingVerification')
+        .mockRejectedValue(new ImATeapotException('Update failed'));
+
+      await expect(controller.updateStatus(dto)).rejects.toThrow(
+        'Update failed',
+      );
+    });
+  });
+
+  describe('login', () => {
+    const dto: LoginDto = { pin: '123456' };
+
+    it('should return employee invitation if pin is correct', async () => {
+      jest
+        .spyOn(service, 'findByInvitationPin')
+        .mockResolvedValue(mockInvitation);
+
+      const result = await controller.getStatus(dto);
+
+      expect(service.findByInvitationPin).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockInvitation);
+    });
+
+    it('should throw error if pin is not found', async () => {
+      const error = new NotFoundException('Invitation not found');
+      jest.spyOn(service, 'findByInvitationPin').mockRejectedValue(error);
+
+      await expect(controller.getStatus(dto)).rejects.toThrow(error);
     });
   });
 });

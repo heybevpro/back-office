@@ -1,9 +1,9 @@
 import {
-  IsEmail,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
   IsString,
+  IsUrl,
   Matches,
 } from 'class-validator';
 
@@ -37,9 +37,6 @@ export class CreateEmployeeMetadataDto {
   @Matches(/^\d{5}(-\d{4})?$/, { message: 'Invalid ZIP code format' })
   zip: string;
 
-  @IsEmail()
-  email: string;
-
   @IsPhoneNumber('US')
   phone: string;
 
@@ -48,4 +45,10 @@ export class CreateEmployeeMetadataDto {
     message: 'Invalid PIN Format',
   })
   pin: string;
+}
+
+export class CreateEmployeeMetadataDtoWithDoc extends CreateEmployeeMetadataDto {
+  @IsUrl()
+  @IsNotEmpty()
+  document: string;
 }
