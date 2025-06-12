@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { Employee } from '../entity/employee.entity';
 import { EmployeeService } from '../service/employee.service';
-import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { EmployeeLoginRequestDto } from '../dto/employee-login-request.dto';
 
@@ -17,11 +16,6 @@ import { EmployeeLoginRequestDto } from '../dto/employee-login-request.dto';
 @Controller('employee')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
-
-  @Post()
-  async create(@Body() dto: CreateEmployeeDto): Promise<Employee> {
-    return this.employeeService.create(dto);
-  }
 
   @Get()
   async findAll(): Promise<Employee[]> {

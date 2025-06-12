@@ -58,8 +58,11 @@ export class Employee {
   employee_verified: boolean;
 
   @OneToOne(() => EmployeeInvitation, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn()
+  @JoinColumn({ name: 'employee_invite_id' })
   employee_invite: EmployeeInvitation;
+
+  @Column({ nullable: false })
+  document: string;
 
   @CreateDateColumn()
   created_at: Date;

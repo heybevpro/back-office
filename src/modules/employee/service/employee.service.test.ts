@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { Venue } from '../../venue/entity/venue.entity';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
+import { EmployeeInvitation } from '../../employee-invitation/entity/employee-invitation.entity';
+import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 
 describe('EmployeeService', () => {
   let service: EmployeeService;
@@ -44,8 +46,29 @@ describe('EmployeeService', () => {
     phone: '+1987654321',
     venue: 1,
     pin: '123456',
-    employee_invite_id: 'test',
+    document: '/test',
   };
+
+  const mockInvitation = {
+    id: '1',
+    code: 'INV123',
+    email: 'jane@example.com',
+    pin: '123456',
+    status: EmployeeInvitationStatus.Onboarding,
+    organization: { id: 1 },
+    venue: { id: 1 } as Venue,
+    created_at: new Date(),
+    updated_at: new Date(),
+  } as EmployeeInvitation;
+
+  const mockEmployee = {
+    id: 1,
+    ...mockCreateDto,
+    venue: { id: 1 },
+    employee_invite: mockInvitation,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as unknown as Employee;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -78,25 +101,8 @@ describe('EmployeeService', () => {
       jest.spyOn(employeeRepository, 'create').mockReturnValue(mockEmployee);
       jest.spyOn(employeeRepository, 'save').mockResolvedValue(mockEmployee);
 
-      expect(await service.create(mockCreateDto)).toEqual(mockEmployee);
-    });
-
-    it('should throw BadRequestException if email already exists', async () => {
-      jest.spyOn(employeeRepository, 'findOne').mockResolvedValue(mockEmployee);
-
-      await expect(service.create(mockCreateDto)).rejects.toThrowError(
-        `An employee with email ${mockCreateDto.email} is already registered.`,
-      );
-    });
-
-    it('should throw BadRequestException if pin already exists for venue', async () => {
-      jest
-        .spyOn(employeeRepository, 'findOne')
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(mockEmployee);
-
-      await expect(service.create(mockCreateDto)).rejects.toThrowError(
-        `An employee with pin ${mockCreateDto.pin} is already registered for this venue.`,
+      expect(await service.create(mockCreateDto, mockInvitation)).toEqual(
+        mockEmployee,
       );
     });
 
@@ -106,9 +112,9 @@ describe('EmployeeService', () => {
         .spyOn(employeeRepository, 'save')
         .mockRejectedValue(new ImATeapotException());
 
-      await expect(service.create(mockCreateDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.create(mockCreateDto, mockInvitation),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

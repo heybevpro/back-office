@@ -6,10 +6,12 @@ import { EmployeeInvitationController } from './controller/employee-invitation.c
 import { EmailModule } from '../email/email.module';
 import { VenueModule } from '../venue/venue.module';
 import { ObjectStoreModule } from '../object-store/object-store.module';
+import { EmployeeModule } from '../employee/employee.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([EmployeeInvitation]),
+    EmployeeModule,
     EmailModule,
     VenueModule,
     ObjectStoreModule,

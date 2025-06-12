@@ -10,7 +10,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { Venue } from '../../venue/entity/venue.entity';
-import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
+import { CreateEmployeeMetadataDtoWithDoc } from '../dto/employee-metadata.dto';
 
 @Entity()
 export class EmployeeInvitation {
@@ -40,10 +40,7 @@ export class EmployeeInvitation {
   venue: Venue;
 
   @Column({ type: 'jsonb', nullable: true })
-  userMetadata?: CreateEmployeeMetadataDto;
-
-  @Column({ nullable: true })
-  documentUrl?: string;
+  userMetadata?: CreateEmployeeMetadataDtoWithDoc;
 
   @CreateDateColumn()
   created_at: Date;

@@ -16,7 +16,7 @@ describe('ObjectStoreService', () => {
 
   const mockOrganizationId = '<_ORGANIZATION-ID_>';
   const mockVenueId = 1;
-  const mockEmployeeId = '<_EMPLOYEE-ID_>';
+  const mockInvitationId = '<_INVITATION-ID_>';
 
   beforeEach(async () => {
     s3ClientSendMock = jest.fn();
@@ -50,10 +50,10 @@ describe('ObjectStoreService', () => {
         mockFile,
         mockOrganizationId,
         mockVenueId,
-        mockEmployeeId,
+        mockInvitationId,
       );
 
-      const expectedUrl = `https://${process.env.S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/documents/${mockOrganizationId}/${mockVenueId}/${mockEmployeeId}/mocked-uuid-test.pdf`;
+      const expectedUrl = `https://${process.env.S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/documents/organization/${mockOrganizationId}/venue/${mockVenueId}/invitations/${mockInvitationId}/mocked-uuid-test.pdf`;
 
       expect(result).toBe(expectedUrl);
       expect(s3ClientSendMock).toHaveBeenCalledTimes(1);
@@ -72,7 +72,7 @@ describe('ObjectStoreService', () => {
           mockFile,
           mockOrganizationId,
           mockVenueId,
-          mockEmployeeId,
+          mockInvitationId,
         ),
       ).rejects.toThrow(S3UploadFailedException);
     });
@@ -89,7 +89,7 @@ describe('ObjectStoreService', () => {
           invalidFile,
           mockOrganizationId,
           mockVenueId,
-          mockEmployeeId,
+          mockInvitationId,
         ),
       ).rejects.toThrow(BadRequestException);
     });
@@ -107,7 +107,7 @@ describe('ObjectStoreService', () => {
         pdfFile,
         mockOrganizationId,
         mockVenueId,
-        mockEmployeeId,
+        mockInvitationId,
       );
 
       expect(result).toContain('test.pdf');
@@ -126,7 +126,7 @@ describe('ObjectStoreService', () => {
         jpgFile,
         mockOrganizationId,
         mockVenueId,
-        mockEmployeeId,
+        mockInvitationId,
       );
 
       expect(result).toContain('test.jpg');
