@@ -49,7 +49,7 @@ export class EmployeeInvitationController {
     @Param('venueId') venueId: number,
   ): Promise<EmployeeInvitation[]> {
     return await this.employeeInvitationService.findAllByVenueId(venueId);
-});
+  }
 
   @Put('/review-invitation')
   async updateStatus(@Body() dto: UpdateInvitationStatusDto) {

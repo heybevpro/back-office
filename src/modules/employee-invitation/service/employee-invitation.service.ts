@@ -19,6 +19,7 @@ import { ObjectStoreService } from '../../object-store/service/object-store.serv
 import { CreateEmployeeDto } from '../../employee/dto/create-employee.dto';
 import { EmployeeService } from '../../employee/service/employee.service';
 import {
+  FailedToFetchInvitation,
   InvalidInvitationStatusException,
   InvitationAlreadyExistsException,
   MissingDataException,
@@ -207,6 +208,7 @@ export class EmployeeInvitationService {
       throw error;
     }
   }
+
   async findAllByVenueId(venueId: number): Promise<EmployeeInvitation[]> {
     try {
       return this.employeeInvitationRepository.find({
@@ -214,10 +216,8 @@ export class EmployeeInvitationService {
         relations: { venue: true },
         order: { created_at: 'DESC' },
       });
-    } catch (error) {
-      throw new BadRequestException('Failed to fetch data', {
-        cause: error,
-      });
+    } catch {
+      throw new FailedToFetchInvitation();
     }
   }
 }

@@ -8,6 +8,7 @@ import { EntityNotFoundError, Repository } from 'typeorm';
 import { Employee } from '../entity/employee.entity';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeInvitation } from 'src/modules/employee-invitation/entity/employee-invitation.entity';
+import { FailedToFetchEmployeesForVenueException } from '../../../excpetions/employee.exception';
 
 @Injectable()
 export class EmployeeService {
@@ -78,10 +79,8 @@ export class EmployeeService {
         relations: { venue: true },
         order: { created_at: 'DESC' },
       });
-    } catch (error) {
-      throw new BadRequestException('Employees not found', {
-        cause: error,
-      });
+    } catch {
+      throw new FailedToFetchEmployeesForVenueException();
     }
   }
 }

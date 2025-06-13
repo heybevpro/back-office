@@ -17,24 +17,6 @@ describe('EmployeeService', () => {
   let service: EmployeeService;
   let employeeRepository: Repository<Employee>;
 
-  const mockEmployee: Employee = {
-    id: 'uuid-1',
-    first_name: 'Jane',
-    last_name: 'Smith',
-    address_line1: '456 Side St',
-    address_line2: undefined,
-    city: 'Village',
-    state: 'VS',
-    zip: '67890',
-    email: 'jane@example.com',
-    phone: '+1987654321',
-    venue: { id: 1 } as Venue,
-    pin: '123456',
-    employee_verified: false,
-    created_at: new Date(),
-    updated_at: new Date(),
-  } as Employee;
-
   const mockCreateDto: CreateEmployeeDto = {
     first_name: 'Jane',
     last_name: 'Smith',

@@ -395,8 +395,8 @@ describe('EmployeeInvitationService', () => {
         order: { created_at: 'DESC' },
       });
       expect(result).toEqual([]);
-    })
-  })
+    });
+  });
   describe('updateStatusUsingVerification', () => {
     const mockUpdateDto: UpdateInvitationStatusDto = {
       invitationId: '<_VALID-INVITATION-ID_>',

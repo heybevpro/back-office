@@ -17,7 +17,7 @@ export class ObjectStoreService {
     venueId: number,
     invitationId: string,
   ): Promise<string> {
-    const allowedMimeTypes = ['application/pdf', 'image/jpeg'];
+    const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(`Invalid file type: ${file.mimetype}`);

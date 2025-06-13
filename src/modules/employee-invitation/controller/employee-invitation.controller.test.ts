@@ -133,7 +133,7 @@ describe('EmployeeInvitationController', () => {
       expect(service.findAllByVenueId).toHaveBeenCalled();
     });
   });
-  
+
   describe('updateStatus', () => {
     const dto: UpdateInvitationStatusDto = {
       invitationId: '<_VALID-INVITATION-ID_>',

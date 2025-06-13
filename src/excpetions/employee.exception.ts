@@ -17,3 +17,15 @@ export class MissingDataException extends BadRequestException {
     super(`Missing user metadata for accepted invitation`);
   }
 }
+
+export class FailedToFetchEmployeesForVenueException extends BadRequestException {
+  constructor() {
+    super(`Failed to fetch employee data`);
+  }
+}
+
+export class FailedToFetchInvitation extends BadRequestException {
+  constructor() {
+    super(`Failed to fetch invitation data`);
+  }
+}
