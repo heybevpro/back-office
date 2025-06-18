@@ -4,6 +4,7 @@ import { ProductTypeService } from '../service/product-type.service';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { ProductType } from '../entity/product-type.entity';
 import { Venue } from '../../venue/entity/venue.entity';
+import { ProductServingSize } from '../../../utils/constants/product.constants';
 
 describe('ProductTypeController', () => {
   let controller: ProductTypeController;
@@ -41,12 +42,14 @@ describe('ProductTypeController', () => {
       const createProductTypeDto: CreateProductTypeDto = {
         name: '<_PRODUCT-TYPE-A_>',
         venue: 1,
+        serving_size: ProductServingSize.Pour,
       };
       const createdProductType: ProductType = {
         id: 'uuid',
         name: '<_PRODUCT-TYPE-A_>',
         venue: mockVenue,
         products: [],
+        serving_size: ProductServingSize.Pour,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -70,6 +73,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
         {
           id: 'uuid2',
@@ -78,6 +82,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
       ];
 
@@ -101,6 +106,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
         {
           id: 'uuid2',
@@ -109,6 +115,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
       ];
 

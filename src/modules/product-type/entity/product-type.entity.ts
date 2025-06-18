@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Product } from '../../product/entity/product.entity';
+import { ProductServingSize } from '../../../utils/constants/product.constants';
 
 @Entity()
 export class ProductType {
@@ -23,6 +24,14 @@ export class ProductType {
 
   @OneToMany(() => Product, (product) => product.product_type)
   products: Array<Product>;
+
+  @Column({
+    type: 'enum',
+    enum: ProductServingSize,
+    nullable: false,
+    default: ProductServingSize.Pour,
+  })
+  serving_size: ProductServingSize;
 
   @CreateDateColumn()
   created_at: Date;

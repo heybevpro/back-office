@@ -6,6 +6,7 @@ import { ProductType } from '../entity/product-type.entity';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { Venue } from '../../venue/entity/venue.entity';
 import { VenueService } from '../../venue/service/venue.service';
+import { ProductServingSize } from '../../../utils/constants/product.constants';
 
 describe('ProductTypeService', () => {
   let service: ProductTypeService;
@@ -52,12 +53,14 @@ describe('ProductTypeService', () => {
         name: '<_PRODUCT-TYPE_>',
         venue: mockVenue,
         products: [],
+        serving_size: ProductServingSize.Pour,
         created_at: new Date(),
         updated_at: new Date(),
       };
       const createProductTypeDto: CreateProductTypeDto = {
         name: '<_PRODUCT-TYPE_>',
         venue: 1,
+        serving_size: ProductServingSize.Pour,
       };
       jest.spyOn(repository, 'create').mockReturnValue(createdMockProductType);
       jest.spyOn(repository, 'save').mockResolvedValue(createdMockProductType);
@@ -67,6 +70,7 @@ describe('ProductTypeService', () => {
       expect(repository.create).toHaveBeenCalledWith({
         name: createProductTypeDto.name,
         venue: { id: createProductTypeDto.venue },
+        serving_size: ProductServingSize.Pour,
       });
       expect(result).toEqual(createdMockProductType);
     });
@@ -82,6 +86,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
         {
           id: 'uuid2',
@@ -90,6 +95,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
       ];
 
@@ -113,6 +119,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
         {
           id: 'uuid2',
@@ -121,6 +128,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: ProductServingSize.Pour,
         },
       ];
 

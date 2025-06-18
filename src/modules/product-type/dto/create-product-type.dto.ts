@@ -1,10 +1,12 @@
 import {
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsPositive,
   IsString,
   MaxLength,
 } from 'class-validator';
+import { ProductServingSize } from '../../../utils/constants/product.constants';
 
 export class CreateProductTypeDto {
   @IsString()
@@ -15,4 +17,7 @@ export class CreateProductTypeDto {
   @IsNumber()
   @IsPositive()
   venue: number;
+
+  @IsEnum(ProductServingSize)
+  serving_size: ProductServingSize;
 }
