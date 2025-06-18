@@ -158,4 +158,12 @@ describe('EmployeeService', () => {
       );
     });
   });
+  describe('findEmployeeByVenueId', () => {
+    it('should return employye list employees match criteria', async () => {
+      jest.spyOn(employeeRepository, 'find').mockResolvedValue([mockEmployee]);
+
+      const result = await service.findAllEmployeeByVenue(1);
+      expect(result).toEqual([mockEmployee]);
+    });
+  });
 });

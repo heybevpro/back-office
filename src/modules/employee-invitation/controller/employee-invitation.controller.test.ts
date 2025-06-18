@@ -29,6 +29,7 @@ describe('EmployeeInvitationController', () => {
   const mockService: Partial<jest.Mocked<EmployeeInvitationService>> = {
     create: jest.fn(),
     onboard: jest.fn(),
+    findAllByVenueId: jest.fn(),
     updateStatusUsingVerification: jest.fn(),
     findByInvitationPin: jest.fn(),
   };
@@ -110,6 +111,26 @@ describe('EmployeeInvitationController', () => {
       await expect(controller.onboard(dto, mockFile)).rejects.toThrow(
         'Onboarding failed',
       );
+    });
+  });
+
+  describe('get invites by venueId', () => {
+    it('should return invitation list by by venue id', async () => {
+      const mockInvites: EmployeeInvitation[] = [
+        {
+          id: 'invitation-123',
+          email: 'employee@example.com',
+          pin: '654321',
+          venue: { id: 1 } as Venue,
+          status: EmployeeInvitationStatus.Onboarding,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      ];
+      jest.spyOn(service, 'findAllByVenueId').mockResolvedValue(mockInvites);
+      const result = await service.findAllByVenueId(1);
+      expect(result).toEqual(mockInvites);
+      expect(service.findAllByVenueId).toHaveBeenCalled();
     });
   });
 

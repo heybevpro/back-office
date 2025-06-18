@@ -361,6 +361,42 @@ describe('EmployeeInvitationService', () => {
     });
   });
 
+  describe('fetch invites by venue id', () => {
+    it('should fetch all invitations for a given venue id', async () => {
+      const venueId = 1;
+      const mockInvitations: EmployeeInvitation[] = [
+        { ...mockInvitation },
+        { ...mockInvitation, id: 'inv-456', email: 'another@example.com' },
+      ];
+
+      jest
+        .spyOn(invitationRepository, 'find')
+        .mockResolvedValue(mockInvitations);
+
+      const result = await service.findAllByVenueId(venueId);
+
+      expect(invitationRepository.find).toHaveBeenCalledWith({
+        where: { venue: { id: venueId } },
+        relations: { venue: true },
+        order: { created_at: 'DESC' },
+      });
+      expect(result).toEqual(mockInvitations);
+    });
+
+    it('should return an empty list if no invitations found', async () => {
+      const venueId = 2;
+      jest.spyOn(invitationRepository, 'find').mockResolvedValue([]);
+
+      const result = await service.findAllByVenueId(venueId);
+
+      expect(invitationRepository.find).toHaveBeenCalledWith({
+        where: { venue: { id: venueId } },
+        relations: { venue: true },
+        order: { created_at: 'DESC' },
+      });
+      expect(result).toEqual([]);
+    });
+  });
   describe('updateStatusUsingVerification', () => {
     const mockUpdateDto: UpdateInvitationStatusDto = {
       invitationId: '<_VALID-INVITATION-ID_>',
