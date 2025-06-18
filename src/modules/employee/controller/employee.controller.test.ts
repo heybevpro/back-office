@@ -4,6 +4,7 @@ import { EmployeeService } from '../service/employee.service';
 import { Employee } from '../entity/employee.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Venue } from '../../venue/entity/venue.entity';
+import { EmployeeInvitation } from '../../employee-invitation/entity/employee-invitation.entity';
 
 describe('EmployeeController', () => {
   let controller: EmployeeController;
@@ -23,12 +24,13 @@ describe('EmployeeController', () => {
     venue: {} as Venue,
     pin: '123456',
     employee_verified: false,
+    employee_invite: {} as EmployeeInvitation,
+    document: '/test',
     created_at: new Date(),
     updated_at: new Date(),
-  } as Employee;
+  };
 
   const mockEmployeeService = {
-    create: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
     findByUserPin: jest.fn(),

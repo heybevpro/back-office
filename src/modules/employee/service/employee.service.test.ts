@@ -12,6 +12,8 @@ import { Venue } from '../../venue/entity/venue.entity';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeInvitation } from '../../employee-invitation/entity/employee-invitation.entity';
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 describe('EmployeeService', () => {
   let service: EmployeeService;
@@ -25,32 +27,41 @@ describe('EmployeeService', () => {
     state: 'VS',
     zip: '67890',
     email: 'jane@example.com',
-    phone: '+1987654321',
+    phone: '+14155552671',
     venue: 1,
     pin: '123456',
-    document: '/test',
+    document: 'https://example.com/test.pdf',
   };
 
-  const mockInvitation = {
+  const mockInvitation: EmployeeInvitation = {
     id: '1',
-    code: 'INV123',
     email: 'jane@example.com',
     pin: '123456',
     status: EmployeeInvitationStatus.Onboarding,
-    organization: { id: 1 },
     venue: { id: 1 } as Venue,
     created_at: new Date(),
     updated_at: new Date(),
-  } as EmployeeInvitation;
+  };
 
-  const mockEmployee = {
-    id: 1,
-    ...mockCreateDto,
-    venue: { id: 1 },
+  const mockEmployee: Employee = {
+    id: 'uuid-1',
+    first_name: 'John',
+    last_name: 'Doe',
+    address_line1: '123 Main St',
+    address_line2: 'Apt 4',
+    city: 'Townsville',
+    state: 'TS',
+    zip: '12345',
+    email: 'john@example.com',
+    phone: '+1234567890',
+    venue: {} as Venue,
+    pin: '123456',
+    employee_verified: false,
     employee_invite: mockInvitation,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  } as unknown as Employee;
+    document: 'https://example.com/test.pdf',
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -156,6 +167,23 @@ describe('EmployeeService', () => {
       await expect(service.findByUserPin('123456')).rejects.toThrow(
         'Database crash',
       );
+    });
+  });
+
+  describe('CreateEmployeeDto', () => {
+    it('should fail validation if required fields are missing', async () => {
+      const invalidDto = plainToInstance(CreateEmployeeDto, {});
+      const errors = await validate(invalidDto);
+
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.map((e) => e.property)).toContain('first_name');
+    });
+
+    it('should pass validation with all valid fields', async () => {
+      const validDto = plainToInstance(CreateEmployeeDto, mockCreateDto);
+
+      const errors = await validate(validDto);
+      expect(errors.length).toBe(0);
     });
   });
 });

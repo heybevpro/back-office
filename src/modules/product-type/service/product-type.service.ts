@@ -22,6 +22,7 @@ export class ProductTypeService {
     const productType = this.productTypeRepository.create({
       name: createProductTypeDto.name,
       venue: { id: venue.id },
+      serving_size: createProductTypeDto.serving_size,
     });
     return this.productTypeRepository.save(productType);
   }
