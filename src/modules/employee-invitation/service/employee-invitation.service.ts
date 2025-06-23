@@ -30,6 +30,7 @@ export class EmployeeInvitationService {
   constructor(
     @InjectRepository(EmployeeInvitation)
     private readonly employeeInvitationRepository: Repository<EmployeeInvitation>,
+
     private readonly employeeService: EmployeeService,
     private readonly venueService: VenueService,
     private readonly emailService: EmailService,
@@ -214,17 +215,6 @@ export class EmployeeInvitationService {
         where: { venue: { id: venueId } },
         relations: { venue: true },
         order: { created_at: 'DESC' },
-      });
-    } catch {
-      throw new FailedToFetchInvitation();
-    }
-  }
-
-  async findInvitationId(invitationId: string): Promise<EmployeeInvitation> {
-    try {
-      return this.employeeInvitationRepository.findOneOrFail({
-        where: { id: invitationId },
-        relations: { venue: true },
       });
     } catch {
       throw new FailedToFetchInvitation();

@@ -60,7 +60,6 @@ export class EmployeeService {
   }
 
   async findByUserPin(pin: string): Promise<Employee> {
-    console.log(`Searching for employee with PIN: ${pin}`);
     try {
       return await this.employeeRepository.findOneByOrFail({ pin });
     } catch (error) {

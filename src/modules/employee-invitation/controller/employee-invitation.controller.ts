@@ -1,13 +1,13 @@
 import {
   Body,
   Controller,
-  Get,
-  Param,
   Post,
   Put,
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { EmployeeInvitation } from '../entity/employee-invitation.entity';
 import { EmployeeInvitationService } from '../service/employee-invitation.service';
@@ -49,13 +49,6 @@ export class EmployeeInvitationController {
     @Param('venueId') venueId: number,
   ): Promise<EmployeeInvitation[]> {
     return await this.employeeInvitationService.findAllByVenueId(venueId);
-  }
-
-  @Get(':invitationId')
-  async findInvitationById(
-    @Param('invitationId') invitationId: string,
-  ): Promise<EmployeeInvitation> {
-    return await this.employeeInvitationService.findInvitationId(invitationId);
   }
 
   @Put('/review-invitation')
