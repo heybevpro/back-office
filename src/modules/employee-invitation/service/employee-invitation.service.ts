@@ -30,7 +30,6 @@ export class EmployeeInvitationService {
   constructor(
     @InjectRepository(EmployeeInvitation)
     private readonly employeeInvitationRepository: Repository<EmployeeInvitation>,
-
     private readonly employeeService: EmployeeService,
     private readonly venueService: VenueService,
     private readonly emailService: EmailService,
@@ -158,6 +157,13 @@ export class EmployeeInvitationService {
     if (invitation.status !== EmployeeInvitationStatus.Review) {
       throw new InvalidInvitationStatusException(invitation.status);
     }
+    const applicationStatus = dto.verified
+      ? EmployeeInvitationStatus.Accepted
+      : EmployeeInvitationStatus.Rejected;
+    await this.emailService.sendApplicationStatusEmail(
+      invitation.email,
+      applicationStatus,
+    );
 
     if (!dto.verified) {
       invitation.status = EmployeeInvitationStatus.Rejected;
@@ -215,6 +221,17 @@ export class EmployeeInvitationService {
         where: { venue: { id: venueId } },
         relations: { venue: true },
         order: { created_at: 'DESC' },
+      });
+    } catch {
+      throw new FailedToFetchInvitation();
+    }
+  }
+
+  async findInvitationId(invitationId: string): Promise<EmployeeInvitation> {
+    try {
+      return this.employeeInvitationRepository.findOneOrFail({
+        where: { id: invitationId },
+        relations: { venue: true },
       });
     } catch {
       throw new FailedToFetchInvitation();

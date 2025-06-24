@@ -79,6 +79,7 @@ describe('EmployeeInvitationService', () => {
           provide: EmailService,
           useValue: {
             sendEmployeeInvitationEmail: jest.fn(),
+            sendApplicationStatusEmail: jest.fn(),
           },
         },
         {
@@ -464,6 +465,10 @@ describe('EmployeeInvitationService', () => {
         ...mockUpdateDto,
         verified: false,
       });
+      expect(emailService.sendApplicationStatusEmail).toHaveBeenCalledWith(
+        mockInvitation.email,
+        'rejected',
+      );
 
       expect(result).toEqual({
         ...mockInvitation,
@@ -506,7 +511,10 @@ describe('EmployeeInvitationService', () => {
       });
 
       const result = await service.updateStatusUsingVerification(mockUpdateDto);
-
+      expect(emailService.sendApplicationStatusEmail).toHaveBeenCalledWith(
+        mockInvitation.email,
+        'accepted',
+      );
       expect(result).toEqual({
         ...mockInvitation,
         status: EmployeeInvitationStatus.Accepted,

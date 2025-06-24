@@ -65,4 +65,27 @@ export class EmailService {
       throw new FailedToSendEmailException();
     }
   }
+
+  async sendApplicationStatusEmail(email: string, applicationStatus: string) {
+    try {
+      await this.sesClient.sendEmail({
+        Source: 'hey@hey-bev.com',
+        Destination: { ToAddresses: [email.toLowerCase()] },
+        Message: {
+          Subject: { Data: 'BevPro Application Status Update' },
+          Body: {
+            Text: {
+              Data: `Hello,
+
+              Your application is: ${applicationStatus}.
+              Thank you.`,
+            },
+          },
+        },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new FailedToSendEmailException();
+    }
+  }
 }
