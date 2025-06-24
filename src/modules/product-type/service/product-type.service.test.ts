@@ -6,7 +6,7 @@ import { ProductType } from '../entity/product-type.entity';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { Venue } from '../../venue/entity/venue.entity';
 import { VenueService } from '../../venue/service/venue.service';
-import { ProductServingSize } from '../../../utils/constants/product.constants';
+import { ServingSizeService } from '../../serving-size/service/serving-size.service';
 
 describe('ProductTypeService', () => {
   let service: ProductTypeService;
@@ -22,6 +22,10 @@ describe('ProductTypeService', () => {
     findOneById: jest.fn(() => Promise.resolve(mockVenue)),
   };
 
+  const mockServingSizeService = {
+    findByIds: jest.fn(() => Promise.resolve([])),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,6 +35,7 @@ describe('ProductTypeService', () => {
           useClass: Repository,
         },
         { provide: VenueService, useValue: mockVenueService },
+        { provide: ServingSizeService, useValue: mockServingSizeService },
       ],
     }).compile();
 
@@ -53,14 +58,14 @@ describe('ProductTypeService', () => {
         name: '<_PRODUCT-TYPE_>',
         venue: mockVenue,
         products: [],
-        serving_size: ProductServingSize.Pour,
+        serving_sizes: [],
         created_at: new Date(),
         updated_at: new Date(),
       };
       const createProductTypeDto: CreateProductTypeDto = {
         name: '<_PRODUCT-TYPE_>',
         venue: 1,
-        serving_size: ProductServingSize.Pour,
+        serving_sizes: [],
       };
       jest.spyOn(repository, 'create').mockReturnValue(createdMockProductType);
       jest.spyOn(repository, 'save').mockResolvedValue(createdMockProductType);
@@ -70,7 +75,7 @@ describe('ProductTypeService', () => {
       expect(repository.create).toHaveBeenCalledWith({
         name: createProductTypeDto.name,
         venue: { id: createProductTypeDto.venue },
-        serving_size: ProductServingSize.Pour,
+        serving_sizes: [],
       });
       expect(result).toEqual(createdMockProductType);
     });
@@ -86,7 +91,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_size: ProductServingSize.Pour,
+          serving_sizes: [],
         },
         {
           id: 'uuid2',
@@ -95,7 +100,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_size: ProductServingSize.Pour,
+          serving_sizes: [],
         },
       ];
 
@@ -119,7 +124,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_size: ProductServingSize.Pour,
+          serving_sizes: [],
         },
         {
           id: 'uuid2',
@@ -128,7 +133,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_size: ProductServingSize.Pour,
+          serving_sizes: [],
         },
       ];
 

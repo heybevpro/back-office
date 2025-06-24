@@ -2,6 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -9,7 +11,7 @@ import {
 } from 'typeorm';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Product } from '../../product/entity/product.entity';
-import { ProductServingSize } from '../../../utils/constants/product.constants';
+import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 
 @Entity()
 export class ProductType {
@@ -25,13 +27,9 @@ export class ProductType {
   @OneToMany(() => Product, (product) => product.product_type)
   products: Array<Product>;
 
-  @Column({
-    type: 'enum',
-    enum: ProductServingSize,
-    nullable: false,
-    default: ProductServingSize.Pour,
-  })
-  serving_size: ProductServingSize;
+  @ManyToMany(() => ServingSize, (servingSize) => servingSize.product_types)
+  @JoinTable()
+  serving_sizes: ServingSize[];
 
   @CreateDateColumn()
   created_at: Date;
