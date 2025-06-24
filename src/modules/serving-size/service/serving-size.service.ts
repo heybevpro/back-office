@@ -38,6 +38,7 @@ export class ServingSizeService {
       where: {
         organization: { id: organizationId },
       },
+      order: { created_at: 'DESC' },
     });
   }
 
