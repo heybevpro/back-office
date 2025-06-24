@@ -104,6 +104,9 @@ describe('ServingSizeService', () => {
       expect(repository.find).toHaveBeenCalledWith({
         relations: ['organization'],
         where: { organization: { id: 1 } },
+        order: {
+          created_at: 'DESC',
+        },
       });
       expect(result).toEqual(mockServingSizes);
     });
