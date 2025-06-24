@@ -157,6 +157,13 @@ export class EmployeeInvitationService {
     if (invitation.status !== EmployeeInvitationStatus.Review) {
       throw new InvalidInvitationStatusException(invitation.status);
     }
+    const applicationStatus = dto.verified
+      ? EmployeeInvitationStatus.Accepted
+      : EmployeeInvitationStatus.Rejected;
+    await this.emailService.sendApplicationStatusEmail(
+      invitation.email,
+      applicationStatus,
+    );
 
     if (!dto.verified) {
       invitation.status = EmployeeInvitationStatus.Rejected;
