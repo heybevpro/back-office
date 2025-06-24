@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ProductType } from '../entity/product-type.entity';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { VenueService } from '../../venue/service/venue.service';
+import { ServingSizeService } from '../../serving-size/service/serving-size.service';
 
 @Injectable()
 export class ProductTypeService {
@@ -11,6 +12,7 @@ export class ProductTypeService {
     @InjectRepository(ProductType)
     private readonly productTypeRepository: Repository<ProductType>,
     private readonly venueService: VenueService,
+    private readonly servingSizeService: ServingSizeService,
   ) {}
 
   async create(
@@ -19,10 +21,17 @@ export class ProductTypeService {
     const venue = await this.venueService.findOneById(
       createProductTypeDto.venue,
     );
+
+    const servingSizes = await Promise.all(
+      createProductTypeDto.serving_sizes.map((id) =>
+        this.servingSizeService.findOneById(id),
+      ),
+    );
+
     const productType = this.productTypeRepository.create({
       name: createProductTypeDto.name,
       venue: { id: venue.id },
-      serving_size: createProductTypeDto.serving_size,
+      serving_sizes: servingSizes,
     });
     return this.productTypeRepository.save(productType);
   }
