@@ -545,6 +545,7 @@ describe('EmployeeInvitationService', () => {
   describe('findByInvitationPin', () => {
     const dto = {
       pin: '123456',
+      venue: 1,
     };
 
     it('should return employee invitation for valid pin', async () => {

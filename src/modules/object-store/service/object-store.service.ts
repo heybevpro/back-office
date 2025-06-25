@@ -11,6 +11,15 @@ export class ObjectStoreService {
     this.s3 = new S3Client({ region: 'us-east-2' });
   }
 
+  private sanitizeFilename(originalname: string): string {
+    return originalname
+      .normalize('NFKD')
+      .replace(/[^\w.-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase();
+  }
+
   async uploadDocument(
     file: { buffer: Buffer; mimetype: string; originalname: string },
     organizationId: string,
@@ -23,7 +32,8 @@ export class ObjectStoreService {
       throw new BadRequestException(`Invalid file type: ${file.mimetype}`);
     }
 
-    const key = `documents/organization/${organizationId}/venue/${venueId}/invitations/${invitationId}/${uuidv4()}-${file.originalname}`;
+    const sanitizedFilename = this.sanitizeFilename(file.originalname);
+    const key = `documents/organization/${organizationId}/venue/${venueId}/invitations/${invitationId}/${uuidv4()}-${sanitizedFilename}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,
