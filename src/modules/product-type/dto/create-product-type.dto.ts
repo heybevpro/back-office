@@ -1,6 +1,4 @@
 import {
-  ArrayNotEmpty,
-  IsArray,
   IsNotEmpty,
   IsNumber,
   IsPositive,
@@ -18,8 +16,6 @@ export class CreateProductTypeDto {
   @IsPositive()
   venue: number;
 
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsString({ each: true })
-  serving_sizes: string[];
+  @IsString()
+  serving_size: string;
 }

@@ -2,10 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
+  JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -27,9 +27,9 @@ export class ProductType {
   @OneToMany(() => Product, (product) => product.product_type)
   products: Array<Product>;
 
-  @ManyToMany(() => ServingSize, (servingSize) => servingSize.product_types)
-  @JoinTable()
-  serving_sizes: ServingSize[];
+  @OneToOne(() => ServingSize, (servingSize) => servingSize.product_type)
+  @JoinColumn()
+  serving_size: ServingSize;
 
   @CreateDateColumn()
   created_at: Date;

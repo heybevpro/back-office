@@ -3,7 +3,6 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -28,8 +27,8 @@ export class ServingSize {
   @JoinColumn({ name: 'organizationId' })
   organization: Organization;
 
-  @ManyToMany(() => ProductType, (productType) => productType.serving_sizes)
-  product_types: ProductType[];
+  @OneToOne(() => ProductType, (productType) => productType.serving_size)
+  product_type: ProductType;
 
   @CreateDateColumn()
   created_at: Date;
