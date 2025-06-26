@@ -4,6 +4,7 @@ import { ProductTypeService } from '../service/product-type.service';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { ProductType } from '../entity/product-type.entity';
 import { Venue } from '../../venue/entity/venue.entity';
+import { ServingSize } from 'src/modules/serving-size/entity/serving-size.entity';
 
 describe('ProductTypeController', () => {
   let controller: ProductTypeController;
@@ -20,6 +21,12 @@ describe('ProductTypeController', () => {
     name: 'Venue A',
     product_types: [],
   } as unknown as Venue;
+
+  const mockServingSize: ServingSize = {
+    id: 'size-uuid',
+    label: 'Regular',
+    volume_in_ml: 500,
+  } as unknown as ServingSize;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -41,14 +48,14 @@ describe('ProductTypeController', () => {
       const createProductTypeDto: CreateProductTypeDto = {
         name: '<_PRODUCT-TYPE-A_>',
         venue: 1,
-        serving_sizes: [],
+        serving_size: 'size-uuid',
       };
       const createdProductType: ProductType = {
         id: 'uuid',
         name: '<_PRODUCT-TYPE-A_>',
         venue: mockVenue,
         products: [],
-        serving_sizes: [],
+        serving_size: mockServingSize,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -72,7 +79,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_sizes: [],
+          serving_size: mockServingSize,
         },
         {
           id: 'uuid2',
@@ -81,7 +88,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_sizes: [],
+          serving_size: mockServingSize,
         },
       ];
 
@@ -105,7 +112,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_sizes: [],
+          serving_size: mockServingSize,
         },
         {
           id: 'uuid2',
@@ -114,7 +121,7 @@ describe('ProductTypeController', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
-          serving_sizes: [],
+          serving_size: mockServingSize,
         },
       ];
 

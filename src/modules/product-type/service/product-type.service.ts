@@ -22,28 +22,31 @@ export class ProductTypeService {
       createProductTypeDto.venue,
     );
 
-    const servingSizes = await Promise.all(
-      createProductTypeDto.serving_sizes.map((id) =>
-        this.servingSizeService.findOneById(id),
-      ),
+    const servingSize = await this.servingSizeService.findOneById(
+      createProductTypeDto.serving_size,
     );
 
     const productType = this.productTypeRepository.create({
       name: createProductTypeDto.name,
       venue: { id: venue.id },
-      serving_sizes: servingSizes,
+      serving_size: servingSize,
     });
     return this.productTypeRepository.save(productType);
   }
 
   async findAll(): Promise<Array<ProductType>> {
-    return this.productTypeRepository.find();
+    return this.productTypeRepository.find({
+      relations: ['serving_size'],
+    });
   }
 
   async findAllByVenue(venueId: number): Promise<Array<ProductType>> {
     return await this.productTypeRepository.find({
-      relations: { venue: true },
-      select: { venue: { id: false } },
+      relations: { venue: true, serving_size: true },
+      select: {
+        venue: { id: false },
+        serving_size: { id: true, label: true, volume_in_ml: true },
+      },
       where: {
         venue: { id: venueId },
       },

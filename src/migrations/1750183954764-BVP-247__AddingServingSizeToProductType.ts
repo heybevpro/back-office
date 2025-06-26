@@ -1,5 +1,9 @@
-import { ProductServingSize } from 'src/utils/constants/product.constants';
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  TableColumn,
+  TableForeignKey,
+} from 'typeorm';
 
 export class BVP247_AddingServingSizeToProductType1750183954764
   implements MigrationInterface
@@ -8,16 +12,35 @@ export class BVP247_AddingServingSizeToProductType1750183954764
     await queryRunner.addColumn(
       'product_type',
       new TableColumn({
-        name: 'serving_size',
-        type: 'enum',
-        enum: Object.values(ProductServingSize),
-        default: `'pour'`,
-        isNullable: false,
+        name: 'servingSizeId',
+        type: 'uuid',
+        isNullable: true,
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      'product_type',
+      new TableForeignKey({
+        columnNames: ['servingSizeId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'serving_size',
+        onDelete: 'SET NULL',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropColumn('product_type', 'serving_size');
+    const productTypeTable = await queryRunner.getTable('product_type');
+    if (productTypeTable) {
+      const foreignKey = productTypeTable.foreignKeys.find(
+        (fk) => fk.columnNames.indexOf('servingSizeId') !== -1,
+      );
+
+      if (foreignKey) {
+        await queryRunner.dropForeignKey('product_type', foreignKey);
+      }
+    }
+
+    await queryRunner.dropColumn('product_type', 'servingSizeId');
   }
 }

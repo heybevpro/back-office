@@ -37,6 +37,11 @@ export class BVP247_AddingServingSizeTable1750759453768
             isNullable: false,
           },
           {
+            name: 'productTypeId',
+            type: 'uuid',
+            isNullable: true,
+          },
+          {
             name: 'created_at',
             type: 'timestamp',
             default: 'now()',
@@ -60,47 +65,34 @@ export class BVP247_AddingServingSizeTable1750759453768
       }),
     );
 
-    await queryRunner.createTable(
-      new Table({
-        name: 'product_type_serving_sizes_serving_size',
-        columns: [
-          {
-            name: 'servingSizeId',
-            type: 'uuid',
-            isPrimary: true,
-          },
-          {
-            name: 'productTypeId',
-            type: 'uuid',
-            isPrimary: true,
-          },
-        ],
-      }),
-    );
-
     await queryRunner.createForeignKey(
-      'product_type_serving_sizes_serving_size',
-      new TableForeignKey({
-        columnNames: ['servingSizeId'],
-        referencedColumnNames: ['id'],
-        referencedTableName: 'serving_size',
-        onDelete: 'CASCADE',
-      }),
-    );
-
-    await queryRunner.createForeignKey(
-      'product_type_serving_sizes_serving_size',
+      'serving_size',
       new TableForeignKey({
         columnNames: ['productTypeId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'product_type',
-        onDelete: 'CASCADE',
+        onDelete: 'SET NULL',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('product_type_serving_sizes_serving_size');
+    const servingSizeTable = await queryRunner.getTable('serving_size');
+    if (servingSizeTable) {
+      const orgForeignKey = servingSizeTable.foreignKeys.find(
+        (fk) => fk.columnNames.indexOf('organizationId') !== -1,
+      );
+      const productTypeForeignKey = servingSizeTable.foreignKeys.find(
+        (fk) => fk.columnNames.indexOf('productTypeId') !== -1,
+      );
+      if (productTypeForeignKey) {
+        await queryRunner.dropForeignKey('serving_size', productTypeForeignKey);
+      }
+      if (orgForeignKey) {
+        await queryRunner.dropForeignKey('serving_size', orgForeignKey);
+      }
+    }
+
     await queryRunner.dropTable('serving_size');
   }
 }
