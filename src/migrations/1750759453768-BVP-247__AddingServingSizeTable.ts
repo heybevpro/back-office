@@ -37,7 +37,7 @@ export class BVP247_AddingServingSizeTable1750759453768
             isNullable: false,
           },
           {
-            name: 'productTypeId',
+            name: 'product_type_id',
             type: 'uuid',
             isNullable: true,
           },
@@ -68,7 +68,7 @@ export class BVP247_AddingServingSizeTable1750759453768
     await queryRunner.createForeignKey(
       'serving_size',
       new TableForeignKey({
-        columnNames: ['productTypeId'],
+        columnNames: ['product_type_id'],
         referencedColumnNames: ['id'],
         referencedTableName: 'product_type',
         onDelete: 'SET NULL',
@@ -83,7 +83,7 @@ export class BVP247_AddingServingSizeTable1750759453768
         (fk) => fk.columnNames.indexOf('organizationId') !== -1,
       );
       const productTypeForeignKey = servingSizeTable.foreignKeys.find(
-        (fk) => fk.columnNames.indexOf('productTypeId') !== -1,
+        (fk) => fk.columnNames.indexOf('product_type_id') !== -1,
       );
       if (productTypeForeignKey) {
         await queryRunner.dropForeignKey('serving_size', productTypeForeignKey);

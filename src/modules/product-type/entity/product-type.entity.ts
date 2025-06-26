@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -28,7 +27,6 @@ export class ProductType {
   products: Array<Product>;
 
   @OneToOne(() => ServingSize, (servingSize) => servingSize.product_type)
-  @JoinColumn()
   serving_size: ServingSize;
 
   @CreateDateColumn()
