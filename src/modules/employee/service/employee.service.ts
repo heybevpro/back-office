@@ -8,6 +8,7 @@ import { EntityNotFoundError, Repository } from 'typeorm';
 import { Employee } from '../entity/employee.entity';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeInvitation } from 'src/modules/employee-invitation/entity/employee-invitation.entity';
+import { FailedToFetchEmployeesForVenueException } from '../../../excpetions/employee.exception';
 
 @Injectable()
 export class EmployeeService {
@@ -66,6 +67,20 @@ export class EmployeeService {
         throw new NotFoundException('Employee not found for the provided PIN');
       }
       throw error;
+    }
+  }
+
+  async findAllEmployeeByVenue(venueId?: number): Promise<Employee[]> {
+    try {
+      return this.employeeRepository.find({
+        where: {
+          venue: { id: venueId },
+        },
+        relations: { venue: true },
+        order: { created_at: 'DESC' },
+      });
+    } catch {
+      throw new FailedToFetchEmployeesForVenueException();
     }
   }
 }

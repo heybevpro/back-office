@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Employee } from '../entity/employee.entity';
 import { EmployeeService } from '../service/employee.service';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
@@ -22,5 +30,12 @@ export class EmployeeController {
   @Post('login')
   async login(@Body() loginDto: EmployeeLoginRequestDto): Promise<Employee> {
     return this.employeeService.findByUserPin(loginDto.pin);
+  }
+
+  @Get('venue/:venueId')
+  async findAllEmployeeByVenue(
+    @Param('venueId', new ParseIntPipe()) venueId: number,
+  ): Promise<Employee[]> {
+    return this.employeeService.findAllEmployeeByVenue(venueId);
   }
 }

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import { S3UploadFailedException } from '../../../excpetions/objects.exception';
 
@@ -17,7 +17,7 @@ export class ObjectStoreService {
     venueId: number,
     invitationId: string,
   ): Promise<string> {
-    const allowedMimeTypes = ['application/pdf', 'image/jpeg'];
+    const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(`Invalid file type: ${file.mimetype}`);
@@ -36,9 +36,7 @@ export class ObjectStoreService {
       await this.s3.send(command);
       const bucketName = process.env.S3_BUCKET_NAME;
       const region = 'us-east-2';
-      const fileUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
-
-      return fileUrl;
+      return `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
     } catch (error: unknown) {
       throw new S3UploadFailedException((error as Error).message);
     }
