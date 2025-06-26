@@ -28,6 +28,7 @@ export class ServingSize {
   organization: Organization;
 
   @OneToOne(() => ProductType, (productType) => productType.serving_size)
+  @JoinColumn({ name: 'product_type_id' })
   product_type: ProductType;
 
   @CreateDateColumn()
