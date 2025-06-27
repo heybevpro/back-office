@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { ServingSize } from '../entity/serving-size.entity';
 import { OrganizationService } from '../../organization/service/organization.service';
 import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Organization } from '../../organization/entity/organization.entity';
 
 const mockOrganization = { id: 1, name: 'Org 1' } as Organization;
@@ -78,6 +78,29 @@ describe('ServingSizeService', () => {
         organization: mockOrganization,
       });
       expect(result).toEqual(mockServingSize);
+    });
+
+    it('should throw an error if label is not unique within the organization', async () => {
+      const dto: CreateServingSizeDto = {
+        label: 'Medium',
+        volume_in_ml: 250,
+        organization: 1,
+      };
+
+      const mockServingSize = {
+        id: 'uuid',
+        label: dto.label,
+        volume_in_ml: dto.volume_in_ml,
+        organization: mockOrganization,
+      } as ServingSize;
+
+      mockOrganizationService.findOneById.mockResolvedValue(mockOrganization);
+      jest.spyOn(repository, 'create').mockReturnValue(mockServingSize);
+      jest
+        .spyOn(repository, 'save')
+        .mockRejectedValue(new BadRequestException('Duplicate label'));
+
+      await expect(service.create(dto)).rejects.toThrow(BadRequestException);
     });
   });
 
