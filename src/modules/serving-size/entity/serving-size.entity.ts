@@ -5,12 +5,14 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from '../../product-type/entity/product-type.entity';
 
 @Entity()
+@Unique(['label', 'organization'])
 export class ServingSize {
   @PrimaryGeneratedColumn('uuid')
   id: string;

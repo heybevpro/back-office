@@ -52,6 +52,12 @@ export class BVP247_AddingServingSizeTable1750759453768
             default: 'now()',
           },
         ],
+        uniques: [
+          {
+            name: 'UQ_serving_size_label_organization',
+            columnNames: ['label', 'organizationId'],
+          },
+        ],
       }),
     );
 
@@ -90,6 +96,17 @@ export class BVP247_AddingServingSizeTable1750759453768
       }
       if (orgForeignKey) {
         await queryRunner.dropForeignKey('serving_size', orgForeignKey);
+      }
+      const uniqueConstraint = servingSizeTable.uniques.find(
+        (uq) =>
+          uq.columnNames.includes('label') &&
+          uq.columnNames.includes('organizationId'),
+      );
+      if (uniqueConstraint) {
+        await queryRunner.dropUniqueConstraint(
+          'serving_size',
+          uniqueConstraint,
+        );
       }
     }
 
