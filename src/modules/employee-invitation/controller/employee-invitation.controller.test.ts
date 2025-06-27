@@ -168,7 +168,7 @@ describe('EmployeeInvitationController', () => {
   });
 
   describe('login', () => {
-    const dto: LoginDto = { pin: '123456' };
+    const dto: LoginDto = { pin: '123456', venue: 1 };
 
     it('should return employee invitation if pin is correct', async () => {
       jest

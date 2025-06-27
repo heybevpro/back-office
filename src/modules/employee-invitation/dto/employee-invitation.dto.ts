@@ -28,4 +28,7 @@ export class LoginDto {
   @IsString()
   @IsNotEmpty()
   pin: string;
+
+  @IsPositive()
+  venue: number;
 }

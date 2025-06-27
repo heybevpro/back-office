@@ -11,6 +11,28 @@ export class ObjectStoreService {
     this.s3 = new S3Client({ region: 'us-east-2' });
   }
 
+  sanitizeFilename(originalname: string): string {
+    const filename = originalname
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    const match = filename.match(/^(.*?)(\.[^.]+)?$/);
+    let name = match ? match[1] : filename;
+    const ext = match && match[2] ? match[2] : '';
+
+    name = name
+      .replace(/[^\w-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/_+/g, '_')
+      .replace(/^[-_]+|[-_]+$/g, '')
+      .replace(/-+$/g, '');
+
+    let sanitized = name + ext;
+    sanitized = sanitized.replace(/^[-_]+|[-_]+$/g, '');
+    return sanitized;
+  }
+
   async uploadDocument(
     file: { buffer: Buffer; mimetype: string; originalname: string },
     organizationId: string,
@@ -23,7 +45,8 @@ export class ObjectStoreService {
       throw new BadRequestException(`Invalid file type: ${file.mimetype}`);
     }
 
-    const key = `documents/organization/${organizationId}/venue/${venueId}/invitations/${invitationId}/${uuidv4()}-${file.originalname}`;
+    const sanitizedFilename = this.sanitizeFilename(file.originalname);
+    const key = `documents/organization/${organizationId}/venue/${venueId}/invitations/${invitationId}/${uuidv4()}-${sanitizedFilename}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,
