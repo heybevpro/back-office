@@ -11,13 +11,26 @@ export class ObjectStoreService {
     this.s3 = new S3Client({ region: 'us-east-2' });
   }
 
-  private sanitizeFilename(originalname: string): string {
-    return originalname
+  sanitizeFilename(originalname: string): string {
+    const filename = originalname
       .normalize('NFKD')
-      .replace(/[^\w.-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-+|-+$/g, '')
+      .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
+
+    const match = filename.match(/^(.*?)(\.[^.]+)?$/);
+    let name = match ? match[1] : filename;
+    const ext = match && match[2] ? match[2] : '';
+
+    name = name
+      .replace(/[^\w-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/_+/g, '_')
+      .replace(/^[-_]+|[-_]+$/g, '')
+      .replace(/-+$/g, '');
+
+    let sanitized = name + ext;
+    sanitized = sanitized.replace(/^[-_]+|[-_]+$/g, '');
+    return sanitized;
   }
 
   async uploadDocument(

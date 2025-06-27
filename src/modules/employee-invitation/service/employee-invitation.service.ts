@@ -85,8 +85,7 @@ export class EmployeeInvitationService {
     }
 
     const fetchedVenue = await this.venueService.findOneById(venue);
-    const isResend = !!existingInvitation;
-    const pin = isResend
+    const pin = existingInvitation
       ? existingInvitation.pin
       : await this.generateUniquePinForVenue(venue);
 
@@ -98,7 +97,7 @@ export class EmployeeInvitationService {
     );
 
     try {
-      const invitation = isResend
+      const invitation = existingInvitation
         ? {
             ...existingInvitation,
             status: EmployeeInvitationStatus.Onboarding,
