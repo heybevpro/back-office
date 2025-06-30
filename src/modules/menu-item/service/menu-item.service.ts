@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MenuItem, MenuItemProduct } from '../entity/menu-item.entity';
+import { MenuItem, MenuItemIngredient } from '../entity/menu-item.entity';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { ProductService } from '../../product/service/product.service';
 import { ServingSizeService } from '../../serving-size/service/serving-size.service';
-import { OrganizationService } from '../../organization/service/organization.service';
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
+import { VenueService } from '../../venue/service/venue.service';
 
 @Injectable()
 export class MenuItemService {
@@ -15,23 +15,23 @@ export class MenuItemService {
     private readonly menuItemRepository: Repository<MenuItem>,
     private readonly productService: ProductService,
     private readonly servingSizeService: ServingSizeService,
-    private readonly organizationService: OrganizationService,
+    private readonly venueService: VenueService,
   ) {}
 
   async create(createMenuItemDto: CreateMenuItemDto): Promise<MenuItem> {
-    const organization = await this.organizationService.findOneById(
-      createMenuItemDto.organization_id,
+    const venue = await this.venueService.findOneById(
+      createMenuItemDto.venue_id,
     );
-    if (!organization) {
+    if (!venue) {
       throw new NotFoundException(
-        `Organization ${createMenuItemDto.organization_id} not found`,
+        `Venue ${createMenuItemDto.venue_id} not found`,
       );
     }
 
     const menuItem = this.menuItemRepository.create({
       name: createMenuItemDto.name,
       description: createMenuItemDto.description,
-      organization,
+      venue,
     });
 
     const productIds = createMenuItemDto.products.map((p) => p.product_id);
@@ -49,6 +49,14 @@ export class MenuItemService {
     ]);
 
     const validServingSizes = servingSizes.filter((s): s is ServingSize => !!s);
+
+    for (const servingSize of validServingSizes) {
+      if (servingSize.organization.id !== venue.organization.id) {
+        throw new NotFoundException(
+          `Serving size ${servingSize.id} does not belong to the venue's organization`,
+        );
+      }
+    }
 
     menuItem.products = createMenuItemDto.products.map((itemProduct) => {
       const product = products.find((p) => p.id === itemProduct.product_id);
@@ -70,7 +78,7 @@ export class MenuItemService {
         }
       }
 
-      return this.menuItemRepository.manager.create(MenuItemProduct, {
+      return this.menuItemRepository.manager.create(MenuItemIngredient, {
         product,
         custom_serving_size: customServingSize,
         quantity: itemProduct.quantity,

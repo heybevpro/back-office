@@ -32,7 +32,7 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
             isNullable: true,
           },
           {
-            name: 'organizationId',
+            name: 'venueId',
             type: 'int',
             isNullable: false,
           },
@@ -52,7 +52,7 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
 
     await queryRunner.createTable(
       new Table({
-        name: 'menu_item_product',
+        name: 'menu_item_ingredient',
         columns: [
           {
             name: 'id',
@@ -99,15 +99,15 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
     await queryRunner.createForeignKey(
       'menu_item',
       new TableForeignKey({
-        columnNames: ['organizationId'],
+        columnNames: ['venueId'],
         referencedColumnNames: ['id'],
-        referencedTableName: 'organization',
+        referencedTableName: 'venue',
         onDelete: 'NO ACTION',
       }),
     );
 
     await queryRunner.createForeignKey(
-      'menu_item_product',
+      'menu_item_ingredient',
       new TableForeignKey({
         columnNames: ['menu_item_id'],
         referencedColumnNames: ['id'],
@@ -117,7 +117,7 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
     );
 
     await queryRunner.createForeignKey(
-      'menu_item_product',
+      'menu_item_ingredient',
       new TableForeignKey({
         columnNames: ['product_id'],
         referencedColumnNames: ['id'],
@@ -127,7 +127,7 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
     );
 
     await queryRunner.createForeignKey(
-      'menu_item_product',
+      'menu_item_ingredient',
       new TableForeignKey({
         columnNames: ['custom_serving_size_id'],
         referencedColumnNames: ['id'],
@@ -138,8 +138,9 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const menuItemProductTable =
-      await queryRunner.getTable('menu_item_product');
+    const menuItemProductTable = await queryRunner.getTable(
+      'menu_item_ingredient',
+    );
     if (menuItemProductTable) {
       const customServingSizeForeignKey = menuItemProductTable.foreignKeys.find(
         (fk) => fk.columnNames.indexOf('custom_serving_size_id') !== -1,
@@ -153,21 +154,21 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
 
       if (customServingSizeForeignKey) {
         await queryRunner.dropForeignKey(
-          'menu_item_product',
+          'menu_item_ingredient',
           customServingSizeForeignKey,
         );
       }
 
       if (productForeignKey) {
         await queryRunner.dropForeignKey(
-          'menu_item_product',
+          'menu_item_ingredient',
           productForeignKey,
         );
       }
 
       if (menuItemForeignKey) {
         await queryRunner.dropForeignKey(
-          'menu_item_product',
+          'menu_item_ingredient',
           menuItemForeignKey,
         );
       }
@@ -175,15 +176,15 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
 
     const menuItemTable = await queryRunner.getTable('menu_item');
     if (menuItemTable) {
-      const organizationForeignKey = menuItemTable.foreignKeys.find(
-        (fk) => fk.columnNames.indexOf('organizationId') !== -1,
+      const venueForeignKey = menuItemTable.foreignKeys.find(
+        (fk) => fk.columnNames.indexOf('venueId') !== -1,
       );
-      if (organizationForeignKey) {
-        await queryRunner.dropForeignKey('menu_item', organizationForeignKey);
+      if (venueForeignKey) {
+        await queryRunner.dropForeignKey('menu_item', venueForeignKey);
       }
     }
 
-    await queryRunner.dropTable('menu_item_product');
+    await queryRunner.dropTable('menu_item_ingredient');
     await queryRunner.dropTable('menu_item');
   }
 }

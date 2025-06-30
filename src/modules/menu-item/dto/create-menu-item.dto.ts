@@ -22,7 +22,7 @@ export class CreateMenuItemDto {
   description?: string;
 
   @IsNumber()
-  organization_id: number;
+  venue_id: number;
 
   @IsArray()
   @ValidateNested({ each: true })
