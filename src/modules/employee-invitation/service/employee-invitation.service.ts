@@ -75,6 +75,7 @@ export class EmployeeInvitationService {
 
     const existingInvitation = await this.employeeInvitationRepository.findOne({
       where: { email },
+      order: { created_at: 'DESC' },
     });
 
     if (
@@ -84,30 +85,23 @@ export class EmployeeInvitationService {
       throw new InvitationAlreadyExistsException(email);
     }
 
+    const uniquePin = await this.generateUniquePinForVenue(venue);
     const fetchedVenue = await this.venueService.findOneById(venue);
-    const pin = existingInvitation
-      ? existingInvitation.pin
-      : await this.generateUniquePinForVenue(venue);
 
     await this.emailService.sendEmployeeInvitationEmail(
       email,
-      pin,
+      uniquePin,
       fetchedVenue.organization.name,
       fetchedVenue.name,
     );
 
     try {
-      const invitation = existingInvitation
-        ? {
-            ...existingInvitation,
-            status: EmployeeInvitationStatus.Onboarding,
-          }
-        : this.employeeInvitationRepository.create({
-            ...createEmployeeInvitationDto,
-            pin,
-            venue: { id: venue },
-          });
-      return await this.employeeInvitationRepository.save(invitation);
+      const employeeInvite = this.employeeInvitationRepository.create({
+        ...createEmployeeInvitationDto,
+        pin: uniquePin,
+        venue: { id: venue },
+      });
+      return await this.employeeInvitationRepository.save(employeeInvite);
     } catch (err) {
       throw new BadRequestException('Failed to save employee invitation.', {
         cause: err,
