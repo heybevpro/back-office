@@ -184,6 +184,7 @@ describe('MenuItemService', () => {
           'products',
           'products.product',
           'products.product.product_type',
+          'products.product.product_type.serving_size',
           'products.customServingSize',
         ],
         order: { created_at: 'DESC' },
@@ -203,6 +204,7 @@ describe('MenuItemService', () => {
           'products',
           'products.product',
           'products.product.product_type',
+          'products.product.product_type.serving_size',
           'products.customServingSize',
         ],
       });
