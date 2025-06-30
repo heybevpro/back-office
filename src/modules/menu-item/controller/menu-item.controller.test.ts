@@ -39,7 +39,7 @@ describe('MenuItemController', () => {
           id: '1',
           name: 'Pizza',
           description: 'Cheese',
-          organization: {},
+          venue: {},
           products: [],
           created_at: new Date(),
           updated_at: new Date(),
@@ -48,7 +48,7 @@ describe('MenuItemController', () => {
           id: '2',
           name: 'Burger',
           description: 'Beef',
-          organization: {},
+          venue: {},
           products: [],
           created_at: new Date(),
           updated_at: new Date(),
@@ -67,7 +67,7 @@ describe('MenuItemController', () => {
         id: '1',
         name: 'Pizza',
         description: 'Cheese',
-        organization: {},
+        venue: {},
         products: [],
         created_at: new Date(),
         updated_at: new Date(),
@@ -75,7 +75,7 @@ describe('MenuItemController', () => {
       const createMenuItemDto: CreateMenuItemDto = {
         name: 'Pizza',
         description: 'Cheese',
-        organization_id: 1,
+        venue_id: 1,
         products: [{ product_id: 'prod-1', quantity: 1 }],
       };
       jest.spyOn(service, 'create').mockResolvedValue(mockMenuItem);

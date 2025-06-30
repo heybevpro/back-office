@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Product } from '../../product/entity/product.entity';
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
-import { Organization } from '../../organization/entity/organization.entity';
+import { Venue } from '../../venue/entity/venue.entity';
 
 @Entity()
 export class MenuItem {
@@ -23,13 +23,13 @@ export class MenuItem {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @ManyToOne(() => Organization, { nullable: false })
-  organization: Organization;
+  @ManyToOne(() => Venue, { nullable: false })
+  venue: Venue;
 
-  @OneToMany(() => MenuItemProduct, (mip) => mip.menuItem, {
+  @OneToMany(() => MenuItemIngredient, (mip) => mip.menuItem, {
     cascade: true,
   })
-  products: MenuItemProduct[];
+  products: MenuItemIngredient[];
 
   @CreateDateColumn()
   created_at: Date;
@@ -39,7 +39,7 @@ export class MenuItem {
 }
 
 @Entity()
-export class MenuItemProduct {
+export class MenuItemIngredient {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
