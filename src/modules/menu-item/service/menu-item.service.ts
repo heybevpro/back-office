@@ -94,6 +94,7 @@ export class MenuItemService {
         'products',
         'products.product',
         'products.product.product_type',
+        'products.product.product_type.serving_size',
         'products.customServingSize',
       ],
       order: {
@@ -109,6 +110,7 @@ export class MenuItemService {
         'products',
         'products.product',
         'products.product.product_type',
+        'products.product.product_type.serving_size',
         'products.customServingSize',
       ],
     });
