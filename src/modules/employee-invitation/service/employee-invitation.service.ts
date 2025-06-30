@@ -30,7 +30,6 @@ export class EmployeeInvitationService {
   constructor(
     @InjectRepository(EmployeeInvitation)
     private readonly employeeInvitationRepository: Repository<EmployeeInvitation>,
-
     private readonly employeeService: EmployeeService,
     private readonly venueService: VenueService,
     private readonly emailService: EmailService,
@@ -85,23 +84,30 @@ export class EmployeeInvitationService {
       throw new InvitationAlreadyExistsException(email);
     }
 
-    const uniquePin = await this.generateUniquePinForVenue(venue);
     const fetchedVenue = await this.venueService.findOneById(venue);
+    const pin = existingInvitation
+      ? existingInvitation.pin
+      : await this.generateUniquePinForVenue(venue);
 
     await this.emailService.sendEmployeeInvitationEmail(
       email,
-      uniquePin,
+      pin,
       fetchedVenue.organization.name,
       fetchedVenue.name,
     );
 
     try {
-      const employeeInvite = this.employeeInvitationRepository.create({
-        ...createEmployeeInvitationDto,
-        pin: uniquePin,
-        venue: { id: venue },
-      });
-      return await this.employeeInvitationRepository.save(employeeInvite);
+      const invitation = existingInvitation
+        ? {
+            ...existingInvitation,
+            status: EmployeeInvitationStatus.Onboarding,
+          }
+        : this.employeeInvitationRepository.create({
+            ...createEmployeeInvitationDto,
+            pin,
+            venue: { id: venue },
+          });
+      return await this.employeeInvitationRepository.save(invitation);
     } catch (err) {
       throw new BadRequestException('Failed to save employee invitation.', {
         cause: err,
@@ -158,6 +164,13 @@ export class EmployeeInvitationService {
     if (invitation.status !== EmployeeInvitationStatus.Review) {
       throw new InvalidInvitationStatusException(invitation.status);
     }
+    const applicationStatus = dto.verified
+      ? EmployeeInvitationStatus.Accepted
+      : EmployeeInvitationStatus.Rejected;
+    await this.emailService.sendApplicationStatusEmail(
+      invitation.email,
+      applicationStatus,
+    );
 
     if (!dto.verified) {
       invitation.status = EmployeeInvitationStatus.Rejected;
@@ -198,6 +211,7 @@ export class EmployeeInvitationService {
     try {
       return await this.employeeInvitationRepository.findOneByOrFail({
         pin: dto.pin,
+        venue: { id: dto.venue },
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
@@ -215,6 +229,17 @@ export class EmployeeInvitationService {
         where: { venue: { id: venueId } },
         relations: { venue: true },
         order: { created_at: 'DESC' },
+      });
+    } catch {
+      throw new FailedToFetchInvitation();
+    }
+  }
+
+  async findInvitationId(invitationId: string): Promise<EmployeeInvitation> {
+    try {
+      return this.employeeInvitationRepository.findOneOrFail({
+        where: { id: invitationId },
+        relations: { venue: true },
       });
     } catch {
       throw new FailedToFetchInvitation();

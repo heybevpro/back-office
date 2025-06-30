@@ -146,4 +146,36 @@ describe('ObjectStoreService', () => {
       expect(err.message).toBe('Document upload to S3 failed. ');
     });
   });
+
+  describe('sanitizeFilename', () => {
+    it('should replace special characters with hyphens and lowercase the filename', () => {
+      const result = service.sanitizeFilename('My File@2024!.PDF');
+      expect(result).toBe('my-file-2024.pdf');
+    });
+
+    it('should collapse multiple consecutive special characters into a single hyphen', () => {
+      const result = service.sanitizeFilename('file---name__test!!.jpg');
+      expect(result).toBe('file-name_test.jpg');
+    });
+
+    it('should trim leading and trailing special characters', () => {
+      const result = service.sanitizeFilename('---file.pdf---');
+      expect(result).toBe('file.pdf');
+    });
+
+    it('should not change a valid filename', () => {
+      const result = service.sanitizeFilename('valid-file_name.txt');
+      expect(result).toBe('valid-file_name.txt');
+    });
+
+    it('should convert uppercase letters to lowercase', () => {
+      const result = service.sanitizeFilename('UPPERCASE.JPG');
+      expect(result).toBe('uppercase.jpg');
+    });
+
+    it('should normalize non-ASCII characters', () => {
+      const result = service.sanitizeFilename('fílè-nâmé.pdf');
+      expect(result).toBe('file-name.pdf');
+    });
+  });
 });
