@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServingSize } from '../entity/serving-size.entity';
 import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
 import { OrganizationService } from '../../organization/service/organization.service';
+import {
+  ServingSizeConflictException,
+  ServingSizeOrganizationNotFoundException,
+} from '../../../excpetions/servingSize.exception';
 
 @Injectable()
 export class ServingSizeService {
@@ -20,7 +24,17 @@ export class ServingSizeService {
     );
 
     if (!organization) {
-      throw new NotFoundException('Organization not found');
+      throw new ServingSizeOrganizationNotFoundException(dto.organization);
+    }
+
+    const existing = await this.servingSizeRepository.findOne({
+      where: {
+        label: dto.label,
+        organization: { id: organization.id },
+      },
+    });
+    if (existing) {
+      throw new ServingSizeConflictException(dto.label);
     }
 
     const servingSize = this.servingSizeRepository.create({

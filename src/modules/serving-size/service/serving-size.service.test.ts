@@ -7,6 +7,7 @@ import { OrganizationService } from '../../organization/service/organization.ser
 import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Organization } from '../../organization/entity/organization.entity';
+import { ServingSizeConflictException } from '../../../excpetions/servingSize.exception';
 
 const mockOrganization = { id: 1, name: 'Org 1' } as Organization;
 
@@ -67,6 +68,7 @@ describe('ServingSizeService', () => {
       } as ServingSize;
 
       mockOrganizationService.findOneById.mockResolvedValue(mockOrganization);
+      jest.spyOn(repository, 'findOne').mockResolvedValue(null);
       jest.spyOn(repository, 'create').mockReturnValue(mockServingSize);
       jest.spyOn(repository, 'save').mockResolvedValue(mockServingSize);
 
@@ -96,11 +98,14 @@ describe('ServingSizeService', () => {
 
       mockOrganizationService.findOneById.mockResolvedValue(mockOrganization);
       jest.spyOn(repository, 'create').mockReturnValue(mockServingSize);
+      jest.spyOn(repository, 'findOne').mockResolvedValue(mockServingSize);
       jest
         .spyOn(repository, 'save')
         .mockRejectedValue(new BadRequestException('Duplicate label'));
 
-      await expect(service.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(dto)).rejects.toThrow(
+        ServingSizeConflictException,
+      );
     });
   });
 
