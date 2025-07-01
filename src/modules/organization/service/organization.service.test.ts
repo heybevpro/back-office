@@ -128,4 +128,26 @@ describe('OrganizationService', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('findOneById', () => {
+    it('should return an organization by id', async () => {
+      const orgId = 1;
+      const findOneOrFailSpy = jest
+        .spyOn(organizationRepository, 'findOneOrFail')
+        .mockResolvedValue(mockOrganization);
+
+      const result = await service.findOneById(orgId);
+      expect(findOneOrFailSpy).toHaveBeenCalledWith({ where: { id: orgId } });
+      expect(result).toEqual(mockOrganization);
+    });
+
+    it('should throw if organization not found', async () => {
+      const orgId = 999;
+      const error = new Error('Not found');
+      jest
+        .spyOn(organizationRepository, 'findOneOrFail')
+        .mockRejectedValue(error);
+      await expect(service.findOneById(orgId)).rejects.toThrow(error);
+    });
+  });
 });

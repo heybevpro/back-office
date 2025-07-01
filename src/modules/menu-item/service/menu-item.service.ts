@@ -7,6 +7,7 @@ import { ProductService } from '../../product/service/product.service';
 import { ServingSizeService } from '../../serving-size/service/serving-size.service';
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 import { VenueService } from '../../venue/service/venue.service';
+import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
 
 @Injectable()
 export class MenuItemService {
@@ -52,9 +53,7 @@ export class MenuItemService {
 
     for (const servingSize of validServingSizes) {
       if (servingSize.organization.id !== venue.organization.id) {
-        throw new NotFoundException(
-          `Serving size ${servingSize.id} does not belong to the venue's organization`,
-        );
+        throw new ServingSizeOrganizationMismatchException(servingSize.id);
       }
     }
 

@@ -7,6 +7,7 @@ import { ServingSizeService } from '../../serving-size/service/serving-size.serv
 import { VenueService } from '../../venue/service/venue.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
+import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
 
 const mockMenuItemRepository = () => ({
   create: jest.fn(),
@@ -90,15 +91,16 @@ describe('MenuItemService', () => {
   });
 
   describe('create', () => {
+    const venue = { id: 1, organization: { id: 2 } };
+    const products = [{ id: 'p1' }, { id: 'p2' }];
+    const servingSizes = [{ id: 's1', organization: { id: 2 } }];
+
+    const menuItemProduct = {
+      product: products[0],
+      custom_serving_size: servingSizes[0],
+      quantity: 1,
+    };
     it('should create a menu item with products and serving sizes', async () => {
-      const venue = { id: 1, organization: { id: 2 } };
-      const products = [{ id: 'p1' }, { id: 'p2' }];
-      const servingSizes = [{ id: 's1', organization: { id: 2 } }];
-      const menuItemProduct = {
-        product: products[0],
-        custom_serving_size: servingSizes[0],
-        quantity: 1,
-      };
       const menuItem = { ...mockDto, venue, products: [menuItemProduct] };
       venueService.findOneById = jest.fn().mockResolvedValue(venue);
       productService.findAllWithIds = jest.fn().mockResolvedValue(products);
@@ -110,6 +112,36 @@ describe('MenuItemService', () => {
       menuItemRepository.save.mockResolvedValue(menuItem);
 
       const result = await service.create(mockDto);
+      expect(result).toEqual(menuItem);
+      expect(menuItemRepository.save).toHaveBeenCalledWith(menuItem);
+    });
+
+    it('should create a menu item when no custom serving size ids are provided', async () => {
+      const dto = {
+        name: 'Coke',
+        description: 'Chilled soft drink',
+        venue_id: 1,
+        products: [
+          { product_id: 'p1', quantity: 1 },
+          { product_id: 'p2', quantity: 2 },
+        ],
+      };
+      const venue = { id: 1, organization: { id: 2 } };
+      const products = [{ id: 'p1' }, { id: 'p2' }];
+      const menuItemProduct = {
+        product: products[0],
+        custom_serving_size: undefined,
+        quantity: 1,
+      };
+      const menuItem = { ...dto, venue, products: [menuItemProduct] };
+
+      (venueService.findOneById as jest.Mock).mockResolvedValue(venue);
+      (productService.findAllWithIds as jest.Mock).mockResolvedValue(products);
+      menuItemRepository.create.mockReturnValue(menuItem);
+      menuItemRepository.manager.create.mockReturnValue(menuItemProduct);
+      menuItemRepository.save.mockResolvedValue(menuItem);
+
+      const result = await service.create(dto);
       expect(result).toEqual(menuItem);
       expect(menuItemRepository.save).toHaveBeenCalledWith(menuItem);
     });
@@ -148,18 +180,28 @@ describe('MenuItemService', () => {
       await expect(service.create(mockDto)).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw NotFoundException if serving size organization does not match venue organization', async () => {
+    it('should throw ServingSizeOrganizationMismatchException if serving size organization does not match venue organization', async () => {
+      const dto = {
+        ...mockDto,
+        products: [
+          { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
+        ],
+      };
       const venue = { id: 1, organization: { id: 2 } };
       const products = [{ id: 'p1' }];
-      const servingSizes = [{ id: 's1', organization: { id: 99 } }];
-      venueService.findOneById = jest.fn().mockResolvedValue(venue);
-      productService.findAllWithIds = jest.fn().mockResolvedValue(products);
-      servingSizeService.findOneById = jest
-        .fn()
-        .mockResolvedValue(servingSizes[0]);
+      const servingSizes = [{ id: 's1', organization: { id: 99 } }]; // Different org id
+
+      (venueService.findOneById as jest.Mock).mockResolvedValue(venue);
+      (productService.findAllWithIds as jest.Mock).mockResolvedValue(products);
+      (servingSizeService.findOneById as jest.Mock).mockResolvedValue(
+        servingSizes[0],
+      );
       menuItemRepository.create.mockReturnValue({});
       menuItemRepository.manager.create.mockReturnValue({});
-      await expect(service.create(mockDto)).rejects.toThrow(NotFoundException);
+
+      await expect(service.create(dto)).rejects.toThrow(
+        ServingSizeOrganizationMismatchException,
+      );
     });
 
     it('should throw NotFoundException if serving size organization is missing', async () => {
