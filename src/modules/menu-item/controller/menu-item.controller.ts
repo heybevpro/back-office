@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Param } from '@nestjs/common';
 import { MenuItemService } from '../service/menu-item.service';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { MenuItem } from '../entity/menu-item.entity';
@@ -19,5 +19,10 @@ export class MenuItemController {
   @Get()
   async findAll(): Promise<MenuItem[]> {
     return this.menuItemService.findAll();
+  }
+
+  @Get('venue/:venueId')
+  async findByVenue(@Param('venueId') venueId: number): Promise<MenuItem[]> {
+    return this.menuItemService.findByVenue(venueId);
   }
 }

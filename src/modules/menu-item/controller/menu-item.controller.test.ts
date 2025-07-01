@@ -3,6 +3,7 @@ import { MenuItemController } from './menu-item.controller';
 import { MenuItemService } from '../service/menu-item.service';
 import { MenuItem } from '../entity/menu-item.entity';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
+import { Venue } from 'src/modules/venue/entity/venue.entity';
 
 describe('MenuItemController', () => {
   let controller: MenuItemController;
@@ -11,7 +12,30 @@ describe('MenuItemController', () => {
   const mockMenuItemService = {
     findAll: jest.fn(),
     create: jest.fn(),
+    findByVenue: jest.fn(),
   };
+
+  const venueId = 1;
+  const mockMenuItems: MenuItem[] = [
+    {
+      id: '1',
+      name: 'Coke',
+      description: 'Chilled soft drink',
+      venue: { id: venueId, name: 'Bar A' } as Venue,
+      products: [],
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
+    {
+      id: '2',
+      name: 'Orange Juice',
+      description: 'Freshly squeezed orange juice',
+      venue: { id: venueId, name: 'Bar A' } as Venue,
+      products: [],
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
+  ];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -34,26 +58,6 @@ describe('MenuItemController', () => {
 
   describe('findAll', () => {
     it('should return a list of menu items', async () => {
-      const mockMenuItems: MenuItem[] = [
-        {
-          id: '1',
-          name: 'Pizza',
-          description: 'Cheese',
-          venue: {},
-          products: [],
-          created_at: new Date(),
-          updated_at: new Date(),
-        } as unknown as MenuItem,
-        {
-          id: '2',
-          name: 'Burger',
-          description: 'Beef',
-          venue: {},
-          products: [],
-          created_at: new Date(),
-          updated_at: new Date(),
-        } as unknown as MenuItem,
-      ];
       jest.spyOn(service, 'findAll').mockResolvedValue(mockMenuItems);
       const result = await controller.findAll();
       expect(service.findAll).toHaveBeenCalled();
@@ -63,25 +67,35 @@ describe('MenuItemController', () => {
 
   describe('create', () => {
     it('should create a new menu item', async () => {
-      const mockMenuItem: MenuItem = {
-        id: '1',
-        name: 'Pizza',
-        description: 'Cheese',
-        venue: {},
-        products: [],
-        created_at: new Date(),
-        updated_at: new Date(),
-      } as unknown as MenuItem;
+      const mockMenuItem: MenuItem = mockMenuItems[0];
       const createMenuItemDto: CreateMenuItemDto = {
-        name: 'Pizza',
-        description: 'Cheese',
+        name: 'Coke',
+        description: 'Chilled soft drink',
         venue_id: 1,
-        products: [{ product_id: 'prod-1', quantity: 1 }],
+        products: [{ product_id: '<_VALID_PRODUCT_ID_>', quantity: 1 }],
       };
       jest.spyOn(service, 'create').mockResolvedValue(mockMenuItem);
       const result = await controller.create(createMenuItemDto);
       expect(service.create).toHaveBeenCalledWith(createMenuItemDto);
       expect(result).toEqual(mockMenuItem);
+    });
+  });
+
+  describe('findByVenue', () => {
+    it('should return menu items for a specific venue', async () => {
+      jest.spyOn(service, 'findByVenue').mockResolvedValue(mockMenuItems);
+      const result = await controller.findByVenue(venueId);
+      expect(service.findByVenue).toHaveBeenCalledWith(venueId);
+      expect(result).toEqual(mockMenuItems);
+    });
+
+    it('should return empty array when no menu items found for venue', async () => {
+      const venueId = 999;
+      const mockMenuItems: MenuItem[] = [];
+      jest.spyOn(service, 'findByVenue').mockResolvedValue(mockMenuItems);
+      const result = await controller.findByVenue(venueId);
+      expect(service.findByVenue).toHaveBeenCalledWith(venueId);
+      expect(result).toEqual(mockMenuItems);
     });
   });
 });
