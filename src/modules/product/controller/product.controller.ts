@@ -35,6 +35,13 @@ export class ProductController {
     return this.productService.findAllByProductType(productTypeId);
   }
 
+  @Get('by-venue/:venueId')
+  async findByVenue(
+    @Param('venueId') venueId: string,
+  ): Promise<Array<Product>> {
+    return this.productService.findAllByVenue(venueId);
+  }
+
   @Get('inventory')
   async fetchInventory(): Promise<Array<Product>> {
     return this.productService.fetchInventory();

@@ -16,7 +16,23 @@ describe('ProductController', () => {
     findAllByProductType: jest.fn(),
     fetchInventory: jest.fn(),
     updateItemQuantity: jest.fn(),
+    findAllByVenue: jest.fn(),
   };
+
+  const mockProducts: Product[] = [
+    {
+      id: 1,
+      name: 'Product A',
+      price: 100,
+      quantity: 12,
+    } as unknown as Product,
+    {
+      id: 2,
+      name: 'Product B',
+      price: 200,
+      quantity: 7,
+    } as unknown as Product,
+  ];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -39,11 +55,6 @@ describe('ProductController', () => {
 
   describe('findAll', () => {
     it('should return a list of products', async () => {
-      const mockProducts: Product[] = [
-        { id: 1, name: 'Product A', price: 100 } as unknown as Product,
-        { id: 2, name: 'Product B', price: 200 } as unknown as Product,
-      ];
-
       jest.spyOn(service, 'findAll').mockResolvedValue(mockProducts);
 
       const result = await controller.findAll();
@@ -77,11 +88,6 @@ describe('ProductController', () => {
 
   describe('findAllByProductType', () => {
     it('should return a list of products', async () => {
-      const mockProducts: Product[] = [
-        { id: 1, name: 'Product A', price: 100 } as unknown as Product,
-        { id: 2, name: 'Product B', price: 200 } as unknown as Product,
-      ];
-
       jest
         .spyOn(service, 'findAllByProductType')
         .mockResolvedValue(mockProducts);
@@ -101,20 +107,7 @@ describe('ProductController', () => {
         service,
         'fetchInventory',
       );
-      const mockProducts: Product[] = [
-        {
-          id: 1,
-          name: 'Product A',
-          price: 100,
-          quantity: 12,
-        } as unknown as Product,
-        {
-          id: 2,
-          name: 'Product B',
-          price: 200,
-          quantity: 7,
-        } as unknown as Product,
-      ];
+
       productServiceFetchInventorySpy.mockResolvedValue(mockProducts);
       const result = await controller.fetchInventory();
       expect(productServiceFetchInventorySpy).toHaveBeenCalled();
@@ -132,6 +125,15 @@ describe('ProductController', () => {
       expect(service.updateItemQuantity).toHaveBeenCalledWith(
         mockUpdateItemQuantityDto,
       );
+    });
+  });
+
+  describe('findByVenue', () => {
+    it('should return a list of products for a venue', async () => {
+      jest.spyOn(service, 'findAllByVenue').mockResolvedValue(mockProducts);
+      const result = await controller.findByVenue('1');
+      expect(service.findAllByVenue).toHaveBeenCalledWith('1');
+      expect(result).toEqual(mockProducts);
     });
   });
 });

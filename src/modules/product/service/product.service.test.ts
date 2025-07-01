@@ -246,4 +246,18 @@ describe('ProductService', () => {
       ).rejects.toThrow(InsufficientStockException);
     });
   });
+
+  describe('findAllByVenue', () => {
+    it('should return a list of products for a venue', async () => {
+      const mockProducts = [mockProduct];
+      jest.spyOn(productRepository, 'find').mockResolvedValue(mockProducts);
+      const result = await service.findAllByVenue('1');
+      expect(result).toEqual(mockProducts);
+      expect(productRepository.find).toHaveBeenCalledWith({
+        relations: { product_type: { venue: true } },
+        where: { product_type: { venue: { id: Number('1') } } },
+        order: { name: 'DESC' },
+      });
+    });
+  });
 });

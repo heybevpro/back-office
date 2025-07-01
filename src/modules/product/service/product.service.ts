@@ -56,6 +56,14 @@ export class ProductService {
     });
   }
 
+  async findAllByVenue(venueId: string): Promise<Array<Product>> {
+    return await this.productRepository.find({
+      relations: { product_type: { venue: true } },
+      where: { product_type: { venue: { id: Number(venueId) } } },
+      order: { name: 'DESC' },
+    });
+  }
+
   async findAllWithIds(ids: Array<string>): Promise<Array<Product>> {
     return await this.productRepository.find({
       relations: { product_type: true },
