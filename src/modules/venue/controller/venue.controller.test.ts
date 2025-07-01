@@ -25,6 +25,7 @@ describe('VenueController', () => {
   const mockVenueService = {
     create: jest.fn().mockResolvedValue(mockVenue),
     findAllByOrganization: jest.fn().mockResolvedValue([mockVenue]),
+    findOneById: jest.fn().mockResolvedValue(mockVenue),
   };
 
   beforeEach(async () => {
@@ -77,6 +78,19 @@ describe('VenueController', () => {
       expect(await controller.findByOrganization(mockOrganizationId)).toEqual([
         mockVenue,
       ]);
+    });
+  });
+
+  describe('findOne', () => {
+    const mockVenueId: number = 1;
+
+    it('should call the `findOneById` method from the Venue Service', async () => {
+      await controller.findOne(mockVenueId);
+      expect(mockVenueService.findOneById).toHaveBeenCalledWith(mockVenueId);
+    });
+
+    it('should return a single venue by its ID', async () => {
+      expect(await controller.findOne(mockVenueId)).toEqual(mockVenue);
     });
   });
 });
