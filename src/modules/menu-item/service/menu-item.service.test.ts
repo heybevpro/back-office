@@ -18,6 +18,49 @@ const mockMenuItemRepository = () => ({
   },
 });
 
+const mockDto: CreateMenuItemDto = {
+  name: 'Pizza',
+  description: 'desc',
+  venue_id: 1,
+  products: [
+    { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
+    { product_id: 'p2', quantity: 2 },
+  ],
+};
+
+const venueId = 1;
+const mockMenuItems = [
+  {
+    id: '1',
+    name: 'Coke',
+    description: 'Chilled soft drink',
+    venue: { id: venueId, name: 'Bar A' },
+    products: [],
+    created_at: new Date(),
+    updated_at: new Date(),
+  },
+  {
+    id: '2',
+    name: 'Orange Juice',
+    description: 'Freshly squeezed orange juice',
+    venue: { id: venueId, name: 'Bar A' },
+    products: [],
+    created_at: new Date(),
+    updated_at: new Date(),
+  },
+];
+
+const menuItemFindRelations = {
+  relations: [
+    'products',
+    'products.product',
+    'products.product.product_type',
+    'products.product.product_type.serving_size',
+    'products.customServingSize',
+  ],
+  order: { created_at: 'DESC' },
+};
+
 describe('MenuItemService', () => {
   let service: MenuItemService;
   let menuItemRepository: ReturnType<typeof mockMenuItemRepository>;
@@ -48,15 +91,6 @@ describe('MenuItemService', () => {
 
   describe('create', () => {
     it('should create a menu item with products and serving sizes', async () => {
-      const dto: CreateMenuItemDto = {
-        name: 'Pizza',
-        description: 'desc',
-        venue_id: 1,
-        products: [
-          { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
-          { product_id: 'p2', quantity: 2 },
-        ],
-      };
       const venue = { id: 1, organization: { id: 2 } };
       const products = [{ id: 'p1' }, { id: 'p2' }];
       const servingSizes = [{ id: 's1', organization: { id: 2 } }];
@@ -65,7 +99,7 @@ describe('MenuItemService', () => {
         custom_serving_size: servingSizes[0],
         quantity: 1,
       };
-      const menuItem = { ...dto, venue, products: [menuItemProduct] };
+      const menuItem = { ...mockDto, venue, products: [menuItemProduct] };
       venueService.findOneById = jest.fn().mockResolvedValue(venue);
       productService.findAllWithIds = jest.fn().mockResolvedValue(products);
       servingSizeService.findOneById = jest
@@ -75,7 +109,7 @@ describe('MenuItemService', () => {
       menuItemRepository.manager.create.mockReturnValue(menuItemProduct);
       menuItemRepository.save.mockResolvedValue(menuItem);
 
-      const result = await service.create(dto);
+      const result = await service.create(mockDto);
       expect(result).toEqual(menuItem);
       expect(menuItemRepository.save).toHaveBeenCalledWith(menuItem);
     });
@@ -93,29 +127,15 @@ describe('MenuItemService', () => {
     });
 
     it('should throw NotFoundException if product not found', async () => {
-      const dto: CreateMenuItemDto = {
-        name: 'Pizza',
-        description: 'desc',
-        venue_id: 1,
-        products: [{ product_id: 'p1', quantity: 1 }],
-      };
       venueService.findOneById = jest
         .fn()
         .mockResolvedValue({ id: 1, organization: { id: 2 } });
       productService.findAllWithIds = jest.fn().mockResolvedValue([]);
       menuItemRepository.create.mockReturnValue({});
-      await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+      await expect(service.create(mockDto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException if serving size not found', async () => {
-      const dto: CreateMenuItemDto = {
-        name: 'Pizza',
-        description: 'desc',
-        venue_id: 1,
-        products: [
-          { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
-        ],
-      };
       venueService.findOneById = jest
         .fn()
         .mockResolvedValue({ id: 1, organization: { id: 2 } });
@@ -125,18 +145,10 @@ describe('MenuItemService', () => {
       servingSizeService.findOneById = jest.fn().mockResolvedValue(undefined);
       menuItemRepository.create.mockReturnValue({});
       menuItemRepository.manager.create.mockReturnValue({});
-      await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+      await expect(service.create(mockDto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException if serving size organization does not match venue organization', async () => {
-      const dto: CreateMenuItemDto = {
-        name: 'Pizza',
-        description: 'desc',
-        venue_id: 1,
-        products: [
-          { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
-        ],
-      };
       const venue = { id: 1, organization: { id: 2 } };
       const products = [{ id: 'p1' }];
       const servingSizes = [{ id: 's1', organization: { id: 99 } }];
@@ -147,18 +159,10 @@ describe('MenuItemService', () => {
         .mockResolvedValue(servingSizes[0]);
       menuItemRepository.create.mockReturnValue({});
       menuItemRepository.manager.create.mockReturnValue({});
-      await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+      await expect(service.create(mockDto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException if serving size organization is missing', async () => {
-      const dto: CreateMenuItemDto = {
-        name: 'Pizza',
-        description: 'desc',
-        venue_id: 1,
-        products: [
-          { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
-        ],
-      };
       const venue = { id: 1, organization: { id: 2 } };
       const products = [{ id: 'p1' }];
       const servingSizes = [{ id: 's1' }];
@@ -169,7 +173,7 @@ describe('MenuItemService', () => {
         .mockResolvedValue(servingSizes[0]);
       menuItemRepository.create.mockReturnValue({});
       menuItemRepository.manager.create.mockReturnValue({});
-      await expect(service.create(dto)).rejects.toThrow();
+      await expect(service.create(mockDto)).rejects.toThrow();
     });
   });
 
@@ -179,34 +183,20 @@ describe('MenuItemService', () => {
       menuItemRepository.find.mockResolvedValue(menuItems);
       const result = await service.findAll();
       expect(result).toEqual(menuItems);
-      expect(menuItemRepository.find).toHaveBeenCalledWith({
-        relations: [
-          'products',
-          'products.product',
-          'products.product.product_type',
-          'products.product.product_type.serving_size',
-          'products.customServingSize',
-        ],
-        order: { created_at: 'DESC' },
-      });
+      expect(menuItemRepository.find).toHaveBeenCalledWith(
+        menuItemFindRelations,
+      );
     });
   });
 
   describe('findOneById', () => {
     it('should return a menu item by id', async () => {
-      const menuItem: MenuItem = { id: '1' } as MenuItem;
-      menuItemRepository.findOne.mockResolvedValue(menuItem);
+      menuItemRepository.findOne.mockResolvedValue(mockMenuItems[0]);
       const result = await service.findOneById('1');
-      expect(result).toEqual(menuItem);
+      expect(result).toEqual(mockMenuItems[0]);
       expect(menuItemRepository.findOne).toHaveBeenCalledWith({
         where: { id: '1' },
-        relations: [
-          'products',
-          'products.product',
-          'products.product.product_type',
-          'products.product.product_type.serving_size',
-          'products.customServingSize',
-        ],
+        relations: menuItemFindRelations.relations,
       });
     });
     it('should throw NotFoundException if not found', async () => {
@@ -222,6 +212,34 @@ describe('MenuItemService', () => {
       const result = await service.getMenuItemRecipe('1');
       expect(result).toEqual(menuItem);
       expect(service.findOneById).toHaveBeenCalledWith('1');
+    });
+  });
+
+  describe('findByVenue', () => {
+    it('should return menu items for a specific venue', async () => {
+      menuItemRepository.find.mockResolvedValue(mockMenuItems);
+
+      const result = await service.findByVenue(venueId);
+
+      expect(result).toEqual(mockMenuItems);
+      expect(menuItemRepository.find).toHaveBeenCalledWith({
+        where: { venue: { id: venueId } },
+        ...menuItemFindRelations,
+      });
+    });
+
+    it('should return empty array when no menu items found for venue', async () => {
+      const venueId = 999;
+      const mockMenuItems: MenuItem[] = [];
+      menuItemRepository.find.mockResolvedValue(mockMenuItems);
+
+      const result = await service.findByVenue(venueId);
+
+      expect(result).toEqual(mockMenuItems);
+      expect(menuItemRepository.find).toHaveBeenCalledWith({
+        where: { venue: { id: venueId } },
+        ...menuItemFindRelations,
+      });
     });
   });
 });
