@@ -254,7 +254,7 @@ describe('ProductService', () => {
       const result = await service.findAllByVenue('1');
       expect(result).toEqual(mockProducts);
       expect(productRepository.find).toHaveBeenCalledWith({
-        relations: { product_type: { venue: true } },
+        relations: { product_type: { venue: true, serving_size: true } },
         where: { product_type: { venue: { id: Number('1') } } },
         order: { name: 'DESC' },
       });

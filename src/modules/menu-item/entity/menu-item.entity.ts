@@ -7,12 +7,14 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import { Product } from '../../product/entity/product.entity';
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 import { Venue } from '../../venue/entity/venue.entity';
 
 @Entity()
+@Unique(['name', 'venue'])
 export class MenuItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
