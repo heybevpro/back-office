@@ -8,6 +8,7 @@ import { ServingSizeService } from '../../serving-size/service/serving-size.serv
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 import { VenueService } from '../../venue/service/venue.service';
 import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
+import { DuplicateMenuItemNameException } from '../../../excpetions/menuItem.exception';
 
 @Injectable()
 export class MenuItemService {
@@ -27,6 +28,13 @@ export class MenuItemService {
       throw new NotFoundException(
         `Venue ${createMenuItemDto.venue_id} not found`,
       );
+    }
+
+    const existing = await this.menuItemRepository.findOne({
+      where: { name: createMenuItemDto.name, venue: { id: venue.id } },
+    });
+    if (existing) {
+      throw new DuplicateMenuItemNameException(createMenuItemDto.name);
     }
 
     const menuItem = this.menuItemRepository.create({
@@ -79,7 +87,7 @@ export class MenuItemService {
 
       return this.menuItemRepository.manager.create(MenuItemIngredient, {
         product,
-        custom_serving_size: customServingSize,
+        customServingSize: customServingSize,
         quantity: itemProduct.quantity,
       });
     });

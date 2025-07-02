@@ -64,4 +64,41 @@ export class ObjectStoreService {
       throw new S3UploadFailedException((error as Error).message);
     }
   }
+
+  async uploadMenuItemImage(
+    file: { buffer: Buffer; mimetype: string; originalname: string },
+    organizationId: string,
+    venueId: number,
+    menuItemId: string,
+    menuItemName: string,
+  ): Promise<string> {
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(`Invalid image type: ${file.mimetype}`);
+    }
+
+    const key = `documents/organization/${organizationId}/venue/${venueId}/menuItem/${menuItemId}-${menuItemName}`;
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    });
+
+    try {
+      await this.s3.send(command);
+      const bucketName = process.env.S3_BUCKET_NAME;
+      const region = 'us-east-2';
+      return `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+    } catch (error: unknown) {
+      throw new S3UploadFailedException((error as Error).message);
+    }
+  }
 }
