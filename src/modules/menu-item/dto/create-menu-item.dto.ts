@@ -9,7 +9,27 @@ import {
   IsString,
   MaxLength,
   IsUUID,
+  Matches,
 } from 'class-validator';
+
+export class CreateMenuItemRawDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d+$/, { message: 'venue_id must contain only digits' })
+  venue_id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  products: string;
+}
 
 export class CreateMenuItemDto {
   @IsString()
@@ -26,11 +46,11 @@ export class CreateMenuItemDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => MenuItemProductDto)
-  products: MenuItemProductDto[];
+  @Type(() => MenuItemIngredientDto)
+  products: MenuItemIngredientDto[];
 }
 
-export class MenuItemProductDto {
+export class MenuItemIngredientDto {
   @IsUUID()
   product_id: string;
 

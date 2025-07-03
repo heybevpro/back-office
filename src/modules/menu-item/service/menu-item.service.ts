@@ -9,6 +9,8 @@ import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 import { VenueService } from '../../venue/service/venue.service';
 import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
 import { DuplicateMenuItemNameException } from '../../../excpetions/menuItem.exception';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class MenuItemService {
@@ -18,9 +20,13 @@ export class MenuItemService {
     private readonly productService: ProductService,
     private readonly servingSizeService: ServingSizeService,
     private readonly venueService: VenueService,
+    private readonly objectStoreService: ObjectStoreService,
   ) {}
 
-  async create(createMenuItemDto: CreateMenuItemDto): Promise<MenuItem> {
+  async create(
+    createMenuItemDto: CreateMenuItemDto,
+    image?: { buffer: Buffer; mimetype: string; originalname: string },
+  ): Promise<MenuItem> {
     const venue = await this.venueService.findOneById(
       createMenuItemDto.venue_id,
     );
@@ -37,10 +43,24 @@ export class MenuItemService {
       throw new DuplicateMenuItemNameException(createMenuItemDto.name);
     }
 
+    let imageUrl: string | undefined;
+    if (image) {
+      imageUrl = await this.objectStoreService.uploadMenuItemImage(
+        image,
+        createMenuItemDto.venue_id.toString(),
+        createMenuItemDto.venue_id,
+        uuidv4(),
+        createMenuItemDto.name,
+      );
+
+      console.log(imageUrl);
+    }
+
     const menuItem = this.menuItemRepository.create({
       name: createMenuItemDto.name,
       description: createMenuItemDto.description,
       venue,
+      image_url: imageUrl,
     });
 
     const productIds = createMenuItemDto.products.map((p) => p.product_id);

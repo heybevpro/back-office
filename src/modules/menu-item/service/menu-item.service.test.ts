@@ -8,6 +8,7 @@ import { VenueService } from '../../venue/service/venue.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
 
 const mockMenuItemRepository = () => ({
   create: jest.fn(),
@@ -80,6 +81,10 @@ describe('MenuItemService', () => {
         { provide: ProductService, useValue: { findAllWithIds: jest.fn() } },
         { provide: ServingSizeService, useValue: { findOneById: jest.fn() } },
         { provide: VenueService, useValue: { findOneById: jest.fn() } },
+        {
+          provide: ObjectStoreService,
+          useValue: { uploadMenuItemImage: jest.fn() },
+        },
       ],
     }).compile();
 

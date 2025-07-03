@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MenuItemController } from './menu-item.controller';
 import { MenuItemService } from '../service/menu-item.service';
 import { MenuItem } from '../entity/menu-item.entity';
-import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
+import { CreateMenuItemRawDto } from '../dto/create-menu-item.dto';
 import { Venue } from 'src/modules/venue/entity/venue.entity';
 
 describe('MenuItemController', () => {
@@ -23,6 +23,7 @@ describe('MenuItemController', () => {
       description: 'Chilled soft drink',
       venue: { id: venueId, name: 'Bar A' } as Venue,
       products: [],
+      price: 10,
       created_at: new Date(),
       updated_at: new Date(),
     },
@@ -32,6 +33,7 @@ describe('MenuItemController', () => {
       description: 'Freshly squeezed orange juice',
       venue: { id: venueId, name: 'Bar A' } as Venue,
       products: [],
+      price: 10,
       created_at: new Date(),
       updated_at: new Date(),
     },
@@ -68,15 +70,27 @@ describe('MenuItemController', () => {
   describe('create', () => {
     it('should create a new menu item', async () => {
       const mockMenuItem: MenuItem = mockMenuItems[0];
-      const createMenuItemDto: CreateMenuItemDto = {
+      const createMenuItemDto: CreateMenuItemRawDto = {
         name: 'Coke',
         description: 'Chilled soft drink',
-        venue_id: 1,
-        products: [{ product_id: '<_VALID_PRODUCT_ID_>', quantity: 1 }],
+        venue_id: '1',
+        products: JSON.stringify([
+          { product_id: '3d7dfea8-9e8d-4b2a-8c1e-123456789abc', quantity: 1 },
+        ]),
       };
       jest.spyOn(service, 'create').mockResolvedValue(mockMenuItem);
       const result = await controller.create(createMenuItemDto);
-      expect(service.create).toHaveBeenCalledWith(createMenuItemDto);
+      expect(service.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Coke',
+          description: 'Chilled soft drink',
+          venue_id: 1,
+          products: [
+            { product_id: '3d7dfea8-9e8d-4b2a-8c1e-123456789abc', quantity: 1 },
+          ],
+        }),
+        undefined,
+      );
       expect(result).toEqual(mockMenuItem);
     });
   });
