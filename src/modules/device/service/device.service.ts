@@ -58,4 +58,10 @@ export class DeviceService {
     }
     return device;
   }
+
+  async findAllByVenueId(venueId: number): Promise<Device[]> {
+    return this.deviceRepository.find({
+      where: { venue: { id: venueId } },
+    });
+  }
 }

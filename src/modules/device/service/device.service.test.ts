@@ -162,4 +162,13 @@ describe('DeviceService', () => {
       );
     });
   });
+
+  describe('findAllByVenueId', () => {
+    it('should return all devices for a given venue ID', async () => {
+      jest.spyOn(deviceRepository, 'find').mockResolvedValue([mockDevice]);
+
+      const result = await deviceService.findAllByVenueId(1);
+      expect(result).toEqual([mockDevice]);
+    });
+  });
 });

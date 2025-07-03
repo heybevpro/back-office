@@ -18,4 +18,9 @@ export class DeviceController {
   async findById(@Param('id') id: string): Promise<Device> {
     return await this.deviceService.findById(id);
   }
+
+  @Get('venue/:venueId')
+  async findAllByVenueId(@Param('venueId') venueId: number): Promise<Device[]> {
+    return await this.deviceService.findAllByVenueId(venueId);
+  }
 }
