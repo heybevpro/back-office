@@ -131,12 +131,11 @@ export class EmployeeInvitationService {
 
     const venue = await this.venueService.findOneById(invitation.venue.id);
     const organizationId = venue.organization.id;
+    const baseUrl = `documents/organization/${organizationId}/venue/${invitation.venue.id}/invitations/${invitation.id}`;
 
     const uploadedFileUrl = await this.objectStoreService.uploadDocument(
       file,
-      organizationId.toString(),
-      invitation.venue.id,
-      invitation.id,
+      baseUrl,
     );
 
     invitation.userMetadata = {

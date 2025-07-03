@@ -18,8 +18,8 @@ export class ObjectStoreService {
       .toLowerCase();
 
     const match = filename.match(/^(.*?)(\.[^.]+)?$/);
-    let name = match ? match[1] : filename;
-    const ext = match && match[2] ? match[2] : '';
+    let name = match![1];
+    const ext = match![2];
 
     name = name
       .replace(/[^\w-]+/g, '-')
@@ -35,9 +35,7 @@ export class ObjectStoreService {
 
   async uploadDocument(
     file: { buffer: Buffer; mimetype: string; originalname: string },
-    organizationId: string,
-    venueId: number,
-    invitationId: string,
+    baseUrl: string,
   ): Promise<string> {
     const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
 
@@ -46,44 +44,7 @@ export class ObjectStoreService {
     }
 
     const sanitizedFilename = this.sanitizeFilename(file.originalname);
-    const key = `documents/organization/${organizationId}/venue/${venueId}/invitations/${invitationId}/${uuidv4()}-${sanitizedFilename}`;
-
-    const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    });
-
-    try {
-      await this.s3.send(command);
-      const bucketName = process.env.S3_BUCKET_NAME;
-      const region = 'us-east-2';
-      return `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
-    } catch (error: unknown) {
-      throw new S3UploadFailedException((error as Error).message);
-    }
-  }
-
-  async uploadMenuItemImage(
-    file: { buffer: Buffer; mimetype: string; originalname: string },
-    organizationId: string,
-    venueId: number,
-    menuItemId: string,
-    menuItemName: string,
-  ): Promise<string> {
-    const allowedMimeTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-    ];
-
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException(`Invalid image type: ${file.mimetype}`);
-    }
-
-    const key = `documents/organization/${organizationId}/venue/${venueId}/menuItem/${menuItemId}-${menuItemName}`;
+    const key = `${baseUrl}/${uuidv4()}-${sanitizedFilename}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,

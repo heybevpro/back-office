@@ -17,6 +17,8 @@ describe('ObjectStoreService', () => {
   const mockOrganizationId = '<_ORGANIZATION-ID_>';
   const mockVenueId = 1;
   const mockInvitationId = '<_INVITATION-ID_>';
+  const baseUrlDocument = `documents/organization/${mockOrganizationId}/venue/${mockVenueId}/invitations/${mockInvitationId}`;
+  const baseUrlMenuItem = `documents/organization/${mockOrganizationId}/venue/${mockVenueId}/menuItem`;
 
   beforeEach(async () => {
     s3ClientSendMock = jest.fn();
@@ -46,14 +48,9 @@ describe('ObjectStoreService', () => {
     it('should upload a document and return the S3 key', async () => {
       s3ClientSendMock.mockResolvedValue({});
 
-      const result = await service.uploadDocument(
-        mockFile,
-        mockOrganizationId,
-        mockVenueId,
-        mockInvitationId,
-      );
+      const result = await service.uploadDocument(mockFile, baseUrlDocument);
 
-      const expectedUrl = `https://${process.env.S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/documents/organization/${mockOrganizationId}/venue/${mockVenueId}/invitations/${mockInvitationId}/mocked-uuid-test.pdf`;
+      const expectedUrl = `https://${process.env.S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/${baseUrlDocument}/mocked-uuid-test.pdf`;
 
       expect(result).toBe(expectedUrl);
       expect(s3ClientSendMock).toHaveBeenCalledTimes(1);
@@ -68,12 +65,7 @@ describe('ObjectStoreService', () => {
       );
 
       await expect(
-        service.uploadDocument(
-          mockFile,
-          mockOrganizationId,
-          mockVenueId,
-          mockInvitationId,
-        ),
+        service.uploadDocument(mockFile, baseUrlDocument),
       ).rejects.toThrow(S3UploadFailedException);
     });
 
@@ -85,12 +77,51 @@ describe('ObjectStoreService', () => {
       };
 
       await expect(
-        service.uploadDocument(
-          invalidFile,
-          mockOrganizationId,
-          mockVenueId,
-          mockInvitationId,
-        ),
+        service.uploadDocument(invalidFile, baseUrlDocument),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException for unsupported file type: application/zip', async () => {
+      const invalidFile = {
+        ...mockFile,
+        mimetype: 'application/zip',
+        originalname: 'archive.zip',
+      };
+      await expect(
+        service.uploadDocument(invalidFile, baseUrlDocument),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException for empty mimetype', async () => {
+      const invalidFile = {
+        ...mockFile,
+        mimetype: '',
+        originalname: 'file.unknown',
+      };
+      await expect(
+        service.uploadDocument(invalidFile, baseUrlDocument),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException for undefined mimetype', async () => {
+      const invalidFile = {
+        ...mockFile,
+        mimetype: undefined as unknown as string,
+        originalname: 'file.unknown',
+      };
+      await expect(
+        service.uploadDocument(invalidFile, baseUrlDocument),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException for null mimetype', async () => {
+      const invalidFile = {
+        ...mockFile,
+        mimetype: null as unknown as string,
+        originalname: 'file.unknown',
+      };
+      await expect(
+        service.uploadDocument(invalidFile, baseUrlDocument),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -103,12 +134,7 @@ describe('ObjectStoreService', () => {
         originalname: 'test.pdf',
       };
 
-      const result = await service.uploadDocument(
-        pdfFile,
-        mockOrganizationId,
-        mockVenueId,
-        mockInvitationId,
-      );
+      const result = await service.uploadDocument(pdfFile, baseUrlDocument);
 
       expect(result).toContain('test.pdf');
     });
@@ -122,14 +148,28 @@ describe('ObjectStoreService', () => {
         originalname: 'test.jpg',
       };
 
-      const result = await service.uploadDocument(
-        jpgFile,
-        mockOrganizationId,
-        mockVenueId,
-        mockInvitationId,
-      );
+      const result = await service.uploadDocument(jpgFile, baseUrlDocument);
 
       expect(result).toContain('test.jpg');
+    });
+
+    describe('uploadDocument for menu item image', () => {
+      it('should upload a menu item image and return the S3 key', async () => {
+        s3ClientSendMock.mockResolvedValue({});
+        const imageFile = {
+          buffer: Buffer.from('image content'),
+          mimetype: 'image/png',
+          originalname: 'cola.png',
+        };
+        const result = await service.uploadDocument(imageFile, baseUrlMenuItem);
+        const expectedUrl = `https://${process.env.S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/${baseUrlMenuItem}/mocked-uuid-cola.png`;
+        expect(result).toBe(expectedUrl);
+        expect(s3ClientSendMock).toHaveBeenCalledTimes(1);
+        const [putCommand] = s3ClientSendMock.mock.calls[0] as [
+          PutObjectCommand,
+        ];
+        expect(putCommand).toBeInstanceOf(PutObjectCommand);
+      });
     });
   });
 
