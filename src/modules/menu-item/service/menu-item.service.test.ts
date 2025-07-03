@@ -9,6 +9,7 @@ import { NotFoundException } from '@nestjs/common';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
+import { DuplicateMenuItemNameException } from '../../../excpetions/menuItem.exception';
 
 const mockMenuItemRepository = () => ({
   create: jest.fn(),
@@ -194,7 +195,7 @@ describe('MenuItemService', () => {
       };
       const venue = { id: 1, organization: { id: 2 } };
       const products = [{ id: 'p1' }];
-      const servingSizes = [{ id: 's1', organization: { id: 99 } }]; // Different org id
+      const servingSizes = [{ id: 's1', organization: { id: 99 } }];
 
       (venueService.findOneById as jest.Mock).mockResolvedValue(venue);
       (productService.findAllWithIds as jest.Mock).mockResolvedValue(products);
@@ -221,6 +222,46 @@ describe('MenuItemService', () => {
       menuItemRepository.create.mockReturnValue({});
       menuItemRepository.manager.create.mockReturnValue({});
       await expect(service.create(mockDto)).rejects.toThrow();
+    });
+
+    it('should throw DuplicateMenuItemNameException if menu item with same name exists in venue', async () => {
+      const venue = { id: 1, organization: { id: 2 } };
+      const existingMenuItem = { id: 123, name: mockDto.name, venue };
+      venueService.findOneById = jest.fn().mockResolvedValue(venue);
+      menuItemRepository.findOne.mockResolvedValue(existingMenuItem);
+      await expect(service.create(mockDto)).rejects.toThrow(
+        DuplicateMenuItemNameException,
+      );
+    });
+
+    it('should create a menu item with an image and set imageUrl', async () => {
+      const menuItem = {
+        ...mockDto,
+        venue,
+        products: [menuItemProduct],
+        image_url: 'http://image.url',
+      };
+      venueService.findOneById = jest.fn().mockResolvedValue(venue);
+      productService.findAllWithIds = jest.fn().mockResolvedValue(products);
+      servingSizeService.findOneById = jest
+        .fn()
+        .mockResolvedValue(servingSizes[0]);
+      menuItemRepository.create.mockReturnValue(menuItem);
+      menuItemRepository.manager.create.mockReturnValue(menuItemProduct);
+      menuItemRepository.save.mockResolvedValue(menuItem);
+      service['objectStoreService'].uploadDocument = jest
+        .fn()
+        .mockResolvedValue('http://image.url');
+
+      const image = {
+        buffer: Buffer.from('img'),
+        mimetype: 'image/png',
+        originalname: 'cola.png',
+      };
+      const result = await service.create(mockDto, image);
+      expect(result).toEqual(menuItem);
+      expect(service['objectStoreService'].uploadDocument).toHaveBeenCalled();
+      expect(menuItemRepository.save).toHaveBeenCalledWith(menuItem);
     });
   });
 

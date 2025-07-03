@@ -10,7 +10,6 @@ import { VenueService } from '../../venue/service/venue.service';
 import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
 import { DuplicateMenuItemNameException } from '../../../excpetions/menuItem.exception';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class MenuItemService {
@@ -45,15 +44,8 @@ export class MenuItemService {
 
     let imageUrl: string | undefined;
     if (image) {
-      imageUrl = await this.objectStoreService.uploadMenuItemImage(
-        image,
-        createMenuItemDto.venue_id.toString(),
-        createMenuItemDto.venue_id,
-        uuidv4(),
-        createMenuItemDto.name,
-      );
-
-      console.log(imageUrl);
+      const baseUrl = `documents/organization/${venue.organization.id}/venue/${venue.id}/menuItem`;
+      imageUrl = await this.objectStoreService.uploadDocument(image, baseUrl);
     }
 
     const menuItem = this.menuItemRepository.create({
