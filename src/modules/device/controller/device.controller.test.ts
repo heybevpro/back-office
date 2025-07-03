@@ -22,6 +22,10 @@ describe('DeviceController', () => {
       if (id === 'DEVICE_1') return Promise.resolve(mockDevice);
       throw new NotFoundException('Device not found');
     }),
+    findAllByVenueId: jest.fn((venueId: number) => {
+      if (venueId === 1) return Promise.resolve([mockDevice]);
+      throw new NotFoundException('Devices not found');
+    }),
   };
 
   beforeEach(async () => {
@@ -60,6 +64,15 @@ describe('DeviceController', () => {
         NotFoundException,
       );
       expect(mockDeviceService.findById).toHaveBeenCalledWith('INVALID_ID');
+    });
+  });
+
+  describe('find all devices by venue ID', () => {
+    it('should return all devices for a given venue ID', async () => {
+      const result = await controller.findAllByVenueId(1);
+      expect(result).toEqual([mockDevice]);
+      expect(mockDeviceService.findAllByVenueId).toHaveBeenCalledTimes(1);
+      expect(mockDeviceService.findAllByVenueId).toHaveBeenCalledWith(1);
     });
   });
 });
