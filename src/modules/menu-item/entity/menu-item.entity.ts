@@ -25,6 +25,9 @@ export class MenuItem {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  image_url?: string;
+
   @ManyToOne(() => Venue, { nullable: false })
   venue: Venue;
 
@@ -32,6 +35,9 @@ export class MenuItem {
     cascade: true,
   })
   products: MenuItemIngredient[];
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  price: number;
 
   @CreateDateColumn()
   created_at: Date;

@@ -37,6 +37,19 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
             isNullable: false,
           },
           {
+            name: 'image_url',
+            type: 'varchar',
+            length: '500',
+            isNullable: true,
+          },
+          {
+            name: 'price',
+            type: 'decimal',
+            precision: 10,
+            scale: 2,
+            isNullable: true,
+          },
+          {
             name: 'created_at',
             type: 'timestamp',
             default: 'now()',
