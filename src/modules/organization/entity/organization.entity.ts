@@ -10,6 +10,7 @@ import {
 import { Venue } from '../../venue/entity/venue.entity';
 import { User } from '../../user/entity/user.entity';
 import { OrganizationSize } from '../../../utils/constants/organization.constants';
+import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 
 @Entity()
 export class Organization {
@@ -42,6 +43,9 @@ export class Organization {
 
   @OneToMany(() => Venue, (venue) => venue.organization)
   venues: Venue[];
+
+  @OneToMany(() => ServingSize, (servingSize) => servingSize.organization)
+  serving_sizes: ServingSize[];
 
   @CreateDateColumn()
   created_at: Date;

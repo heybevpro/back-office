@@ -3,11 +3,11 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from '../../product-type/entity/product-type.entity';
@@ -24,7 +24,7 @@ export class ServingSize {
   @Column({ type: 'float' })
   volume_in_ml: number;
 
-  @OneToOne(() => Organization, (organization) => organization.id, {
+  @ManyToOne(() => Organization, (organization) => organization.serving_sizes, {
     nullable: false,
   })
   @JoinColumn({ name: 'organizationId' })

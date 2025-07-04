@@ -1,5 +1,9 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Organization } from '../entity/organization.entity';
 import { Repository } from 'typeorm';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
@@ -36,8 +40,12 @@ export class OrganizationService {
   }
 
   async findOneById(id: number): Promise<Organization> {
-    return await this.organizationRepository.findOneOrFail({
-      where: { id },
-    });
+    try {
+      return await this.organizationRepository.findOneOrFail({
+        where: { id },
+      });
+    } catch (error) {
+      throw new NotFoundException('Organization not found.', { cause: error });
+    }
   }
 }
