@@ -36,7 +36,7 @@ export class ProductTypeService {
 
   async findAll(): Promise<Array<ProductType>> {
     return this.productTypeRepository.find({
-      relations: ['serving_size'],
+      relations: { serving_size: true },
     });
   }
 

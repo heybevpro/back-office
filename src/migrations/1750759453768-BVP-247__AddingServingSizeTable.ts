@@ -37,11 +37,6 @@ export class BVP247_AddingServingSizeTable1750759453768
             isNullable: false,
           },
           {
-            name: 'product_type_id',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
             name: 'created_at',
             type: 'timestamp',
             default: 'now()',
@@ -70,16 +65,6 @@ export class BVP247_AddingServingSizeTable1750759453768
         onDelete: 'CASCADE',
       }),
     );
-
-    await queryRunner.createForeignKey(
-      'serving_size',
-      new TableForeignKey({
-        columnNames: ['product_type_id'],
-        referencedColumnNames: ['id'],
-        referencedTableName: 'product_type',
-        onDelete: 'SET NULL',
-      }),
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -88,12 +73,6 @@ export class BVP247_AddingServingSizeTable1750759453768
       const orgForeignKey = servingSizeTable.foreignKeys.find(
         (fk) => fk.columnNames.indexOf('organizationId') !== -1,
       );
-      const productTypeForeignKey = servingSizeTable.foreignKeys.find(
-        (fk) => fk.columnNames.indexOf('product_type_id') !== -1,
-      );
-      if (productTypeForeignKey) {
-        await queryRunner.dropForeignKey('serving_size', productTypeForeignKey);
-      }
       if (orgForeignKey) {
         await queryRunner.dropForeignKey('serving_size', orgForeignKey);
       }

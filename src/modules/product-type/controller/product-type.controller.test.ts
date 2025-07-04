@@ -26,7 +26,7 @@ describe('ProductTypeController', () => {
     id: 'size-uuid',
     label: 'Regular',
     volume_in_ml: 500,
-  } as unknown as ServingSize;
+  } as ServingSize;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

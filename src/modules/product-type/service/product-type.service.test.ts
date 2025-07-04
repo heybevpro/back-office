@@ -119,7 +119,7 @@ describe('ProductTypeService', () => {
       const result = await service.findAll();
 
       expect(repository.find).toHaveBeenCalledWith({
-        relations: ['serving_size'],
+        relations: { serving_size: true },
       });
       expect(result).toEqual(mockProductTypes);
     });

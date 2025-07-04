@@ -48,7 +48,7 @@ export class ServingSizeService {
 
   async findAllByOrganization(organizationId: number): Promise<ServingSize[]> {
     return await this.servingSizeRepository.find({
-      relations: ['organization'],
+      relations: { organization: true },
       where: {
         organization: { id: organizationId },
       },

@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from '../../product-type/entity/product-type.entity';
@@ -29,9 +30,8 @@ export class ServingSize {
   @JoinColumn({ name: 'organizationId' })
   organization: Organization;
 
-  @OneToOne(() => ProductType, (productType) => productType.serving_size)
-  @JoinColumn({ name: 'product_type_id' })
-  product_type: ProductType;
+  @OneToMany(() => ProductType, (productType) => productType.serving_size)
+  product_types: ProductType[];
 
   @CreateDateColumn()
   created_at: Date;

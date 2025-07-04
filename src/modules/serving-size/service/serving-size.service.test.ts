@@ -130,7 +130,7 @@ describe('ServingSizeService', () => {
 
       const result = await service.findAllByOrganization(1);
       expect(repository.find).toHaveBeenCalledWith({
-        relations: ['organization'],
+        relations: { organization: true },
         where: { organization: { id: 1 } },
         order: {
           created_at: 'DESC',

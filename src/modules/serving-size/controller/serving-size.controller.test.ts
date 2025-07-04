@@ -3,7 +3,6 @@ import { ServingSizeController } from './serving-size.controller';
 import { ServingSizeService } from '../service/serving-size.service';
 import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
 import { ServingSize } from '../entity/serving-size.entity';
-import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from 'src/modules/product-type/entity/product-type.entity';
 
@@ -16,7 +15,7 @@ describe('ServingSizeController', () => {
     label: 'Small',
     volume_in_ml: 150,
     organization: { id: 1 } as Organization,
-    product_type: { id: 'product-type-uuid' } as ProductType,
+    product_types: [{ id: 'product-type-uuid' } as ProductType],
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -35,10 +34,7 @@ describe('ServingSizeController', () => {
           useValue: mockServingSizeService,
         },
       ],
-    })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true }) // bypass auth guard
-      .compile();
+    }).compile();
 
     controller = module.get<ServingSizeController>(ServingSizeController);
     service = module.get<ServingSizeService>(ServingSizeService);

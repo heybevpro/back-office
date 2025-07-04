@@ -3,6 +3,7 @@ import {
   IsNumber,
   IsPositive,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -16,6 +17,7 @@ export class CreateProductTypeDto {
   @IsPositive()
   venue: number;
 
-  @IsString()
+  @IsUUID()
+  @IsNotEmpty()
   serving_size: string;
 }
