@@ -1,0 +1,25 @@
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { ServingSizeService } from '../service/serving-size.service';
+import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
+import { ServingSize } from '../entity/serving-size.entity';
+import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
+
+@Controller('serving-size')
+@UseGuards(JwtAuthGuard)
+export class ServingSizeController {
+  constructor(private readonly servingSizeService: ServingSizeService) {}
+
+  @Post()
+  async create(
+    @Body() createServingSizeDto: CreateServingSizeDto,
+  ): Promise<ServingSize> {
+    return await this.servingSizeService.create(createServingSizeDto);
+  }
+
+  @Get('by-organization/:organization')
+  async findByOrganization(
+    @Param('organization') organization: number,
+  ): Promise<Array<ServingSize>> {
+    return await this.servingSizeService.findAllByOrganization(organization);
+  }
+}

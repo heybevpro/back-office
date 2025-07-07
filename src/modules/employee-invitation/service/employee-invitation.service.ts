@@ -75,6 +75,7 @@ export class EmployeeInvitationService {
 
     const existingInvitation = await this.employeeInvitationRepository.findOne({
       where: { email },
+      order: { created_at: 'DESC' },
     });
 
     if (

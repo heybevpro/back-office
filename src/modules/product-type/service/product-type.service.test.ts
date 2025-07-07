@@ -6,6 +6,8 @@ import { ProductType } from '../entity/product-type.entity';
 import { CreateProductTypeDto } from '../dto/create-product-type.dto';
 import { Venue } from '../../venue/entity/venue.entity';
 import { VenueService } from '../../venue/service/venue.service';
+import { ServingSizeService } from '../../serving-size/service/serving-size.service';
+import { ServingSize } from 'src/modules/serving-size/entity/serving-size.entity';
 
 describe('ProductTypeService', () => {
   let service: ProductTypeService;
@@ -17,8 +19,18 @@ describe('ProductTypeService', () => {
     product_types: [],
   } as unknown as Venue;
 
+  const mockServingSize: ServingSize = {
+    id: 'size-uuid',
+    label: 'Regular',
+    volume_in_ml: 500,
+  } as unknown as ServingSize;
+
   const mockVenueService = {
     findOneById: jest.fn(() => Promise.resolve(mockVenue)),
+  };
+
+  const mockServingSizeService = {
+    findOneById: jest.fn(() => Promise.resolve(mockServingSize)),
   };
 
   beforeEach(async () => {
@@ -30,6 +42,7 @@ describe('ProductTypeService', () => {
           useClass: Repository,
         },
         { provide: VenueService, useValue: mockVenueService },
+        { provide: ServingSizeService, useValue: mockServingSizeService },
       ],
     }).compile();
 
@@ -52,21 +65,27 @@ describe('ProductTypeService', () => {
         name: '<_PRODUCT-TYPE_>',
         venue: mockVenue,
         products: [],
+        serving_size: mockServingSize,
         created_at: new Date(),
         updated_at: new Date(),
       };
       const createProductTypeDto: CreateProductTypeDto = {
         name: '<_PRODUCT-TYPE_>',
         venue: 1,
+        serving_size: 'size-uuid',
       };
       jest.spyOn(repository, 'create').mockReturnValue(createdMockProductType);
       jest.spyOn(repository, 'save').mockResolvedValue(createdMockProductType);
 
       const result = await service.create(createProductTypeDto);
 
+      expect(mockServingSizeService.findOneById).toHaveBeenCalledWith(
+        'size-uuid',
+      );
       expect(repository.create).toHaveBeenCalledWith({
         name: createProductTypeDto.name,
         venue: { id: createProductTypeDto.venue },
+        serving_size: mockServingSize,
       });
       expect(result).toEqual(createdMockProductType);
     });
@@ -82,6 +101,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: mockServingSize,
         },
         {
           id: 'uuid2',
@@ -90,6 +110,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: mockServingSize,
         },
       ];
 
@@ -97,7 +118,9 @@ describe('ProductTypeService', () => {
 
       const result = await service.findAll();
 
-      expect(repository.find).toHaveBeenCalled();
+      expect(repository.find).toHaveBeenCalledWith({
+        relations: { serving_size: true },
+      });
       expect(result).toEqual(mockProductTypes);
     });
   });
@@ -113,6 +136,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: mockServingSize,
         },
         {
           id: 'uuid2',
@@ -121,6 +145,7 @@ describe('ProductTypeService', () => {
           created_at: new Date(),
           updated_at: new Date(),
           products: [],
+          serving_size: mockServingSize,
         },
       ];
 
@@ -129,8 +154,15 @@ describe('ProductTypeService', () => {
       const result = await service.findAllByVenue(venueId);
 
       expect(repository.find).toHaveBeenCalledWith({
-        relations: { venue: true },
-        select: { venue: { id: false } },
+        relations: { venue: true, serving_size: true },
+        select: {
+          venue: { id: false },
+          serving_size: {
+            id: true,
+            label: true,
+            volume_in_ml: true,
+          },
+        },
         where: {
           venue: { id: venueId },
         },

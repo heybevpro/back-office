@@ -1,14 +1,16 @@
 import {
+  Entity,
+  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Product } from '../../product/entity/product.entity';
+import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 
 @Entity()
 export class ProductType {
@@ -22,7 +24,11 @@ export class ProductType {
   venue: Venue;
 
   @OneToMany(() => Product, (product) => product.product_type)
-  products: Array<Product>;
+  products: Product[];
+
+  @ManyToOne(() => ServingSize, (servingSize) => servingSize.product_types)
+  @JoinColumn({ name: 'serving_size_id' })
+  serving_size: ServingSize;
 
   @CreateDateColumn()
   created_at: Date;

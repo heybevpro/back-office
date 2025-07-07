@@ -6,7 +6,7 @@ import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { User } from '../../user/entity/user.entity';
 import { OrganizationSize } from '../../../utils/constants/organization.constants';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('OrganizationService', () => {
   let service: OrganizationService;
@@ -25,6 +25,7 @@ describe('OrganizationService', () => {
     state: 'NY',
     zip: '10001',
     size: OrganizationSize.SMALL,
+    serving_sizes: [],
   };
 
   beforeEach(async () => {
@@ -126,6 +127,30 @@ describe('OrganizationService', () => {
       const result = await service.findOne(orgName);
       expect(findOneSpy).toHaveBeenCalledWith({ where: { name: orgName } });
       expect(result).toBeNull();
+    });
+  });
+
+  describe('findOneById', () => {
+    it('should return an organization by id', async () => {
+      const orgId = 1;
+      const findOneByIdSpy = jest
+        .spyOn(organizationRepository, 'findOneOrFail')
+        .mockResolvedValue(mockOrganization);
+
+      const result = await service.findOneById(orgId);
+      expect(findOneByIdSpy).toHaveBeenCalledWith({ where: { id: orgId } });
+      expect(result).toEqual(mockOrganization);
+    });
+
+    it('should throw a NotFoundException if organization not found', async () => {
+      const orgId = 2;
+      jest
+        .spyOn(organizationRepository, 'findOneOrFail')
+        .mockRejectedValue(new Error('Organization not found'));
+
+      await expect(service.findOneById(orgId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

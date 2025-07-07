@@ -3,21 +3,20 @@ import {
   IsNumber,
   IsPositive,
   IsString,
-  IsUUID,
   MaxLength,
 } from 'class-validator';
 
-export class CreateProductTypeDto {
+export class CreateServingSizeDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(32)
-  name: string;
+  label: string;
 
   @IsNumber()
   @IsPositive()
-  venue: number;
+  volume_in_ml: number;
 
-  @IsUUID()
-  @IsNotEmpty()
-  serving_size: string;
+  @IsNumber()
+  @IsPositive()
+  organization: number;
 }
