@@ -1,0 +1,94 @@
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+} from 'typeorm';
+
+export class BVP247_AddingServingSizeTable1750759453768
+  implements MigrationInterface
+{
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.createTable(
+      new Table({
+        name: 'serving_size',
+        columns: [
+          {
+            name: 'id',
+            type: 'uuid',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'uuid',
+          },
+          {
+            name: 'label',
+            type: 'varchar',
+            length: '32',
+            isNullable: false,
+          },
+          {
+            name: 'volume_in_ml',
+            type: 'float',
+            isNullable: false,
+          },
+          {
+            name: 'organizationId',
+            type: 'int',
+            isNullable: false,
+          },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'now()',
+          },
+          {
+            name: 'updated_at',
+            type: 'timestamp',
+            default: 'now()',
+          },
+        ],
+        uniques: [
+          {
+            name: 'UQ_serving_size_label_organization',
+            columnNames: ['label', 'organizationId'],
+          },
+        ],
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      'serving_size',
+      new TableForeignKey({
+        columnNames: ['organizationId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'organization',
+        onDelete: 'CASCADE',
+      }),
+    );
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    const servingSizeTable = await queryRunner.getTable('serving_size');
+    if (servingSizeTable) {
+      const orgForeignKey = servingSizeTable.foreignKeys.find(
+        (fk) => fk.columnNames.indexOf('organizationId') !== -1,
+      );
+      if (orgForeignKey) {
+        await queryRunner.dropForeignKey('serving_size', orgForeignKey);
+      }
+      const uniqueConstraint = servingSizeTable.uniques.find(
+        (uq) =>
+          uq.columnNames.includes('label') &&
+          uq.columnNames.includes('organizationId'),
+      );
+      if (uniqueConstraint) {
+        await queryRunner.dropUniqueConstraint(
+          'serving_size',
+          uniqueConstraint,
+        );
+      }
+    }
+
+    await queryRunner.dropTable('serving_size');
+  }
+}

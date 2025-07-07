@@ -22,6 +22,7 @@ describe('OrganizationController', () => {
     state: 'NY',
     zip: '10001',
     size: OrganizationSize.SMALL,
+    serving_sizes: [],
   };
 
   const mockOrganizationService = {
