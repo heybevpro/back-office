@@ -3,10 +3,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ProductType } from '../../product-type/entity/product-type.entity';
+import { Inventory } from '../../inventory/entity/inventory.entity';
 
 @Entity()
 export class Product {
@@ -26,6 +28,11 @@ export class Product {
     nullable: false,
   })
   product_type: ProductType;
+
+  @OneToOne(() => Inventory, (inventory) => inventory.product, {
+    onDelete: 'RESTRICT',
+  })
+  inventory: Inventory;
 
   @Column({ type: 'int', default: 0, nullable: false })
   quantity: number;
