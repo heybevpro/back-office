@@ -27,7 +27,13 @@ export class Product {
   })
   product_type: ProductType;
 
-  @Column({ type: 'int', default: 0, nullable: false })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 3,
+    default: 0,
+    nullable: false,
+  })
   quantity: number;
 
   @CreateDateColumn()

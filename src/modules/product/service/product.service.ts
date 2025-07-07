@@ -31,7 +31,7 @@ export class ProductService {
 
   async findAll(): Promise<Product[]> {
     return this.productRepository.find({
-      relations: { product_type: true },
+      relations: { product_type: { serving_size: true } },
       select: {
         id: true,
         name: true,
@@ -39,7 +39,11 @@ export class ProductService {
         description: true,
         created_at: true,
         updated_at: true,
-        product_type: { id: true, name: true },
+        product_type: {
+          id: true,
+          name: true,
+          serving_size: { id: true, volume_in_ml: true },
+        },
       },
       order: { name: 'ASC' },
     });
@@ -58,7 +62,7 @@ export class ProductService {
 
   async findAllWithIds(ids: Array<string>): Promise<Array<Product>> {
     return await this.productRepository.find({
-      relations: { product_type: true },
+      relations: { product_type: { serving_size: true } },
       select: {
         id: true,
         name: true,
@@ -67,7 +71,11 @@ export class ProductService {
         description: true,
         created_at: true,
         updated_at: true,
-        product_type: { id: true, name: true },
+        product_type: {
+          id: true,
+          name: true,
+          serving_size: { id: true, volume_in_ml: true },
+        },
       },
       where: { id: In(ids) },
     });
@@ -75,7 +83,7 @@ export class ProductService {
 
   async fetchInventory(): Promise<Array<Product>> {
     return await this.productRepository.find({
-      relations: { product_type: true },
+      relations: { product_type: { serving_size: true } },
       select: {
         id: true,
         name: true,
@@ -84,7 +92,11 @@ export class ProductService {
         description: true,
         created_at: true,
         updated_at: true,
-        product_type: { id: true, name: true },
+        product_type: {
+          id: true,
+          name: true,
+          serving_size: { id: true, volume_in_ml: true },
+        },
       },
       order: { name: 'ASC' },
     });
@@ -130,7 +142,12 @@ export class ProductService {
         product,
         productIdQuantityMap[product.id],
       );
-      product.quantity = product.quantity - productIdQuantityMap[product.id];
+      const servingSizeVolumeInMl =
+        product.product_type?.serving_size?.volume_in_ml ?? 1;
+      const servingSizeVolumeInLiters = servingSizeVolumeInMl / 1000;
+      product.quantity =
+        product.quantity -
+        productIdQuantityMap[product.id] * servingSizeVolumeInLiters;
     });
     return await this.updateMultipleProducts(productsToUpdate);
   }

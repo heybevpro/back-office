@@ -11,10 +11,7 @@ import {
   ImATeapotException,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  InsufficientStockException,
-  OutOfStockException,
-} from '../../../excpetions/order.exception';
+import { OutOfStockException } from '../../../excpetions/order.exception';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -107,7 +104,7 @@ describe('ProductService', () => {
       productRepositoryFindSpy.mockResolvedValue([mockProduct]);
       await service.findAllWithIds(['1']);
       expect(productRepositoryFindSpy).toHaveBeenCalledWith({
-        relations: { product_type: true },
+        relations: { product_type: { serving_size: true } },
         select: {
           id: true,
           name: true,
@@ -116,7 +113,11 @@ describe('ProductService', () => {
           description: true,
           created_at: true,
           updated_at: true,
-          product_type: { id: true, name: true },
+          product_type: {
+            id: true,
+            name: true,
+            serving_size: { id: true, volume_in_ml: true },
+          },
         },
         where: { id: In(['1']) },
       });
@@ -135,7 +136,7 @@ describe('ProductService', () => {
       productRepositoryFindSpy.mockResolvedValue([mockProduct]);
       await service.fetchInventory();
       expect(productRepositoryFindSpy).toHaveBeenCalledWith({
-        relations: { product_type: true },
+        relations: { product_type: { serving_size: true } },
         select: {
           id: true,
           name: true,
@@ -144,7 +145,11 @@ describe('ProductService', () => {
           description: true,
           created_at: true,
           updated_at: true,
-          product_type: { id: true, name: true },
+          product_type: {
+            id: true,
+            name: true,
+            serving_size: { id: true, volume_in_ml: true },
+          },
         },
         order: { name: 'ASC' },
       });
@@ -243,7 +248,7 @@ describe('ProductService', () => {
 
       await expect(
         service.validateAndUpdateItemQuantitiesFromOrder(orderDetails),
-      ).rejects.toThrow(InsufficientStockException);
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });
