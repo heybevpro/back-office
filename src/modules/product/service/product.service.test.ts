@@ -16,6 +16,7 @@ import {
   OutOfStockException,
 } from '../../../excpetions/order.exception';
 import { Inventory } from '../../inventory/entity/inventory.entity';
+import { Venue } from '../../venue/entity/venue.entity';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -31,6 +32,7 @@ describe('ProductService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     inventory: {} as Inventory,
+    venue: {} as Venue,
   };
 
   beforeEach(async () => {

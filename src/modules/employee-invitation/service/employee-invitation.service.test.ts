@@ -49,6 +49,7 @@ describe('EmployeeInvitationService', () => {
     product_types: [],
     created_at: new Date(),
     updated_at: new Date(),
+    products: [],
   };
 
   const mockInvitation: EmployeeInvitation = {
