@@ -35,6 +35,7 @@ describe('EmployeeController', () => {
     findById: jest.fn(),
     findByUserPin: jest.fn(),
     findAllEmployeeByVenue: jest.fn(),
+    findAllByOrganization: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -103,6 +104,15 @@ describe('EmployeeController', () => {
       service.findAllEmployeeByVenue.mockResolvedValue([mockEmployee]);
       const result = await controller.findAllEmployeeByVenue(1);
       expect(service.findAllEmployeeByVenue).toHaveBeenCalledWith(1);
+      expect(result).toEqual([mockEmployee]);
+    });
+  });
+
+  describe('find all employees by organization', () => {
+    it('should return all employees by organization', async () => {
+      service.findAllByOrganization.mockResolvedValue([mockEmployee]);
+      const result = await controller.findAllByOrganization(1);
+      expect(service.findAllByOrganization).toHaveBeenCalledWith(1);
       expect(result).toEqual([mockEmployee]);
     });
   });

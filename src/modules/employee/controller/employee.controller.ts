@@ -38,4 +38,11 @@ export class EmployeeController {
   ): Promise<Employee[]> {
     return this.employeeService.findAllEmployeeByVenue(venueId);
   }
+
+  @Get('by-organization/:orgId')
+  async findAllByOrganization(
+    @Param('organization') organization: number,
+  ): Promise<Array<Employee>> {
+    return await this.employeeService.findAllByOrganization(organization);
+  }
 }

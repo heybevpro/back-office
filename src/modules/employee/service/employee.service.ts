@@ -83,4 +83,17 @@ export class EmployeeService {
       throw new FailedToFetchEmployeesForVenueException();
     }
   }
+  async findAllByOrganization(organizationId: number): Promise<Employee[]> {
+    return await this.employeeRepository.find({
+      relations: ['venue', 'venue.organization'],
+      where: {
+        venue: {
+          organization: {
+            id: organizationId,
+          },
+        },
+      },
+      order: { created_at: 'DESC' },
+    });
+  }
 }

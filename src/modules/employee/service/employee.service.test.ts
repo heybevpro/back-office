@@ -194,5 +194,34 @@ describe('EmployeeService', () => {
       const result = await service.findAllEmployeeByVenue(1);
       expect(result).toEqual([mockEmployee]);
     });
+
+    it('should throw NotFoundException if no employees found for venue', async () => {
+      jest
+        .spyOn(employeeRepository, 'find')
+        .mockRejectedValue(new NotFoundException('No employees found'));
+
+      await expect(service.findAllEmployeeByVenue(999)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('findAllByOrganization', () => {
+    it('should return all employees by organization', async () => {
+      jest.spyOn(employeeRepository, 'find').mockResolvedValue([mockEmployee]);
+
+      const result = await service.findAllByOrganization(1);
+      expect(result).toEqual([mockEmployee]);
+    });
+  });
+
+  it('should throw NotFoundException if no employees found for organization', async () => {
+    jest
+      .spyOn(employeeRepository, 'find')
+      .mockRejectedValue(new NotFoundException('No employees found'));
+
+    await expect(service.findAllByOrganization(999)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });
