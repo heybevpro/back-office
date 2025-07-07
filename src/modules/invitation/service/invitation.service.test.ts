@@ -61,4 +61,22 @@ describe('InvitationService', () => {
       expect(invitationFindAllSpy).toHaveBeenCalledWith();
     });
   });
+
+  describe('fetchById', () => {
+    it('should return an invitation by its ID', async () => {
+      const invitationFindOneSpy = jest.spyOn(invitationRepository, 'findOne');
+      invitationFindOneSpy.mockResolvedValue(mockInvitation);
+
+      expect(await service.fetchById(1)).toEqual(mockInvitation);
+      expect(invitationFindOneSpy).toHaveBeenCalledWith({ where: { id: 1 } });
+    });
+
+    it('should return null if no invitation is found', async () => {
+      const invitationFindOneSpy = jest.spyOn(invitationRepository, 'findOne');
+      invitationFindOneSpy.mockResolvedValue(null);
+
+      expect(await service.fetchById(999)).toBeNull();
+      expect(invitationFindOneSpy).toHaveBeenCalledWith({ where: { id: 999 } });
+    });
+  });
 });

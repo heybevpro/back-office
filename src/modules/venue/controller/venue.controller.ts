@@ -18,4 +18,10 @@ export class VenueController {
   async findByOrganization(@Param('organization') organization: number) {
     return await this.venueService.findAllByOrganization(organization);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async findOne(@Param('id') id: number) {
+    return await this.venueService.findOneById(id);
+  }
 }

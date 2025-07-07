@@ -45,6 +45,16 @@ export class ProductService {
     });
   }
 
+  async findProductById(id: string): Promise<Product> {
+    try {
+      return await this.productRepository.findOneOrFail({
+        where: { id },
+      });
+    } catch (err) {
+      throw new NotFoundException(err);
+    }
+  }
+
   async findAllByProductType(productTypeId: string): Promise<Array<Product>> {
     return await this.productRepository.find({
       relations: { product_type: true },

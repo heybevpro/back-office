@@ -15,6 +15,7 @@ import {
   InsufficientStockException,
   OutOfStockException,
 } from '../../../excpetions/order.exception';
+import { Inventory } from '../../inventory/entity/inventory.entity';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -29,6 +30,7 @@ describe('ProductService', () => {
     quantity: 1,
     created_at: new Date(),
     updated_at: new Date(),
+    inventory: {} as Inventory,
   };
 
   beforeEach(async () => {
