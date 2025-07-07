@@ -156,7 +156,7 @@ describe('ServingSizeService', () => {
       const result = await service.findOneById('uuid-1');
       expect(repository.findOneOrFail).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },
-        relations: ['organization'],
+        relations: { organization: true },
       });
       expect(result).toEqual(mockServingSize);
     });

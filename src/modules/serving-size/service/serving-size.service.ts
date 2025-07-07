@@ -59,7 +59,7 @@ export class ServingSizeService {
   async findOneById(id: string): Promise<ServingSize> {
     return await this.servingSizeRepository.findOneOrFail({
       where: { id },
-      relations: ['organization'],
+      relations: { organization: true },
     });
   }
 }
