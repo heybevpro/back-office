@@ -25,6 +25,7 @@ const mockDto: CreateMenuItemDto = {
   name: 'Pizza',
   description: 'desc',
   venue_id: 1,
+  price: '10',
   products: [
     { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
     { product_id: 'p2', quantity: 2 },
@@ -127,6 +128,7 @@ describe('MenuItemService', () => {
         name: 'Coke',
         description: 'Chilled soft drink',
         venue_id: 1,
+        price: '10',
         products: [
           { product_id: 'p1', quantity: 1 },
           { product_id: 'p2', quantity: 2 },
@@ -160,6 +162,7 @@ describe('MenuItemService', () => {
           description: '',
           venue_id: 1,
           products: [],
+          price: '10',
         }),
       ).rejects.toThrow(NotFoundException);
     });
