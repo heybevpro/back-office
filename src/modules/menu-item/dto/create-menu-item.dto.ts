@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsArray,
   ValidateNested,
@@ -10,6 +10,7 @@ import {
   MaxLength,
   IsUUID,
   Matches,
+  IsDecimal,
 } from 'class-validator';
 
 export class CreateMenuItemRawDto {
@@ -25,6 +26,10 @@ export class CreateMenuItemRawDto {
   @IsNotEmpty()
   @Matches(/^\d+$/, { message: 'venue_id must contain only digits' })
   venue_id: string;
+
+  @Transform(({ value }) => Number(value).toFixed(2))
+  @IsDecimal({ decimal_digits: '2', force_decimal: true })
+  price: string;
 
   @IsString()
   @IsNotEmpty()
@@ -43,6 +48,10 @@ export class CreateMenuItemDto {
 
   @IsNumber()
   venue_id: number;
+
+  @Transform(({ value }) => Number(value).toFixed(2))
+  @IsDecimal({ decimal_digits: '2', force_decimal: true })
+  price: string;
 
   @IsArray()
   @ValidateNested({ each: true })

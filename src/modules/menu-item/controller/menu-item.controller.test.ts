@@ -74,6 +74,7 @@ describe('MenuItemController', () => {
         name: 'Coke',
         description: 'Chilled soft drink',
         venue_id: '1',
+        price: '10',
         products: JSON.stringify([
           { product_id: '3d7dfea8-9e8d-4b2a-8c1e-123456789abc', quantity: 1 },
         ]),
@@ -88,6 +89,7 @@ describe('MenuItemController', () => {
           products: [
             { product_id: '3d7dfea8-9e8d-4b2a-8c1e-123456789abc', quantity: 1 },
           ],
+          price: '10.00',
         }),
         undefined,
       );

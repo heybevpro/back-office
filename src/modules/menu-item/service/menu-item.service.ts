@@ -52,6 +52,7 @@ export class MenuItemService {
       name: createMenuItemDto.name,
       description: createMenuItemDto.description,
       venue,
+      price: Number(createMenuItemDto.price),
       image_url: imageUrl,
     });
 
