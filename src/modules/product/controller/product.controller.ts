@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   UseGuards,
@@ -24,7 +25,9 @@ export class ProductController {
   }
 
   @Get('venue/:venueId')
-  async findAll(@Param('venueId') venueId: number): Promise<Product[]> {
+  async findAll(
+    @Param('venueId', ParseIntPipe) venueId: number,
+  ): Promise<Product[]> {
     return await this.productService.findAllForVenue(venueId);
   }
 

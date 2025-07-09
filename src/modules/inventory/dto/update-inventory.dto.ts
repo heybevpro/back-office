@@ -1,7 +1,7 @@
-import { IsDecimal, IsNotEmpty, IsPositive, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPositive, IsUUID } from 'class-validator';
 
 export class UpdateInventoryDto {
-  @IsDecimal({ decimal_digits: '0,3' })
+  @IsNumber({ maxDecimalPlaces: 3 })
   @IsPositive()
   @IsNotEmpty()
   quantity: number;
