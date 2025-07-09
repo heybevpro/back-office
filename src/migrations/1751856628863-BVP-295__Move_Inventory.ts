@@ -6,7 +6,7 @@ import {
   TableForeignKey,
 } from 'typeorm';
 
-export class BVP95_MoveInventory1751856628863 implements MigrationInterface {
+export class BVP295_MoveInventory1751856628863 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
@@ -28,11 +28,6 @@ export class BVP95_MoveInventory1751856628863 implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'productId',
-            type: 'uuid',
-            isNullable: false,
-          },
-          {
             name: 'created_at',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
@@ -47,13 +42,22 @@ export class BVP95_MoveInventory1751856628863 implements MigrationInterface {
       }),
     );
 
+    await queryRunner.addColumn(
+      'product',
+      new TableColumn({
+        name: 'inventoryId',
+        type: 'int',
+        isNullable: true,
+      }),
+    );
+
     await queryRunner.createForeignKey(
-      'inventory',
+      'product',
       new TableForeignKey({
-        columnNames: ['productId'],
+        columnNames: ['inventoryId'],
         referencedColumnNames: ['id'],
-        referencedTableName: 'product',
-        onDelete: 'CASCADE',
+        referencedTableName: 'inventory',
+        onDelete: 'RESTRICT',
       }),
     );
 
@@ -87,15 +91,12 @@ export class BVP95_MoveInventory1751856628863 implements MigrationInterface {
       if (venueForeignKey) {
         await queryRunner.dropForeignKey('product', venueForeignKey);
       }
-    }
 
-    const productTable = await queryRunner.getTable('product');
-    if (productTable) {
-      const venueForeignKey = productTable.foreignKeys.find((fk) =>
-        fk.columnNames.includes('venueId'),
+      const inventoryForeignKey = table.foreignKeys.find((fk) =>
+        fk.columnNames.includes('inventoryId'),
       );
-      if (venueForeignKey) {
-        await queryRunner.dropForeignKey('product', venueForeignKey);
+      if (inventoryForeignKey) {
+        await queryRunner.dropForeignKey('product', inventoryForeignKey);
       }
     }
 

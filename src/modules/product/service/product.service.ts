@@ -13,25 +13,30 @@ import {
   InsufficientStockException,
   OutOfStockException,
 } from '../../../excpetions/order.exception';
+import { InventoryService } from '../../inventory/service/inventory.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly inventoryService: InventoryService,
   ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
+    const inventoryEntity = this.inventoryService.getNewInventoryEntity();
     const product = this.productRepository.create({
       ...createProductDto,
       product_type: { id: createProductDto.product_type },
+      venue: { id: createProductDto.venue },
+      inventory: inventoryEntity,
     });
     return await this.productRepository.save(product);
   }
 
   async findAll(): Promise<Product[]> {
     return this.productRepository.find({
-      relations: { product_type: true },
+      relations: { product_type: true, inventory: true },
       select: {
         id: true,
         name: true,
@@ -40,6 +45,11 @@ export class ProductService {
         created_at: true,
         updated_at: true,
         product_type: { id: true, name: true },
+        inventory: {
+          id: true,
+          quantity: true,
+          updated_at: true,
+        },
       },
       order: { name: 'ASC' },
     });

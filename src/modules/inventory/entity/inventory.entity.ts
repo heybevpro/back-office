@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -23,11 +22,7 @@ export class Inventory {
   })
   quantity: number;
 
-  @OneToOne(() => Product, (product) => product.inventory, {
-    nullable: false,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'productId' })
+  @OneToOne(() => Product, (product) => product.inventory)
   product: Product;
 
   @CreateDateColumn()

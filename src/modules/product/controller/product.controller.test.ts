@@ -64,6 +64,7 @@ describe('ProductController', () => {
         name: 'Product A',
         price: 100,
         product_type: '<_VALID_PRODUCT-TYPE_>',
+        venue: 1,
       };
 
       jest.spyOn(service, 'create').mockResolvedValue(mockProduct);

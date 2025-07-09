@@ -17,6 +17,7 @@ import {
 } from '../../../excpetions/order.exception';
 import { Inventory } from '../../inventory/entity/inventory.entity';
 import { Venue } from '../../venue/entity/venue.entity';
+import { InventoryService } from '../../inventory/service/inventory.service';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -43,6 +44,12 @@ describe('ProductService', () => {
           provide: getRepositoryToken(Product),
           useClass: Repository,
         },
+        {
+          provide: InventoryService,
+          useValue: {
+            getNewInventoryEntity: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -65,6 +72,7 @@ describe('ProductService', () => {
         product_type: '<_PRODUCT-TYPE_>',
         description: '<_PRODUCT-DESCRIPTION_>',
         price: 100,
+        venue: 1,
       };
       const result = await service.create(createProductDto);
       expect(result).toEqual(mockProduct);

@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -32,7 +33,9 @@ export class Product {
 
   @OneToOne(() => Inventory, (inventory) => inventory.product, {
     onDelete: 'RESTRICT',
+    cascade: true,
   })
+  @JoinColumn()
   inventory: Inventory;
 
   @ManyToOne(() => Venue, (venue) => venue.products)
