@@ -98,6 +98,8 @@ export class BVP295_MoveInventory1751856628863 implements MigrationInterface {
       if (inventoryForeignKey) {
         await queryRunner.dropForeignKey('product', inventoryForeignKey);
       }
+      await queryRunner.dropColumn('product', 'venueId');
+      await queryRunner.dropColumn('product', 'inventoryId');
     }
 
     await queryRunner.dropTable('inventory');

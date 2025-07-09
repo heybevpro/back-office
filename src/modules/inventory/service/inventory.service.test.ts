@@ -3,15 +3,10 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { InventoryService } from './inventory.service';
 import { Inventory } from '../entity/inventory.entity';
 import { Repository } from 'typeorm';
-import { ProductService } from '../../product/service/product.service';
 
 describe('InventoryService', () => {
   let service: InventoryService;
   let inventoryRepository: Repository<Inventory>;
-
-  const mockProductService = {
-    findProductById: jest.fn(),
-  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,10 +15,6 @@ describe('InventoryService', () => {
         {
           provide: getRepositoryToken(Inventory),
           useClass: Repository,
-        },
-        {
-          provide: ProductService,
-          useValue: mockProductService,
         },
       ],
     }).compile();
