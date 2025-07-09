@@ -1,4 +1,10 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { InventoryService } from '../service/inventory.service';
 import { Inventory } from '../entity/inventory.entity';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
@@ -10,7 +16,7 @@ export class InventoryController {
 
   @Get('venue/:venueId')
   async getInventoryByVenueId(
-    @Param('venueId') venueId: number,
+    @Param('venueId', ParseIntPipe) venueId: number,
   ): Promise<Inventory[]> {
     return await this.inventoryService.getInventoryByVenueId(venueId);
   }

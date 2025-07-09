@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { VenueService } from '../service/venue.service';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { CreateVenueDto } from '../dto/create-venue.dto';
@@ -21,7 +29,7 @@ export class VenueController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.venueService.findOneById(id);
   }
 }
