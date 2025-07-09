@@ -1,4 +1,5 @@
 import {
+  IsDecimal,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -12,7 +13,7 @@ export class CreateProductDto {
   @IsNotEmpty()
   name: string;
 
-  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsDecimal()
   price: number;
 
   @IsOptional()
