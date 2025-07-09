@@ -27,4 +27,12 @@ export class InventoryService {
     inventory.quantity = quantity;
     return this.inventoryRepository.save(inventory);
   }
+
+  async getInventoryByVenueId(venueId: number): Promise<Inventory[]> {
+    return this.inventoryRepository.find({
+      where: { product: { venue: { id: venueId } } },
+      relations: { product: { venue: true } },
+      order: { updated_at: 'DESC' },
+    });
+  }
 }

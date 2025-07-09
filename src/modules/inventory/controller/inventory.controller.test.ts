@@ -29,6 +29,7 @@ describe('InventoryController', () => {
           provide: InventoryService,
           useValue: {
             updateInventory: jest.fn(),
+            getInventoryByVenueId: jest.fn(),
           },
         },
       ],
@@ -50,5 +51,40 @@ describe('InventoryController', () => {
 
     expect(service.updateInventory).toHaveBeenCalledWith(updateInventoryDto);
     expect(result).toEqual(mockInventory);
+  });
+
+  it('should call getInventoryByVenueId on the service with the correct parameters', async () => {
+    const mockInventory = [
+      {
+        id: 1,
+        quantity: 10,
+        product: {
+          id: 'product-id',
+          name: 'Product Name',
+          price: 100.0,
+          venue: { id: 1 },
+        } as Product,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    ] as Inventory[];
+
+    jest
+      .spyOn(service, 'getInventoryByVenueId')
+      .mockResolvedValue(mockInventory);
+
+    const result = await controller.getInventoryByVenueId(1);
+
+    expect(service.getInventoryByVenueId).toHaveBeenCalledWith(1);
+    expect(result).toEqual(mockInventory);
+  });
+
+  it('should return an empty array if no inventory is found for the venue ID', async () => {
+    jest.spyOn(service, 'getInventoryByVenueId').mockResolvedValue([]);
+
+    const result = await controller.getInventoryByVenueId(999);
+
+    expect(service.getInventoryByVenueId).toHaveBeenCalledWith(999);
+    expect(result).toEqual([]);
   });
 });

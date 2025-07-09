@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -26,6 +27,7 @@ export class Inventory {
     nullable: false,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'productId' })
   product: Product;
 
   @CreateDateColumn()

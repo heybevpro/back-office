@@ -100,4 +100,34 @@ describe('InventoryService', () => {
       service.updateInventory({ quantity: -5, product: 'product-id' }),
     ).rejects.toThrow(BadRequestException);
   });
+
+  it('should return inventory for a given venue ID', async () => {
+    const mockInventory = [
+      { id: 1, quantity: 10, product: { id: 'product-id', venue: { id: 1 } } },
+    ] as Inventory[];
+
+    jest.spyOn(inventoryRepository, 'find').mockResolvedValue(mockInventory);
+
+    const result = await service.getInventoryByVenueId(1);
+
+    expect(result).toEqual(mockInventory);
+    expect(inventoryRepository.find).toHaveBeenCalledWith({
+      where: { product: { venue: { id: 1 } } },
+      relations: { product: { venue: true } },
+      order: { updated_at: 'DESC' },
+    });
+  });
+
+  it('should return an empty array if no inventory is found for the venue ID', async () => {
+    jest.spyOn(inventoryRepository, 'find').mockResolvedValue([]);
+
+    const result = await service.getInventoryByVenueId(999);
+
+    expect(result).toEqual([]);
+    expect(inventoryRepository.find).toHaveBeenCalledWith({
+      where: { product: { venue: { id: 999 } } },
+      relations: { product: { venue: true } },
+      order: { updated_at: 'DESC' },
+    });
+  });
 });
