@@ -34,9 +34,12 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
-  async findAll(): Promise<Product[]> {
+  async findAllForVenue(venueId: number): Promise<Product[]> {
     return this.productRepository.find({
-      relations: { product_type: true, inventory: true },
+      where: {
+        venue: { id: venueId },
+      },
+      relations: { product_type: true },
       select: {
         id: true,
         name: true,
@@ -45,11 +48,6 @@ export class ProductService {
         created_at: true,
         updated_at: true,
         product_type: { id: true, name: true },
-        inventory: {
-          id: true,
-          quantity: true,
-          updated_at: true,
-        },
       },
       order: { name: 'ASC' },
     });

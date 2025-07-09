@@ -23,9 +23,9 @@ export class ProductController {
     return await this.productService.create(createProductDto);
   }
 
-  @Get()
-  async findAll(): Promise<Product[]> {
-    return this.productService.findAll();
+  @Get('venue/:venueId')
+  async findAll(@Param('venueId') venueId: number): Promise<Product[]> {
+    return await this.productService.findAllForVenue(venueId);
   }
 
   @Get('by-product-type/:productTypeId')

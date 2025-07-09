@@ -80,11 +80,11 @@ describe('ProductService', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('should return a paginated list of products', async () => {
+  describe('findAllForVenue', () => {
+    it('should return a paginated list of products for given venue', async () => {
       const mockProducts = [mockProduct];
       jest.spyOn(productRepository, 'find').mockResolvedValue(mockProducts);
-      const result = await service.findAll();
+      const result = await service.findAllForVenue(1);
       expect(result).toEqual(mockProducts);
       expect(productRepository.find).toHaveBeenCalled();
     });

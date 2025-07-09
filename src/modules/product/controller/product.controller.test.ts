@@ -10,7 +10,7 @@ describe('ProductController', () => {
   let service: ProductService;
 
   const mockProductService = {
-    findAll: jest.fn(),
+    findAllForVenue: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
     findAllByProductType: jest.fn(),
@@ -38,17 +38,18 @@ describe('ProductController', () => {
   });
 
   describe('findAll', () => {
-    it('should return a list of products', async () => {
+    it('should return a list of products for a given venue', async () => {
+      const mockVenueId = 1;
       const mockProducts: Product[] = [
         { id: 1, name: 'Product A', price: 100 } as unknown as Product,
         { id: 2, name: 'Product B', price: 200 } as unknown as Product,
       ];
 
-      jest.spyOn(service, 'findAll').mockResolvedValue(mockProducts);
+      jest.spyOn(service, 'findAllForVenue').mockResolvedValue(mockProducts);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(mockVenueId);
 
-      expect(service.findAll).toHaveBeenCalled();
+      expect(service.findAllForVenue).toHaveBeenCalled();
       expect(result).toEqual(mockProducts);
     });
   });
