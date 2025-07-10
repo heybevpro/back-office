@@ -1,4 +1,5 @@
 import { Role } from '../../modules/role/entity/role.entity';
+import { Request } from '@nestjs/common';
 
 export interface VerifiedJwtPayload {
   id: string;
@@ -15,4 +16,19 @@ export interface TemporaryAccessJwtPayload {
   email: string;
   iat: number;
   exp: number;
+}
+
+export interface AuthorizedRequest extends Request {
+  user: {
+    id: string;
+    first_name: string;
+    organization: {
+      id: number;
+      name: string;
+    };
+    role: {
+      id: string;
+      name: string;
+    };
+  };
 }

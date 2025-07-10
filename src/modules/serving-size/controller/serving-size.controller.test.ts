@@ -5,6 +5,7 @@ import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
 import { ServingSize } from '../entity/serving-size.entity';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from 'src/modules/product-type/entity/product-type.entity';
+import { AuthorizedRequest } from '../../../utils/constants/auth.constants';
 
 describe('ServingSizeController', () => {
   let controller: ServingSizeController;
@@ -63,15 +64,25 @@ describe('ServingSizeController', () => {
 
   describe('findByOrganization', () => {
     it('should call service.findAllByOrganization with correct param and return result', async () => {
-      const organizationId = 1;
       const mockList = [mockServingSize];
+      const mockRequest: AuthorizedRequest = {
+        user: {
+          id: 'user-uuid',
+          first_name: 'Unit Test User',
+          role: {
+            id: 'ROLE-ID',
+            name: 'unit-test-role',
+          },
+          organization: { id: 1, name: 'Unit Test Organization' },
+        },
+      } as AuthorizedRequest;
 
       mockServingSizeService.findAllByOrganization.mockResolvedValue(mockList);
 
-      const result = await controller.findByOrganization(organizationId);
+      const result = await controller.findByOrganization(mockRequest);
 
       expect(service.findAllByOrganization).toHaveBeenCalledWith(
-        organizationId,
+        mockRequest.user.organization.id,
       );
       expect(result).toEqual(mockList);
     });

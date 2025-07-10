@@ -19,6 +19,7 @@ import { OrderModule } from './modules/order/order.module';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { DeviceModule } from './modules/device/device.module';
 import { EmployeeInvitationModule } from './modules/employee-invitation/employee-invitation.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { EmployeeInvitationModule } from './modules/employee-invitation/employee
     EmployeeModule,
     DeviceModule,
     EmployeeInvitationModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   UseGuards,
@@ -20,12 +21,14 @@ export class ProductController {
 
   @Post()
   async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
-    return this.productService.create(createProductDto);
+    return await this.productService.create(createProductDto);
   }
 
-  @Get()
-  async findAll(): Promise<Product[]> {
-    return this.productService.findAll();
+  @Get('venue/:venueId')
+  async findAll(
+    @Param('venueId', ParseIntPipe) venueId: number,
+  ): Promise<Product[]> {
+    return await this.productService.findAllForVenue(venueId);
   }
 
   @Get('by-product-type/:productTypeId')
