@@ -3,6 +3,7 @@ import { InventoryController } from './inventory.controller';
 import { InventoryService } from '../service/inventory.service';
 import { Inventory } from '../entity/inventory.entity';
 import { Product } from '../../product/entity/product.entity';
+import { UpdateInventoryDto } from '../dto/update-inventory.dto';
 
 describe('InventoryController', () => {
   let controller: InventoryController;
@@ -16,6 +17,7 @@ describe('InventoryController', () => {
           provide: InventoryService,
           useValue: {
             getInventoryByVenueId: jest.fn(),
+            updateInventoryForProduct: jest.fn(),
           },
         },
       ],
@@ -58,5 +60,30 @@ describe('InventoryController', () => {
 
     expect(service.getInventoryByVenueId).toHaveBeenCalledWith(999);
     expect(result).toEqual([]);
+  });
+
+  it('should call updateInventoryForVenue on the service with the correct parameters', async () => {
+    const mockUpdateDto: UpdateInventoryDto = {
+      quantity: 2000.12,
+      product: 'PRODUCT_UUID',
+    };
+    const mockUpdatedInventory: Inventory = {
+      id: 1,
+      quantity: 10000,
+      product: {} as Product,
+      updated_at: new Date(),
+      created_at: new Date(),
+    };
+
+    jest
+      .spyOn(service, 'updateInventoryForProduct')
+      .mockResolvedValue(mockUpdatedInventory);
+
+    const result = await controller.updateProductInventory(mockUpdateDto);
+
+    expect(service.updateInventoryForProduct).toHaveBeenCalledWith(
+      mockUpdateDto,
+    );
+    expect(result).toEqual(mockUpdatedInventory);
   });
 });
