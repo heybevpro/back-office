@@ -13,6 +13,10 @@ import {
 import { Venue } from '../../venue/entity/venue.entity';
 import { Product } from '../../product/entity/product.entity';
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
+import {
+  ImATeapotException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 
 describe('MenuItemService', () => {
   let service: MenuItemService;
@@ -150,7 +154,7 @@ describe('MenuItemService', () => {
     it('should throw an error if transaction fails', async () => {
       jest
         .spyOn(service, 'createMenuItemEntity')
-        .mockRejectedValue(new Error('Failed'));
+        .mockRejectedValue(new UnprocessableEntityException());
       const createMenuItemDto: CreateMenuItemDto = {
         name: 'Test Menu Item',
         description: 'Test Description',
@@ -161,7 +165,7 @@ describe('MenuItemService', () => {
 
       await expect(
         service.createMenuItemFromIngredients(createMenuItemDto),
-      ).rejects.toThrow(Error);
+      ).rejects.toThrow(UnprocessableEntityException);
     });
   });
 
@@ -199,6 +203,98 @@ describe('MenuItemService', () => {
       await expect(
         service.createMenuItemEntity(createMenuItemDto),
       ).rejects.toThrow(FailedToCreateMenuItem);
+    });
+
+    it('should rollback if menu item creation fails', async () => {
+      const dto: CreateMenuItemDto = {
+        name: 'FailItem',
+        description: '',
+        price: 10,
+        venue: 1,
+        ingredients: [],
+      };
+
+      const mockMenuItem: MenuItem = {
+        id: 'MENU-ITEM-ID',
+        created_at: new Date(),
+        updated_at: new Date(),
+        venue: { id: dto.venue } as Venue,
+        name: dto.name,
+        description: dto.description,
+        price: dto.price,
+        ingredients: [],
+      };
+
+      const menuItemRepositoryCreateSpy = jest.spyOn(
+        menuItemRepository,
+        'create',
+      );
+      menuItemRepositoryCreateSpy.mockReturnValue(mockMenuItem);
+
+      const menuItemRepositorySaveSpy = jest.spyOn(menuItemRepository, 'save');
+      menuItemRepositorySaveSpy.mockRejectedValue(new ImATeapotException());
+
+      await expect(
+        service.createMenuItemFromIngredients(dto),
+      ).rejects.toThrow();
+      expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalled();
+    });
+
+    it('should rollback if ingredient creation fails', async () => {
+      const dto: CreateMenuItemDto = {
+        name: 'Burger',
+        description: 'Nice',
+        price: 12,
+        venue: 1,
+        ingredients: [{ product: 'prod1', quantity: 1, servingSize: 'size1' }],
+      };
+
+      const mockMenuItem: MenuItem = {
+        id: 'MENU-ITEM-ID',
+        created_at: new Date(),
+        updated_at: new Date(),
+        venue: { id: dto.venue } as Venue,
+        name: dto.name,
+        description: dto.description,
+        price: dto.price,
+        ingredients: [],
+      };
+
+      const savedIngredients: MenuItemIngredient = {
+        id: 1,
+        product: { id: 'PRODUCT-ID-1' } as Product,
+        quantity: 1,
+        menu_item: { id: 'MENU-ITEM-ID' } as MenuItem,
+        serving_size: {
+          id: 'SERVING-SIZE-ID',
+          label: 'SERVING-LABEL',
+        } as ServingSize,
+        updated_at: new Date(),
+        created_at: new Date(),
+      };
+
+      const menuItemRepositoryCreateSpy = jest.spyOn(
+        menuItemRepository,
+        'create',
+      );
+      menuItemRepositoryCreateSpy.mockReturnValue(mockMenuItem);
+
+      const menuItemRepositorySaveSpy = jest.spyOn(menuItemRepository, 'save');
+      menuItemRepositorySaveSpy.mockResolvedValue(mockMenuItem);
+
+      jest
+        .spyOn(menuItemIngredientRepository, 'create')
+        .mockReturnValue(savedIngredients);
+      jest
+        .spyOn(menuItemIngredientRepository, 'save')
+        .mockRejectedValue(new FailedToCreateMenuItem({}));
+
+      await expect(service.createMenuItemFromIngredients(dto)).rejects.toThrow(
+        FailedToCreateMenuItemIngredients,
+      );
+      expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalled();
     });
   });
 
