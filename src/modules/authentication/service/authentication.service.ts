@@ -139,4 +139,15 @@ export class AuthenticationService {
   async onboard(userId: string, onboardDto: AccountOnboardingDto) {
     return await this.userService.onboardUser(userId, onboardDto);
   }
+
+  public async generateAccessToken(user: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    role: string;
+    organization: string;
+  }): Promise<string> {
+    return this.jwtService.signAsync(user);
+  }
 }
