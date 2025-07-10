@@ -2,16 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Unique,
 } from 'typeorm';
-import { Product } from '../../product/entity/product.entity';
-import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 import { Venue } from '../../venue/entity/venue.entity';
+import { MenuItemIngredient } from './menu-item-ingredient.entity';
 
 @Entity()
 @Unique(['name', 'venue'])
@@ -25,7 +23,7 @@ export class MenuItem {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true, default: null })
   image_url?: string;
 
   @ManyToOne(() => Venue, { nullable: false })
@@ -36,37 +34,8 @@ export class MenuItem {
   })
   products: MenuItemIngredient[];
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
   price: number;
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
-}
-
-@Entity()
-export class MenuItemIngredient {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @ManyToOne(() => MenuItem, (menuItem) => menuItem.products, {
-    nullable: false,
-  })
-  @JoinColumn({ name: 'menu_item_id' })
-  menuItem: MenuItem;
-
-  @ManyToOne(() => Product, { nullable: false })
-  @JoinColumn({ name: 'product_id' })
-  product: Product;
-
-  @Column({ type: 'int', default: 1 })
-  quantity: number;
-
-  @ManyToOne(() => ServingSize, { nullable: true })
-  @JoinColumn({ name: 'custom_serving_size_id' })
-  customServingSize: ServingSize;
 
   @CreateDateColumn()
   created_at: Date;

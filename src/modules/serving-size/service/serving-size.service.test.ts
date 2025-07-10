@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServingSizeService } from './serving-size.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ServingSize } from '../entity/serving-size.entity';
 import { OrganizationService } from '../../organization/service/organization.service';
 import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
@@ -13,7 +13,36 @@ const mockOrganization = { id: 1, name: 'Org 1' } as Organization;
 
 const mockOrganizationService = {
   findOneById: jest.fn(),
+  findAllWithIds: jest.fn(),
 };
+
+const dto: CreateServingSizeDto = {
+  label: 'Medium',
+  volume_in_ml: 250,
+  organization: 1,
+};
+
+const mockServingSize = {
+  id: 'uuid',
+  label: dto.label,
+  volume_in_ml: dto.volume_in_ml,
+  organization: mockOrganization,
+} as ServingSize;
+
+const mockServingSizes = [
+  {
+    id: 'uuid-1',
+    label: 'XL',
+    volume_in_ml: 400,
+    organization: mockOrganization,
+  },
+  {
+    id: 'uuid-2',
+    label: 'L',
+    volume_in_ml: 300,
+    organization: mockOrganization,
+  },
+] as ServingSize[];
 
 describe('ServingSizeService', () => {
   let service: ServingSizeService;
@@ -54,19 +83,6 @@ describe('ServingSizeService', () => {
     });
 
     it('should create and return a serving size', async () => {
-      const dto: CreateServingSizeDto = {
-        label: 'Medium',
-        volume_in_ml: 250,
-        organization: 1,
-      };
-
-      const mockServingSize = {
-        id: 'uuid',
-        label: dto.label,
-        volume_in_ml: dto.volume_in_ml,
-        organization: mockOrganization,
-      } as ServingSize;
-
       mockOrganizationService.findOneById.mockResolvedValue(mockOrganization);
       jest.spyOn(repository, 'findOne').mockResolvedValue(null);
       jest.spyOn(repository, 'create').mockReturnValue(mockServingSize);
@@ -83,19 +99,6 @@ describe('ServingSizeService', () => {
     });
 
     it('should throw an error if label is not unique within the organization', async () => {
-      const dto: CreateServingSizeDto = {
-        label: 'Medium',
-        volume_in_ml: 250,
-        organization: 1,
-      };
-
-      const mockServingSize = {
-        id: 'uuid',
-        label: dto.label,
-        volume_in_ml: dto.volume_in_ml,
-        organization: mockOrganization,
-      } as ServingSize;
-
       mockOrganizationService.findOneById.mockResolvedValue(mockOrganization);
       jest.spyOn(repository, 'create').mockReturnValue(mockServingSize);
       jest.spyOn(repository, 'findOne').mockResolvedValue(mockServingSize);
@@ -111,21 +114,6 @@ describe('ServingSizeService', () => {
 
   describe('findAllByOrganization', () => {
     it('should return all serving sizes for an organization', async () => {
-      const mockServingSizes = [
-        {
-          id: 'uuid-1',
-          label: 'S',
-          volume_in_ml: 100,
-          organization: mockOrganization,
-        },
-        {
-          id: 'uuid-2',
-          label: 'L',
-          volume_in_ml: 300,
-          organization: mockOrganization,
-        },
-      ] as ServingSize[];
-
       jest.spyOn(repository, 'find').mockResolvedValue(mockServingSizes);
 
       const result = await service.findAllByOrganization(1);
@@ -142,13 +130,7 @@ describe('ServingSizeService', () => {
 
   describe('findOneById', () => {
     it('should return a serving size by ID', async () => {
-      const mockServingSize = {
-        id: 'uuid-1',
-        label: 'XL',
-        volume_in_ml: 400,
-        organization: mockOrganization,
-      } as ServingSize;
-
+      mockOrganizationService.findOneById.mockResolvedValue(mockOrganization);
       jest
         .spyOn(repository, 'findOneOrFail')
         .mockResolvedValue(mockServingSize);
@@ -156,9 +138,26 @@ describe('ServingSizeService', () => {
       const result = await service.findOneById('uuid-1');
       expect(repository.findOneOrFail).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },
-        relations: ['organization'],
+        relations: { organization: true },
       });
       expect(result).toEqual(mockServingSize);
+    });
+  });
+
+  describe('findAllWithIds', () => {
+    it('should return all serving sizes by IDs', async () => {
+      mockOrganizationService.findAllWithIds.mockResolvedValue(
+        mockServingSizes,
+      );
+
+      jest.spyOn(repository, 'find').mockResolvedValue(mockServingSizes);
+
+      const result = await service.findAllWithIds(['uuid-1', 'uuid-2']);
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { id: In(['uuid-1', 'uuid-2']) },
+        relations: { organization: true },
+      });
+      expect(result).toEqual(mockServingSizes);
     });
   });
 });

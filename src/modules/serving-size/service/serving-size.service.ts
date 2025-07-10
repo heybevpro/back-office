@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { ServingSize } from '../entity/serving-size.entity';
 import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
 import { OrganizationService } from '../../organization/service/organization.service';
@@ -59,7 +59,14 @@ export class ServingSizeService {
   async findOneById(id: string): Promise<ServingSize> {
     return await this.servingSizeRepository.findOneOrFail({
       where: { id },
-      relations: ['organization'],
+      relations: { organization: true },
+    });
+  }
+
+  async findAllWithIds(ids: string[]): Promise<ServingSize[]> {
+    return await this.servingSizeRepository.find({
+      where: { id: In(ids) },
+      relations: { organization: true },
     });
   }
 }

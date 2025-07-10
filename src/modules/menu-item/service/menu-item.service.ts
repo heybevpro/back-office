@@ -1,21 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MenuItem, MenuItemIngredient } from '../entity/menu-item.entity';
+import { MenuItemIngredient } from '../entity/menu-item-ingredient.entity';
+import { MenuItem } from '../entity/menu-item.entity';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { ProductService } from '../../product/service/product.service';
 import { ServingSizeService } from '../../serving-size/service/serving-size.service';
-import { ServingSize } from '../../serving-size/entity/serving-size.entity';
 import { VenueService } from '../../venue/service/venue.service';
-import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
 import { DuplicateMenuItemNameException } from '../../../excpetions/menuItem.exception';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
+import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
+import { Product } from '../../product/entity/product.entity';
+import { ServingSize } from '../../serving-size/entity/serving-size.entity';
+
+const MenuItemRelations = {
+  products: {
+    product: {
+      product_type: {
+        serving_size: true,
+      },
+    },
+    servingSize: true,
+  },
+};
 
 @Injectable()
 export class MenuItemService {
   constructor(
     @InjectRepository(MenuItem)
     private readonly menuItemRepository: Repository<MenuItem>,
+    @InjectRepository(MenuItemIngredient)
+    private readonly menuItemIngredientRepository: Repository<MenuItemIngredient>,
     private readonly productService: ProductService,
     private readonly servingSizeService: ServingSizeService,
     private readonly venueService: VenueService,
@@ -38,9 +53,8 @@ export class MenuItemService {
     const existing = await this.menuItemRepository.findOne({
       where: { name: createMenuItemDto.name, venue: { id: venue.id } },
     });
-    if (existing) {
+    if (existing)
       throw new DuplicateMenuItemNameException(createMenuItemDto.name);
-    }
 
     let imageUrl: string | undefined;
     if (image) {
@@ -58,49 +72,37 @@ export class MenuItemService {
 
     const productIds = createMenuItemDto.products.map((p) => p.product_id);
     const servingSizeIds = createMenuItemDto.products
-      .map((p) => p.custom_serving_size_id)
-      .filter((id): id is string => id !== undefined);
+      .map((p) => p.serving_size_id)
+      .filter((id): id is string => !!id);
 
     const [products, servingSizes] = await Promise.all([
       this.productService.findAllWithIds(productIds),
       servingSizeIds.length > 0
-        ? Promise.all(
-            servingSizeIds.map((id) => this.servingSizeService.findOneById(id)),
-          )
-        : Promise.resolve([] as ServingSize[]),
+        ? this.servingSizeService.findAllWithIds(servingSizeIds)
+        : [],
     ]);
 
-    const validServingSizes = servingSizes.filter((s): s is ServingSize => !!s);
+    const productMap = new Map<string, Product>(
+      products.map((p: Product) => [p.id, p] as [string, Product]),
+    );
+    const servingSizeMap = new Map<string, ServingSize>(
+      servingSizes.map((s: ServingSize) => [s.id, s] as [string, ServingSize]),
+    );
 
-    for (const servingSize of validServingSizes) {
-      if (servingSize.organization.id !== venue.organization.id) {
-        throw new ServingSizeOrganizationMismatchException(servingSize.id);
+    for (const size of servingSizes) {
+      if (size.organization.id !== venue.organization.id) {
+        throw new ServingSizeOrganizationMismatchException(size.id);
       }
     }
 
     menuItem.products = createMenuItemDto.products.map((itemProduct) => {
-      const product = products.find((p) => p.id === itemProduct.product_id);
-      if (!product) {
-        throw new NotFoundException(
-          `Product ${itemProduct.product_id} not found`,
-        );
-      }
-
-      let customServingSize: ServingSize | undefined;
-      if (itemProduct.custom_serving_size_id) {
-        customServingSize = validServingSizes.find(
-          (s) => s.id === itemProduct.custom_serving_size_id,
-        );
-        if (!customServingSize) {
-          throw new NotFoundException(
-            `Serving size ${itemProduct.custom_serving_size_id} not found`,
-          );
-        }
-      }
-
-      return this.menuItemRepository.manager.create(MenuItemIngredient, {
+      const product = productMap.get(itemProduct.product_id);
+      const servingSize = itemProduct.serving_size_id
+        ? servingSizeMap.get(itemProduct.serving_size_id)
+        : undefined;
+      return this.menuItemIngredientRepository.create({
         product,
-        customServingSize: customServingSize,
+        servingSize,
         quantity: itemProduct.quantity,
       });
     });
@@ -110,13 +112,7 @@ export class MenuItemService {
 
   async findAll(): Promise<MenuItem[]> {
     return this.menuItemRepository.find({
-      relations: [
-        'products',
-        'products.product',
-        'products.product.product_type',
-        'products.product.product_type.serving_size',
-        'products.customServingSize',
-      ],
+      relations: MenuItemRelations,
       order: {
         created_at: 'DESC',
       },
@@ -124,38 +120,22 @@ export class MenuItemService {
   }
 
   async findOneById(id: string): Promise<MenuItem> {
-    const menuItem = await this.menuItemRepository.findOne({
-      where: { id },
-      relations: [
-        'products',
-        'products.product',
-        'products.product.product_type',
-        'products.product.product_type.serving_size',
-        'products.customServingSize',
-      ],
-    });
-
-    if (!menuItem) {
-      throw new NotFoundException(`Menu item ${id} not found`);
+    try {
+      return await this.menuItemRepository.findOneOrFail({
+        where: { id },
+        relations: MenuItemRelations,
+      });
+    } catch (error) {
+      throw new NotFoundException(`Menu item ${id} not found`, {
+        cause: error,
+      });
     }
-
-    return menuItem;
-  }
-
-  async getMenuItemRecipe(menuItemId: string): Promise<MenuItem> {
-    return this.findOneById(menuItemId);
   }
 
   async findByVenue(venueId: number): Promise<MenuItem[]> {
     return this.menuItemRepository.find({
       where: { venue: { id: venueId } },
-      relations: [
-        'products',
-        'products.product',
-        'products.product.product_type',
-        'products.product.product_type.serving_size',
-        'products.customServingSize',
-      ],
+      relations: MenuItemRelations,
       order: {
         created_at: 'DESC',
       },

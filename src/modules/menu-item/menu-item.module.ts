@@ -7,10 +7,11 @@ import { ProductModule } from '../product/product.module';
 import { ServingSizeModule } from '../serving-size/serving-size.module';
 import { VenueModule } from '../venue/venue.module';
 import { ObjectStoreModule } from '../object-store/object-store.module';
+import { MenuItemIngredient } from './entity/menu-item-ingredient.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MenuItem]),
+    TypeOrmModule.forFeature([MenuItem, MenuItemIngredient]),
     VenueModule,
     ProductModule,
     ServingSizeModule,

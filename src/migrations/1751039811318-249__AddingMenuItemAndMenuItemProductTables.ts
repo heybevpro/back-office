@@ -5,7 +5,7 @@ import {
   TableForeignKey,
 } from 'typeorm';
 
-export class AddingMenuItemAndMenuItemProductTables1751039811318
+export class BVP249_AddingMenuItemAndMenuItemProductTables1751039811318
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -30,6 +30,7 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
             name: 'description',
             type: 'text',
             isNullable: true,
+            default: null,
           },
           {
             name: 'venueId',
@@ -41,13 +42,14 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
             type: 'varchar',
             length: '500',
             isNullable: true,
+            default: null,
           },
           {
             name: 'price',
             type: 'decimal',
             precision: 10,
             scale: 2,
-            isNullable: true,
+            isNullable: false,
           },
           {
             name: 'created_at',
@@ -91,7 +93,7 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
             isNullable: false,
           },
           {
-            name: 'custom_serving_size_id',
+            name: 'serving_size_id',
             type: 'uuid',
             isNullable: true,
           },
@@ -142,7 +144,7 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
     await queryRunner.createForeignKey(
       'menu_item_ingredient',
       new TableForeignKey({
-        columnNames: ['custom_serving_size_id'],
+        columnNames: ['serving_size_id'],
         referencedColumnNames: ['id'],
         referencedTableName: 'serving_size',
         onDelete: 'NO ACTION',
@@ -155,8 +157,8 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
       'menu_item_ingredient',
     );
     if (menuItemProductTable) {
-      const customServingSizeForeignKey = menuItemProductTable.foreignKeys.find(
-        (fk) => fk.columnNames.indexOf('custom_serving_size_id') !== -1,
+      const servingSizeForeignKey = menuItemProductTable.foreignKeys.find(
+        (fk) => fk.columnNames.indexOf('serving_size_id') !== -1,
       );
       const productForeignKey = menuItemProductTable.foreignKeys.find(
         (fk) => fk.columnNames.indexOf('product_id') !== -1,
@@ -165,10 +167,10 @@ export class AddingMenuItemAndMenuItemProductTables1751039811318
         (fk) => fk.columnNames.indexOf('menu_item_id') !== -1,
       );
 
-      if (customServingSizeForeignKey) {
+      if (servingSizeForeignKey) {
         await queryRunner.dropForeignKey(
           'menu_item_ingredient',
-          customServingSizeForeignKey,
+          servingSizeForeignKey,
         );
       }
 

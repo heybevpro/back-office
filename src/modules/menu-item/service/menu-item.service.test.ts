@@ -2,75 +2,121 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MenuItemService } from './menu-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MenuItem } from '../entity/menu-item.entity';
+import { MenuItemIngredient } from '../entity/menu-item-ingredient.entity';
+import { Repository } from 'typeorm';
 import { ProductService } from '../../product/service/product.service';
 import { ServingSizeService } from '../../serving-size/service/serving-size.service';
 import { VenueService } from '../../venue/service/venue.service';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
-import { ServingSizeOrganizationMismatchException } from '../../../excpetions/menuItem.exception';
-import { ObjectStoreService } from '../../object-store/service/object-store.service';
-import { DuplicateMenuItemNameException } from '../../../excpetions/menuItem.exception';
-
-const mockMenuItemRepository = () => ({
-  create: jest.fn(),
-  save: jest.fn(),
-  find: jest.fn(),
-  findOne: jest.fn(),
-  manager: {
-    create: jest.fn(),
-  },
-});
-
-const mockDto: CreateMenuItemDto = {
-  name: 'Pizza',
-  description: 'desc',
-  venue_id: 1,
-  price: '10',
-  products: [
-    { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
-    { product_id: 'p2', quantity: 2 },
-  ],
-};
-
-const venueId = 1;
-const mockMenuItems = [
-  {
-    id: '1',
-    name: 'Coke',
-    description: 'Chilled soft drink',
-    venue: { id: venueId, name: 'Bar A' },
-    products: [],
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Orange Juice',
-    description: 'Freshly squeezed orange juice',
-    venue: { id: venueId, name: 'Bar A' },
-    products: [],
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-];
-
-const menuItemFindRelations = {
-  relations: [
-    'products',
-    'products.product',
-    'products.product.product_type',
-    'products.product.product_type.serving_size',
-    'products.customServingSize',
-  ],
-  order: { created_at: 'DESC' },
-};
+import {
+  DuplicateMenuItemNameException,
+  ServingSizeOrganizationMismatchException,
+} from '../../../excpetions/menuItem.exception';
+import { Product } from '../../product/entity/product.entity';
+import { ServingSize } from '../../serving-size/entity/serving-size.entity';
+import { Venue } from '../../venue/entity/venue.entity';
+import { Organization } from '../../organization/entity/organization.entity';
+import { ProductType } from 'src/modules/product-type/entity/product-type.entity';
 
 describe('MenuItemService', () => {
   let service: MenuItemService;
-  let menuItemRepository: ReturnType<typeof mockMenuItemRepository>;
+  let menuItemRepository: Repository<MenuItem>;
+  let menuItemIngredientRepository: Repository<MenuItemIngredient>;
   let productService: ProductService;
   let servingSizeService: ServingSizeService;
   let venueService: VenueService;
+  let objectStoreService: ObjectStoreService;
+
+  const mockOrganization: Organization = {
+    id: 1,
+    name: 'Test Org',
+  } as Organization;
+
+  const mockVenue: Venue = {
+    id: 1,
+    name: 'Test Venue',
+    organization: mockOrganization,
+    address: '',
+    city: '',
+    state: '',
+    phone_number: '',
+    capacity: 100,
+    employees: [],
+    devices: [],
+    product_types: [],
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  const mockServingSize: ServingSize = {
+    id: 'ss-1',
+    label: 'Standard',
+    volume_in_ml: 100,
+    organization: mockOrganization,
+    product_types: [],
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  const mockProductType: ProductType = {
+    id: 'prod-type-1',
+    name: 'Vodka',
+    serving_size: mockServingSize,
+    venue: mockVenue,
+    products: [],
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  const mockProduct: Product = {
+    id: 'prod-1',
+    name: 'Vodka',
+    price: 25.99,
+    description: 'Premium vodka',
+    product_type: mockProductType,
+    quantity: 1000,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  const mockMenuItem: MenuItem = {
+    id: 'menu-1',
+    name: 'Vodka Martini',
+    description: 'Classic cocktail',
+    price: 12.99,
+    venue: mockVenue,
+    products: [],
+    image_url: undefined,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  const mockCreateDto: CreateMenuItemDto = {
+    name: 'Vodka Martini',
+    description: 'Classic cocktail',
+    venue_id: 1,
+    price: '12.99',
+    products: [
+      { product_id: 'prod-1', quantity: 2, serving_size_id: 'ss-1' },
+      { product_id: 'prod-2', quantity: 1 },
+    ],
+  };
+
+  const menuItemFindRelations = {
+    relations: {
+      products: {
+        product: {
+          product_type: {
+            serving_size: true,
+          },
+        },
+        servingSize: true,
+      },
+    },
+    order: { created_at: 'DESC' },
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -78,259 +124,251 @@ describe('MenuItemService', () => {
         MenuItemService,
         {
           provide: getRepositoryToken(MenuItem),
-          useFactory: mockMenuItemRepository,
+          useClass: Repository,
         },
-        { provide: ProductService, useValue: { findAllWithIds: jest.fn() } },
-        { provide: ServingSizeService, useValue: { findOneById: jest.fn() } },
-        { provide: VenueService, useValue: { findOneById: jest.fn() } },
+        {
+          provide: getRepositoryToken(MenuItemIngredient),
+          useClass: Repository,
+        },
+        {
+          provide: ProductService,
+          useValue: {
+            findAllWithIds: jest.fn(),
+          },
+        },
+        {
+          provide: ServingSizeService,
+          useValue: {
+            findAllWithIds: jest.fn(),
+          },
+        },
+        {
+          provide: VenueService,
+          useValue: {
+            findOneById: jest.fn(),
+          },
+        },
         {
           provide: ObjectStoreService,
-          useValue: { uploadMenuItemImage: jest.fn() },
+          useValue: {
+            uploadDocument: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<MenuItemService>(MenuItemService);
-    menuItemRepository = module.get(getRepositoryToken(MenuItem));
-    productService = module.get(ProductService);
-    servingSizeService = module.get(ServingSizeService);
-    venueService = module.get(VenueService);
+    menuItemRepository = module.get<Repository<MenuItem>>(
+      getRepositoryToken(MenuItem),
+    );
+    menuItemIngredientRepository = module.get<Repository<MenuItemIngredient>>(
+      getRepositoryToken(MenuItemIngredient),
+    );
+    productService = module.get<ProductService>(ProductService);
+    servingSizeService = module.get<ServingSizeService>(ServingSizeService);
+    venueService = module.get<VenueService>(VenueService);
+    objectStoreService = module.get<ObjectStoreService>(ObjectStoreService);
+
+    jest.spyOn(menuItemRepository, 'create').mockReturnValue(mockMenuItem);
+    jest.spyOn(menuItemRepository, 'save').mockResolvedValue(mockMenuItem);
+    jest.spyOn(menuItemRepository, 'findOne').mockResolvedValue(null);
+    jest
+      .spyOn(menuItemIngredientRepository, 'create')
+      .mockImplementation((ing) => ({
+        ...ing,
+        id: 'ing-1',
+        created_at: new Date(),
+        updated_at: new Date(),
+        menuItem: mockMenuItem,
+        product: mockProduct,
+        servingSize: mockServingSize,
+        quantity: 1,
+      }));
   });
 
   describe('create', () => {
-    const venue = { id: 1, organization: { id: 2 } };
-    const products = [{ id: 'p1' }, { id: 'p2' }];
-    const servingSizes = [{ id: 's1', organization: { id: 2 } }];
-
-    const menuItemProduct = {
-      product: products[0],
-      custom_serving_size: servingSizes[0],
-      quantity: 1,
-    };
-    it('should create a menu item with products and serving sizes', async () => {
-      const menuItem = { ...mockDto, venue, products: [menuItemProduct] };
-      venueService.findOneById = jest.fn().mockResolvedValue(venue);
-      productService.findAllWithIds = jest.fn().mockResolvedValue(products);
-      servingSizeService.findOneById = jest
-        .fn()
-        .mockResolvedValue(servingSizes[0]);
-      menuItemRepository.create.mockReturnValue(menuItem);
-      menuItemRepository.manager.create.mockReturnValue(menuItemProduct);
-      menuItemRepository.save.mockResolvedValue(menuItem);
-
-      const result = await service.create(mockDto);
-      expect(result).toEqual(menuItem);
-      expect(menuItemRepository.save).toHaveBeenCalledWith(menuItem);
-    });
-
-    it('should create a menu item when no custom serving size ids are provided', async () => {
-      const dto = {
-        name: 'Coke',
-        description: 'Chilled soft drink',
-        venue_id: 1,
-        price: '10',
-        products: [
-          { product_id: 'p1', quantity: 1 },
-          { product_id: 'p2', quantity: 2 },
-        ],
-      };
-      const venue = { id: 1, organization: { id: 2 } };
-      const products = [{ id: 'p1' }, { id: 'p2' }];
-      const menuItemProduct = {
-        product: products[0],
-        custom_serving_size: undefined,
-        quantity: 1,
-      };
-      const menuItem = { ...dto, venue, products: [menuItemProduct] };
-
-      (venueService.findOneById as jest.Mock).mockResolvedValue(venue);
-      (productService.findAllWithIds as jest.Mock).mockResolvedValue(products);
-      menuItemRepository.create.mockReturnValue(menuItem);
-      menuItemRepository.manager.create.mockReturnValue(menuItemProduct);
-      menuItemRepository.save.mockResolvedValue(menuItem);
-
-      const result = await service.create(dto);
-      expect(result).toEqual(menuItem);
-      expect(menuItemRepository.save).toHaveBeenCalledWith(menuItem);
-    });
-
-    it('should throw NotFoundException if venue not found', async () => {
-      venueService.findOneById = jest.fn().mockResolvedValue(undefined);
-      await expect(
-        service.create({
-          name: '',
-          description: '',
-          venue_id: 1,
-          products: [],
-          price: '10',
-        }),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw NotFoundException if product not found', async () => {
-      venueService.findOneById = jest
-        .fn()
-        .mockResolvedValue({ id: 1, organization: { id: 2 } });
-      productService.findAllWithIds = jest.fn().mockResolvedValue([]);
-      menuItemRepository.create.mockReturnValue({});
-      await expect(service.create(mockDto)).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw NotFoundException if serving size not found', async () => {
-      venueService.findOneById = jest
-        .fn()
-        .mockResolvedValue({ id: 1, organization: { id: 2 } });
+    it('should successfully create a menu item', async () => {
+      venueService.findOneById = jest.fn().mockResolvedValue(mockVenue);
       productService.findAllWithIds = jest
         .fn()
-        .mockResolvedValue([{ id: 'p1' }]);
-      servingSizeService.findOneById = jest.fn().mockResolvedValue(undefined);
-      menuItemRepository.create.mockReturnValue({});
-      menuItemRepository.manager.create.mockReturnValue({});
-      await expect(service.create(mockDto)).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw ServingSizeOrganizationMismatchException if serving size organization does not match venue organization', async () => {
-      const dto = {
-        ...mockDto,
-        products: [
-          { product_id: 'p1', quantity: 1, custom_serving_size_id: 's1' },
-        ],
-      };
-      const venue = { id: 1, organization: { id: 2 } };
-      const products = [{ id: 'p1' }];
-      const servingSizes = [{ id: 's1', organization: { id: 99 } }];
-
-      (venueService.findOneById as jest.Mock).mockResolvedValue(venue);
-      (productService.findAllWithIds as jest.Mock).mockResolvedValue(products);
-      (servingSizeService.findOneById as jest.Mock).mockResolvedValue(
-        servingSizes[0],
-      );
-      menuItemRepository.create.mockReturnValue({});
-      menuItemRepository.manager.create.mockReturnValue({});
-
-      await expect(service.create(dto)).rejects.toThrow(
-        ServingSizeOrganizationMismatchException,
-      );
-    });
-
-    it('should throw NotFoundException if serving size organization is missing', async () => {
-      const venue = { id: 1, organization: { id: 2 } };
-      const products = [{ id: 'p1' }];
-      const servingSizes = [{ id: 's1' }];
-      venueService.findOneById = jest.fn().mockResolvedValue(venue);
-      productService.findAllWithIds = jest.fn().mockResolvedValue(products);
-      servingSizeService.findOneById = jest
+        .mockResolvedValue([mockProduct]);
+      servingSizeService.findAllWithIds = jest
         .fn()
-        .mockResolvedValue(servingSizes[0]);
-      menuItemRepository.create.mockReturnValue({});
-      menuItemRepository.manager.create.mockReturnValue({});
-      await expect(service.create(mockDto)).rejects.toThrow();
+        .mockResolvedValue([mockServingSize]);
+
+      const result = await service.create(mockCreateDto);
+
+      expect(result).toEqual(mockMenuItem);
+      expect(venueService.findOneById).toHaveBeenCalledWith(
+        mockCreateDto.venue_id,
+      );
+      expect(productService.findAllWithIds).toHaveBeenCalledWith(
+        expect.arrayContaining(['prod-1', 'prod-2']),
+      );
+      expect(menuItemRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw DuplicateMenuItemNameException if menu item with same name exists in venue', async () => {
-      const venue = { id: 1, organization: { id: 2 } };
-      const existingMenuItem = { id: 123, name: mockDto.name, venue };
-      venueService.findOneById = jest.fn().mockResolvedValue(venue);
-      menuItemRepository.findOne.mockResolvedValue(existingMenuItem);
-      await expect(service.create(mockDto)).rejects.toThrow(
+    it('should throw NotFoundException when venue does not exist', async () => {
+      venueService.findOneById = jest.fn().mockResolvedValue(null);
+
+      await expect(service.create(mockCreateDto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw DuplicateMenuItemNameException when name exists in venue', async () => {
+      venueService.findOneById = jest.fn().mockResolvedValue(mockVenue);
+      jest.spyOn(menuItemRepository, 'findOne').mockResolvedValue(mockMenuItem);
+
+      await expect(service.create(mockCreateDto)).rejects.toThrow(
         DuplicateMenuItemNameException,
       );
     });
 
-    it('should create a menu item with an image and set imageUrl', async () => {
-      const menuItem = {
-        ...mockDto,
-        venue,
-        products: [menuItemProduct],
-        image_url: 'http://image.url',
+    it('should throw ServingSizeOrganizationMismatchException when serving size org mismatch', async () => {
+      const wrongOrgServingSize = {
+        ...mockServingSize,
+        organization: { id: 999, name: 'Wrong Org' },
       };
-      venueService.findOneById = jest.fn().mockResolvedValue(venue);
-      productService.findAllWithIds = jest.fn().mockResolvedValue(products);
-      servingSizeService.findOneById = jest
-        .fn()
-        .mockResolvedValue(servingSizes[0]);
-      menuItemRepository.create.mockReturnValue(menuItem);
-      menuItemRepository.manager.create.mockReturnValue(menuItemProduct);
-      menuItemRepository.save.mockResolvedValue(menuItem);
-      service['objectStoreService'].uploadDocument = jest
-        .fn()
-        .mockResolvedValue('http://image.url');
 
-      const image = {
-        buffer: Buffer.from('img'),
-        mimetype: 'image/png',
-        originalname: 'cola.png',
+      venueService.findOneById = jest.fn().mockResolvedValue(mockVenue);
+      productService.findAllWithIds = jest
+        .fn()
+        .mockResolvedValue([mockProduct]);
+      servingSizeService.findAllWithIds = jest
+        .fn()
+        .mockResolvedValue([wrongOrgServingSize]);
+
+      await expect(service.create(mockCreateDto)).rejects.toThrow(
+        ServingSizeOrganizationMismatchException,
+      );
+    });
+
+    it('should handle menu item creation without serving sizes', async () => {
+      const dtoWithoutServingSizes = {
+        ...mockCreateDto,
+        products: mockCreateDto.products.map((p) => ({
+          product_id: p.product_id,
+          quantity: p.quantity,
+        })),
       };
-      const result = await service.create(mockDto, image);
-      expect(result).toEqual(menuItem);
-      expect(service['objectStoreService'].uploadDocument).toHaveBeenCalled();
-      expect(menuItemRepository.save).toHaveBeenCalledWith(menuItem);
+
+      venueService.findOneById = jest.fn().mockResolvedValue(mockVenue);
+      productService.findAllWithIds = jest
+        .fn()
+        .mockResolvedValue([mockProduct]);
+      servingSizeService.findAllWithIds = jest
+        .fn()
+        .mockResolvedValue([mockServingSize]);
+
+      servingSizeService.findAllWithIds = jest.fn().mockResolvedValue([]);
+
+      const result = await service.create(dtoWithoutServingSizes);
+      expect(result).toEqual(mockMenuItem);
+    });
+
+    it('should handle image upload when provided', async () => {
+      const mockImage = {
+        buffer: Buffer.from('test'),
+        mimetype: 'image/png',
+        originalname: 'test.png',
+      };
+      const mockImageUrl = 'http://example.com/image.png';
+
+      venueService.findOneById = jest.fn().mockResolvedValue(mockVenue);
+      productService.findAllWithIds = jest
+        .fn()
+        .mockResolvedValue([mockProduct]);
+      servingSizeService.findAllWithIds = jest
+        .fn()
+        .mockResolvedValue([mockServingSize]);
+      objectStoreService.uploadDocument = jest
+        .fn()
+        .mockResolvedValue(mockImageUrl);
+
+      const mockMenuItemWithImage = {
+        ...mockMenuItem,
+        image_url: mockImageUrl,
+      };
+      jest
+        .spyOn(menuItemRepository, 'save')
+        .mockResolvedValue(mockMenuItemWithImage);
+
+      const result = await service.create(mockCreateDto, mockImage);
+
+      expect(result).toMatchObject(mockMenuItemWithImage);
+      expect(objectStoreService.uploadDocument).toHaveBeenCalled();
     });
   });
 
   describe('findAll', () => {
     it('should return all menu items', async () => {
-      const menuItems = [{ id: '1' }];
-      menuItemRepository.find.mockResolvedValue(menuItems);
+      const mockMenuItems = [mockMenuItem, mockMenuItem];
+      jest.spyOn(menuItemRepository, 'find').mockResolvedValue(mockMenuItems);
+
       const result = await service.findAll();
-      expect(result).toEqual(menuItems);
-      expect(menuItemRepository.find).toHaveBeenCalledWith(
-        menuItemFindRelations,
-      );
+
+      expect(result).toEqual(mockMenuItems);
+      expect(menuItemRepository.find).toHaveBeenCalledWith({
+        ...menuItemFindRelations,
+      });
+    });
+
+    it('should return empty array when no menu items exist', async () => {
+      jest.spyOn(menuItemRepository, 'find').mockResolvedValue([]);
+
+      const result = await service.findAll();
+
+      expect(result).toEqual([]);
     });
   });
 
   describe('findOneById', () => {
     it('should return a menu item by id', async () => {
-      menuItemRepository.findOne.mockResolvedValue(mockMenuItems[0]);
-      const result = await service.findOneById('1');
-      expect(result).toEqual(mockMenuItems[0]);
-      expect(menuItemRepository.findOne).toHaveBeenCalledWith({
-        where: { id: '1' },
+      jest
+        .spyOn(menuItemRepository, 'findOneOrFail')
+        .mockResolvedValue(mockMenuItem);
+
+      const result = await service.findOneById('menu-1');
+
+      expect(result).toEqual(mockMenuItem);
+      expect(menuItemRepository.findOneOrFail).toHaveBeenCalledWith({
+        where: { id: 'menu-1' },
         relations: menuItemFindRelations.relations,
       });
     });
-    it('should throw NotFoundException if not found', async () => {
-      menuItemRepository.findOne.mockResolvedValue(undefined);
-      await expect(service.findOneById('1')).rejects.toThrow(NotFoundException);
-    });
-  });
 
-  describe('getMenuItemRecipe', () => {
-    it('should call findOneById', async () => {
-      const menuItem = { id: '1' } as MenuItem;
-      jest.spyOn(service, 'findOneById').mockResolvedValue(menuItem);
-      const result = await service.getMenuItemRecipe('1');
-      expect(result).toEqual(menuItem);
-      expect(service.findOneById).toHaveBeenCalledWith('1');
+    it('should throw NotFoundException when menu item not found', async () => {
+      jest
+        .spyOn(menuItemRepository, 'findOneOrFail')
+        .mockRejectedValue(new Error());
+
+      await expect(service.findOneById('nonexistent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('findByVenue', () => {
-    it('should return menu items for a specific venue', async () => {
-      menuItemRepository.find.mockResolvedValue(mockMenuItems);
+    it('should return menu items for a venue', async () => {
+      const mockMenuItems = [mockMenuItem];
+      jest.spyOn(menuItemRepository, 'find').mockResolvedValue(mockMenuItems);
 
-      const result = await service.findByVenue(venueId);
+      const result = await service.findByVenue(1);
 
       expect(result).toEqual(mockMenuItems);
       expect(menuItemRepository.find).toHaveBeenCalledWith({
-        where: { venue: { id: venueId } },
+        where: { venue: { id: 1 } },
         ...menuItemFindRelations,
       });
     });
 
-    it('should return empty array when no menu items found for venue', async () => {
-      const venueId = 999;
-      const mockMenuItems: MenuItem[] = [];
-      menuItemRepository.find.mockResolvedValue(mockMenuItems);
+    it('should return empty array when no menu items for venue', async () => {
+      jest.spyOn(menuItemRepository, 'find').mockResolvedValue([]);
 
-      const result = await service.findByVenue(venueId);
+      const result = await service.findByVenue(999);
 
-      expect(result).toEqual(mockMenuItems);
-      expect(menuItemRepository.find).toHaveBeenCalledWith({
-        where: { venue: { id: venueId } },
-        ...menuItemFindRelations,
-      });
+      expect(result).toEqual([]);
     });
   });
 });

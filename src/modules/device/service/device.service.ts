@@ -60,7 +60,7 @@ export class DeviceService {
   }
 
   async findAllByVenueId(venueId: number): Promise<Device[]> {
-    return this.deviceRepository.find({
+    return await this.deviceRepository.find({
       where: { venue: { id: venueId } },
     });
   }

@@ -65,7 +65,7 @@ export class MenuItemIngredientDto {
 
   @IsOptional()
   @IsUUID()
-  custom_serving_size_id?: string;
+  serving_size_id?: string;
 
   @IsNumber()
   @IsPositive()
