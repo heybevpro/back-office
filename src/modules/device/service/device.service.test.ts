@@ -47,6 +47,7 @@ describe('DeviceService', () => {
     product_types: [],
     devices: [],
     products: [],
+    menu_items: [],
   };
 
   const mockVenueService = {

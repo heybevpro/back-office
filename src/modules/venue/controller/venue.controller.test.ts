@@ -21,6 +21,7 @@ describe('VenueController', () => {
     employees: [],
     devices: [],
     products: [],
+    menu_items: [],
   };
 
   const mockVenueService = {
