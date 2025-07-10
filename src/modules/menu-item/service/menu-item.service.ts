@@ -8,7 +8,7 @@ import { MenuItemIngredientDto } from '../dto/menu-item-ingredient.dto';
 import {
   FailedToCreateMenuItem,
   FailedToCreateMenuItemIngredients,
-} from '../../../excpetions/menu-item.exception';
+} from '../../../exceptions/menu-item.exception';
 
 @Injectable()
 export class MenuItemService {

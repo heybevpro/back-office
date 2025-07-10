@@ -10,7 +10,7 @@ import { Organization } from '../../organization/entity/organization.entity';
 import {
   DeviceConflictException,
   VenueNotFoundException,
-} from '../../../excpetions/device.exception';
+} from '../../../exceptions/device.exception';
 
 describe('DeviceService', () => {
   let deviceService: DeviceService;

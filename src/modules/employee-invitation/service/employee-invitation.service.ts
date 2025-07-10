@@ -23,7 +23,7 @@ import {
   InvalidInvitationStatusException,
   InvitationAlreadyExistsException,
   MissingDataException,
-} from '../../../excpetions/employee.exception';
+} from '../../../exceptions/employee.exception';
 
 @Injectable()
 export class EmployeeInvitationService {

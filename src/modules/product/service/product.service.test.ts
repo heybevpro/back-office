@@ -14,7 +14,7 @@ import {
 import {
   InsufficientStockException,
   OutOfStockException,
-} from '../../../excpetions/order.exception';
+} from '../../../exceptions/order.exception';
 import { Inventory } from '../../inventory/entity/inventory.entity';
 import { Venue } from '../../venue/entity/venue.entity';
 import { InventoryService } from '../../inventory/service/inventory.service';

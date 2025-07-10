@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
-import { S3UploadFailedException } from '../../../excpetions/objects.exception';
+import { S3UploadFailedException } from '../../../exceptions/objects.exception';
 
 @Injectable()
 export class ObjectStoreService {

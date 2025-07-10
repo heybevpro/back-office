@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { ObjectStoreService } from './object-store.service';
-import { S3UploadFailedException } from '../../../excpetions/objects.exception';
+import { S3UploadFailedException } from '../../../exceptions/objects.exception';
 
 jest.mock('@aws-sdk/client-s3');
 

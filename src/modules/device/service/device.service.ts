@@ -11,14 +11,13 @@ import { VenueService } from '../../venue/service/venue.service';
 import {
   DeviceConflictException,
   VenueNotFoundException,
-} from '../../../excpetions/device.exception';
+} from '../../../exceptions/device.exception';
 
 @Injectable()
 export class DeviceService {
   constructor(
     @InjectRepository(Device)
     private readonly deviceRepository: Repository<Device>,
-
     private readonly venueService: VenueService,
   ) {}
 

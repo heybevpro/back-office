@@ -8,7 +8,7 @@ import { EntityNotFoundError, Repository } from 'typeorm';
 import { Employee } from '../entity/employee.entity';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeInvitation } from 'src/modules/employee-invitation/entity/employee-invitation.entity';
-import { FailedToFetchEmployeesForVenueException } from '../../../excpetions/employee.exception';
+import { FailedToFetchEmployeesForVenueException } from '../../../exceptions/employee.exception';
 
 @Injectable()
 export class EmployeeService {

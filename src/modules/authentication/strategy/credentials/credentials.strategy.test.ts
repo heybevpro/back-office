@@ -1,7 +1,7 @@
 import {
   InvalidUserCredentialsException,
   UserNotFoundException,
-} from '../../../../excpetions/credentials.exception';
+} from '../../../../exceptions/credentials.exception';
 import { CredentialsStrategy } from './credentials.strategy';
 import { LoginRequestDto } from '../../dto/login-request.dto';
 import { SuccessfulLoginResponse } from '../../../../interfaces/api/response/api.response';

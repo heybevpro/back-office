@@ -9,7 +9,7 @@ import { MenuItemIngredientDto } from '../dto/menu-item-ingredient.dto';
 import {
   FailedToCreateMenuItem,
   FailedToCreateMenuItemIngredients,
-} from '../../../excpetions/menu-item.exception';
+} from '../../../exceptions/menu-item.exception';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Product } from '../../product/entity/product.entity';
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
@@ -208,7 +208,7 @@ describe('MenuItemService', () => {
     it('should rollback if menu item creation fails', async () => {
       const dto: CreateMenuItemDto = {
         name: 'FailItem',
-        description: '',
+        description: 'This Item is supposed to fail',
         price: 10,
         venue: 1,
         ingredients: [],
@@ -309,9 +309,9 @@ describe('MenuItemService', () => {
 
       const menuItemIngredients: MenuItemIngredientDto[] = [
         {
-          product: '1',
+          product: 'PRODUCT-ID',
           quantity: 2,
-          servingSize: '1',
+          servingSize: 'SERVING-SIZE-ID',
         },
       ];
 
@@ -330,9 +330,9 @@ describe('MenuItemService', () => {
 
       const menuItemIngredients: MenuItemIngredientDto[] = [
         {
-          product: '1',
+          product: 'PRODUCT-ID',
           quantity: 2,
-          servingSize: '1',
+          servingSize: 'SERVING-SIZE-ID',
         },
       ];
 

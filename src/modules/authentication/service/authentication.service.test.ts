@@ -5,7 +5,7 @@ import { User } from '../../user/entity/user.entity';
 import {
   InvalidUserCredentialsException,
   UserNotFoundException,
-} from '../../../excpetions/credentials.exception';
+} from '../../../exceptions/credentials.exception';
 
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';

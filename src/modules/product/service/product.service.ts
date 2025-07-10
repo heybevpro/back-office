@@ -12,7 +12,7 @@ import { CustomCharge } from '../../../utils/constants/order.constants';
 import {
   InsufficientStockException,
   OutOfStockException,
-} from '../../../excpetions/order.exception';
+} from '../../../exceptions/order.exception';
 import { InventoryService } from '../../inventory/service/inventory.service';
 
 @Injectable()

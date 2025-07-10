@@ -5,7 +5,7 @@ import { SuccessfulLoginResponse } from '../../../../interfaces/api/response/api
 import {
   InvalidUserCredentialsException,
   UserNotFoundException,
-} from '../../../../excpetions/credentials.exception';
+} from '../../../../exceptions/credentials.exception';
 import { Strategy } from 'passport-local';
 
 @Injectable()

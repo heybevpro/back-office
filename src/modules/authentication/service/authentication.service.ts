@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user/service/user.service';
 
 import * as bcrypt from 'bcrypt';
-import { InvalidUserCredentialsException } from '../../../excpetions/credentials.exception';
+import { InvalidUserCredentialsException } from '../../../exceptions/credentials.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { LoginRequestDto } from '../dto/login-request.dto';
