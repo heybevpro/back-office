@@ -24,6 +24,7 @@ describe('VenueService', () => {
     product_types: [],
     employees: [],
     devices: [],
+    products: [],
   };
 
   beforeEach(async () => {

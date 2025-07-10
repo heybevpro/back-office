@@ -46,6 +46,7 @@ describe('DeviceService', () => {
     employees: [],
     product_types: [],
     devices: [],
+    products: [],
   };
 
   const mockVenueService = {

@@ -20,4 +20,8 @@ export class InvitationService {
   async fetchAll() {
     return await this.invitationRepository.find();
   }
+
+  async fetchById(id: number) {
+    return await this.invitationRepository.findOne({ where: { id } });
+  }
 }

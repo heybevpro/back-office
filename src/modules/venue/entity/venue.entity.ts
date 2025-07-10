@@ -12,6 +12,7 @@ import { Organization } from '../../organization/entity/organization.entity';
 import { ProductType } from '../../product-type/entity/product-type.entity';
 import { Employee } from '../../employee/entity/employee.entity';
 import { Device } from '../../device/entity/device.entity';
+import { Product } from '../../product/entity/product.entity';
 
 @Entity()
 @Unique(['organization', 'name'])
@@ -51,6 +52,9 @@ export class Venue {
 
   @OneToMany(() => Device, (device) => device.venue)
   devices: Array<Device>;
+
+  @OneToMany(() => Product, (product) => product.venue)
+  products: Array<Product>;
 
   @CreateDateColumn()
   created_at: Date;

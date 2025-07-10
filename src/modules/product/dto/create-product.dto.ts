@@ -1,7 +1,9 @@
 import {
   IsDecimal,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   IsUUID,
 } from 'class-validator';
@@ -19,4 +21,8 @@ export class CreateProductDto {
 
   @IsUUID()
   product_type: string;
+
+  @IsNumber()
+  @IsPositive()
+  venue: number;
 }
