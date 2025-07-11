@@ -21,7 +21,7 @@ export class MenuItemIngredient {
   @Column({ type: 'int', unsigned: true, nullable: false })
   quantity: number;
 
-  @ManyToOne(() => ServingSize, { nullable: true })
+  @ManyToOne(() => ServingSize, { nullable: false })
   serving_size: ServingSize;
 
   @ManyToOne(() => MenuItem, (menuItem) => menuItem.ingredients, {

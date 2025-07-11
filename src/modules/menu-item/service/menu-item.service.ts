@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { MenuItem } from '../entity/menu-item.entity';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { MenuItemIngredient } from '../entity/menu-item-ingredient.entity';
@@ -28,10 +28,15 @@ export class MenuItemService {
     await queryRunner.startTransaction();
 
     try {
-      const savedMenuItem = await this.createMenuItemEntity(createMenuItemDto);
-      await this.createMenuItemIngredients(
+      const savedMenuItem = await this.createMenuItemEntityUsingQueryRunner(
+        createMenuItemDto,
+        queryRunner,
+      );
+
+      await this.createMenuItemIngredientsUsingQueryRunner(
         createMenuItemDto.ingredients,
         savedMenuItem.id,
+        queryRunner,
       );
       await queryRunner.commitTransaction();
 
@@ -61,6 +66,24 @@ export class MenuItemService {
     }
   }
 
+  async createMenuItemEntityUsingQueryRunner(
+    createMenuItemDto: CreateMenuItemDto,
+    runner: QueryRunner,
+  ): Promise<MenuItem> {
+    try {
+      return await runner.manager.save(
+        runner.manager.create(MenuItem, {
+          name: createMenuItemDto.name,
+          description: createMenuItemDto.description,
+          price: createMenuItemDto.price,
+          venue: { id: createMenuItemDto.venue },
+        }),
+      );
+    } catch (error: unknown) {
+      throw new FailedToCreateMenuItem(error);
+    }
+  }
+
   async createMenuItemIngredients(
     menuItemIngredients: Array<MenuItemIngredientDto>,
     menuItemId: string,
@@ -76,6 +99,27 @@ export class MenuItemService {
       );
 
       return await this.menuItemIngredientRepository.save(ingredients);
+    } catch (error: unknown) {
+      throw new FailedToCreateMenuItemIngredients(error);
+    }
+  }
+
+  async createMenuItemIngredientsUsingQueryRunner(
+    menuItemIngredients: Array<MenuItemIngredientDto>,
+    menuItemId: string,
+    runner: QueryRunner,
+  ): Promise<Array<MenuItemIngredient>> {
+    try {
+      const ingredients = menuItemIngredients.map((ingredientDto) =>
+        runner.manager.create(MenuItemIngredient, {
+          product: { id: ingredientDto.product },
+          quantity: ingredientDto.quantity,
+          serving_size: { id: ingredientDto.servingSize },
+          menu_item: { id: menuItemId },
+        }),
+      );
+
+      return await runner.manager.save(ingredients);
     } catch (error: unknown) {
       throw new FailedToCreateMenuItemIngredients(error);
     }

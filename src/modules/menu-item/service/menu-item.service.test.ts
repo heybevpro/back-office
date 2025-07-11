@@ -52,6 +52,10 @@ describe('MenuItemService', () => {
       commitTransaction: jest.fn(),
       rollbackTransaction: jest.fn(),
       release: jest.fn(),
+      manager: {
+        create: jest.fn(),
+        save: jest.fn(),
+      },
     } as unknown as jest.Mocked<QueryRunner>;
 
     const mockDataSource = {
@@ -123,19 +127,19 @@ describe('MenuItemService', () => {
       };
 
       const menuItemRepositoryCreateSpy = jest.spyOn(
-        menuItemRepository,
+        queryRunner.manager,
         'create',
       );
-      menuItemRepositoryCreateSpy.mockReturnValue(mockMenuItem);
+      menuItemRepositoryCreateSpy.mockReturnValue([mockMenuItem]);
 
-      const menuItemRepositorySaveSpy = jest.spyOn(menuItemRepository, 'save');
+      const menuItemRepositorySaveSpy = jest.spyOn(queryRunner.manager, 'save');
       menuItemRepositorySaveSpy.mockResolvedValue(mockMenuItem);
 
       const menuItemIngredientRepositoryCreateSpy = jest.spyOn(
-        menuItemIngredientRepository,
+        queryRunner.manager,
         'create',
       );
-      menuItemIngredientRepositoryCreateSpy.mockReturnValue(savedIngredients);
+      menuItemIngredientRepositoryCreateSpy.mockReturnValue([savedIngredients]);
 
       const menuItemIngredientRepositorySaveSpy = jest.spyOn(
         menuItemIngredientRepository,
@@ -153,7 +157,7 @@ describe('MenuItemService', () => {
 
     it('should throw an error if transaction fails', async () => {
       jest
-        .spyOn(service, 'createMenuItemEntity')
+        .spyOn(queryRunner.manager, 'save')
         .mockRejectedValue(new UnprocessableEntityException());
       const createMenuItemDto: CreateMenuItemDto = {
         name: 'Test Menu Item',
@@ -275,20 +279,23 @@ describe('MenuItemService', () => {
       };
 
       const menuItemRepositoryCreateSpy = jest.spyOn(
-        menuItemRepository,
+        queryRunner.manager,
         'create',
       );
-      menuItemRepositoryCreateSpy.mockReturnValue(mockMenuItem);
+      menuItemRepositoryCreateSpy.mockReturnValue([mockMenuItem]);
 
       const menuItemRepositorySaveSpy = jest.spyOn(menuItemRepository, 'save');
       menuItemRepositorySaveSpy.mockResolvedValue(mockMenuItem);
 
       jest
-        .spyOn(menuItemIngredientRepository, 'create')
-        .mockReturnValue(savedIngredients);
+        .spyOn(queryRunner.manager, 'create')
+        .mockReturnValue([savedIngredients]);
       jest
-        .spyOn(menuItemIngredientRepository, 'save')
-        .mockRejectedValue(new FailedToCreateMenuItem({}));
+        .spyOn(queryRunner.manager, 'save')
+        .mockResolvedValueOnce(mockMenuItem);
+      jest
+        .spyOn(queryRunner.manager, 'save')
+        .mockRejectedValue(new FailedToCreateMenuItemIngredients({}));
 
       await expect(service.createMenuItemFromIngredients(dto)).rejects.toThrow(
         FailedToCreateMenuItemIngredients,
