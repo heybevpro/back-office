@@ -53,11 +53,6 @@ export class BVP297_MenuItemsAndIngredients1752175438987
             isNullable: false,
           },
           {
-            name: 'productTypeId',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
             name: 'created_at',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
@@ -75,16 +70,6 @@ export class BVP297_MenuItemsAndIngredients1752175438987
       'menu_item',
       new TableForeignKey({
         columnNames: ['venueId'],
-        referencedTableName: 'venue',
-        referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
-      }),
-    );
-
-    await queryRunner.createForeignKey(
-      'menu_item',
-      new TableForeignKey({
-        columnNames: ['productTypeId'],
         referencedTableName: 'venue',
         referencedColumnNames: ['id'],
         onDelete: 'RESTRICT',
@@ -223,16 +208,8 @@ export class BVP297_MenuItemsAndIngredients1752175438987
         fk.columnNames.includes('venueId'),
       );
 
-      const productTypeForeignKey = menuItemTable.foreignKeys.find((fk) =>
-        fk.columnNames.includes('productTypeId'),
-      );
-
       if (venueForeignKey) {
         await queryRunner.dropForeignKey('menu_item', venueForeignKey);
-      }
-
-      if (productTypeForeignKey) {
-        await queryRunner.dropForeignKey('menu_item', productTypeForeignKey);
       }
     }
     await queryRunner.dropTable('menu_item');
