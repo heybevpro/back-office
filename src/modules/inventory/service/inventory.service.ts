@@ -40,5 +40,25 @@ export class InventoryService {
     return await this.inventoryRepository.save(inventory);
   }
 
-  async findInventoryForProductsWithIds() {}
+  async updateInventoryForProductMap(
+    productMap: Record<string, { total: number; used: number }>,
+  ) {
+    const inventoryUpdates = Object.entries(productMap).map(
+      async ([productId, { total, used }]) => {
+        const inventory = await this.inventoryRepository.findOne({
+          where: { product: { id: productId } },
+          relations: { product: true },
+        });
+
+        if (!inventory) {
+          throw new ProductNotFoundException();
+        }
+
+        inventory.quantity = total - used;
+        return await this.inventoryRepository.save(inventory);
+      },
+    );
+
+    return Promise.all(inventoryUpdates);
+  }
 }

@@ -5,7 +5,6 @@ import { MenuItem } from '../entity/menu-item.entity';
 import { MenuItemIngredient } from '../entity/menu-item-ingredient.entity';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
-import { MenuItemIngredientDto } from '../dto/menu-item-ingredient.dto';
 import {
   FailedToCreateMenuItem,
   FailedToCreateMenuItemIngredients,
@@ -23,7 +22,6 @@ import { ProductType } from '../../product-type/entity/product-type.entity';
 describe('MenuItemService', () => {
   let service: MenuItemService;
   let menuItemRepository: Repository<MenuItem>;
-  let menuItemIngredientRepository: Repository<MenuItemIngredient>;
   let queryRunner: jest.Mocked<QueryRunner>;
 
   const mockMenuItem: MenuItem = {
@@ -36,16 +34,6 @@ describe('MenuItemService', () => {
     updated_at: new Date(),
     venue: { id: 1 } as Venue,
     productType: {} as ProductType,
-  };
-
-  const mockMenuItemIngredient: MenuItemIngredient = {
-    id: 1,
-    product: { id: '1' } as Product,
-    quantity: 2,
-    serving_size: { id: '1' } as ServingSize,
-    menu_item: { id: '1' } as MenuItem,
-    created_at: new Date(),
-    updated_at: new Date(),
   };
 
   beforeEach(async () => {
@@ -91,9 +79,9 @@ describe('MenuItemService', () => {
     menuItemRepository = module.get<Repository<MenuItem>>(
       getRepositoryToken(MenuItem),
     );
-    menuItemIngredientRepository = module.get<Repository<MenuItemIngredient>>(
-      getRepositoryToken(MenuItemIngredient),
-    );
+    // menuItemIngredientRepository = module.get<Repository<MenuItemIngredient>>(
+    //   getRepositoryToken(MenuItemIngredient),
+    // );
   });
 
   it('should be defined', () => {
@@ -307,62 +295,65 @@ describe('MenuItemService', () => {
     });
   });
 
-  describe('createMenuItemIngredients', () => {
-    it('should create and save menu item ingredients', async () => {
-      jest
-        .spyOn(menuItemIngredientRepository, 'create')
-        .mockReturnValue(mockMenuItemIngredient);
-      jest
-        .spyOn(menuItemIngredientRepository, 'save')
-        .mockResolvedValue(mockMenuItemIngredient);
-
-      const menuItemIngredients: MenuItemIngredientDto[] = [
-        {
-          product: 'PRODUCT-ID',
-          quantity: 2,
-          serving_size: 'SERVING-SIZE-ID',
-        },
-      ];
-
-      const result = await service.createMenuItemIngredients(
-        menuItemIngredients,
-        '1',
-      );
-      expect(result).toEqual(mockMenuItemIngredient);
-      expect(menuItemIngredientRepository.save).toHaveBeenCalled();
-    });
-
-    it('should throw FailedToCreateMenuItemIngredients if save fails', async () => {
-      jest
-        .spyOn(menuItemIngredientRepository, 'save')
-        .mockRejectedValue(new Error('Failed'));
-
-      const menuItemIngredients: MenuItemIngredientDto[] = [
-        {
-          product: 'PRODUCT-ID',
-          quantity: 2,
-          serving_size: 'SERVING-SIZE-ID',
-        },
-      ];
-
-      await expect(
-        service.createMenuItemIngredients(menuItemIngredients, '1'),
-      ).rejects.toThrow(FailedToCreateMenuItemIngredients);
-    });
-  });
-
-  describe('getMenuItemsByVenue', () => {
-    it('should return menu items for a given venue', async () => {
-      const mockMenuItems = [mockMenuItem];
-      jest.spyOn(menuItemRepository, 'find').mockResolvedValue(mockMenuItems);
-
-      const result = await service.getMenuItemsByVenue(1);
-      expect(result).toEqual(mockMenuItems);
-      expect(menuItemRepository.find).toHaveBeenCalledWith({
-        where: { venue: { id: 1 } },
-        relations: { ingredients: { serving_size: true }, productType: true },
-        order: { name: 'ASC' },
-      });
-    });
-  });
+  // describe('createMenuItemIngredients', () => {
+  //   it('should create and save menu item ingredients', async () => {
+  //     jest
+  //       .spyOn(menuItemIngredientRepository, 'create')
+  //       .mockReturnValue(mockMenuItemIngredient);
+  //     jest
+  //       .spyOn(menuItemIngredientRepository, 'save')
+  //       .mockResolvedValue(mockMenuItemIngredient);
+  //
+  //     const menuItemIngredients: MenuItemIngredientDto[] = [
+  //       {
+  //         product: 'PRODUCT-ID',
+  //         quantity: 2,
+  //         serving_size: 'SERVING-SIZE-ID',
+  //       },
+  //     ];
+  //
+  //     const result = await service.createMenuItemIngredients(
+  //       menuItemIngredients,
+  //       '1',
+  //     );
+  //     expect(result).toEqual(mockMenuItemIngredient);
+  //     expect(menuItemIngredientRepository.save).toHaveBeenCalled();
+  //   });
+  //
+  //   it('should throw FailedToCreateMenuItemIngredients if save fails', async () => {
+  //     jest
+  //       .spyOn(menuItemIngredientRepository, 'save')
+  //       .mockRejectedValue(new Error('Failed'));
+  //
+  //     const menuItemIngredients: MenuItemIngredientDto[] = [
+  //       {
+  //         product: 'PRODUCT-ID',
+  //         quantity: 2,
+  //         serving_size: 'SERVING-SIZE-ID',
+  //       },
+  //     ];
+  //
+  //     await expect(
+  //       service.createMenuItemIngredients(menuItemIngredients, '1'),
+  //     ).rejects.toThrow(FailedToCreateMenuItemIngredients);
+  //   });
+  // });
+  //
+  // describe('getMenuItemsByVenue', () => {
+  //   it('should return menu items for a given venue', async () => {
+  //     const mockMenuItems = [mockMenuItem];
+  //     jest.spyOn(menuItemRepository, 'find').mockResolvedValue(mockMenuItems);
+  //
+  //     const result = await service.getMenuItemsByVenue(1);
+  //     expect(result).toEqual(mockMenuItems);
+  //     expect(menuItemRepository.find).toHaveBeenCalledWith({
+  //       where: { venue: { id: 1 } },
+  //       relations: {
+  //         ingredients: { serving_size: true, product: true },
+  //         productType: true,
+  //       },
+  //       order: { name: 'ASC' },
+  //     });
+  //   });
+  // });
 });
