@@ -159,21 +159,30 @@ export class BVP297_MenuItemsAndIngredients1752175438987
         fk.columnNames.includes('productId'),
       );
       if (productForeignKey) {
-        await queryRunner.dropForeignKey('menu_item', productForeignKey);
+        await queryRunner.dropForeignKey(
+          'menu_item_ingredient',
+          productForeignKey,
+        );
       }
 
       const servingSizeForeignKey = ingredientTable.foreignKeys.find((fk) =>
         fk.columnNames.includes('servingSizeId'),
       );
       if (servingSizeForeignKey) {
-        await queryRunner.dropForeignKey('menu_item', servingSizeForeignKey);
+        await queryRunner.dropForeignKey(
+          'menu_item_ingredient',
+          servingSizeForeignKey,
+        );
       }
 
       const menuItemForeignKey = ingredientTable.foreignKeys.find((fk) =>
         fk.columnNames.includes('menuItemId'),
       );
       if (menuItemForeignKey) {
-        await queryRunner.dropForeignKey('menu_item', menuItemForeignKey);
+        await queryRunner.dropForeignKey(
+          'menu_item_ingredient',
+          menuItemForeignKey,
+        );
       }
     }
 
