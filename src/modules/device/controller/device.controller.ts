@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Request,
   UseGuards,
@@ -29,5 +30,12 @@ export class DeviceController {
     @Request() request: { user: { id: string } },
   ): Promise<DeviceResponse> {
     return await this.deviceService.findById(id, request.user);
+  }
+
+  @Get('venue/:venueId')
+  async findVenue(
+    @Param('venueId', new ParseIntPipe()) venueId: number,
+  ): Promise<Array<Device>> {
+    return await this.deviceService.findAllDevicesByVenue(venueId);
   }
 }

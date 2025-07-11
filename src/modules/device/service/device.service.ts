@@ -52,6 +52,13 @@ export class DeviceService {
     }
   }
 
+  async findAllDevicesByVenue(venueId: number): Promise<Device[]> {
+    return await this.deviceRepository.find({
+      where: { venue: { id: venueId } },
+      relations: { venue: { organization: true } },
+    });
+  }
+
   async findById(id: string, user: { id: string }): Promise<DeviceResponse> {
     const device = await this.deviceRepository.findOne({
       where: { id },
