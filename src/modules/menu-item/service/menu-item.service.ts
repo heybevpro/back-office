@@ -87,6 +87,7 @@ export class MenuItemService {
           price: createMenuItemDto.price,
           venue: { id: createMenuItemDto.venue },
           image_url: createMenuItemDto.image_url,
+          productType: { id: createMenuItemDto.productType },
         }),
       );
     } catch (error: unknown) {
@@ -138,7 +139,7 @@ export class MenuItemService {
   getMenuItemsByVenue = async (venueId: number): Promise<Array<MenuItem>> => {
     return this.menuItemRepository.find({
       where: { venue: { id: venueId } },
-      relations: { ingredients: { serving_size: true } },
+      relations: { ingredients: { serving_size: true }, productType: true },
       order: { name: 'ASC' },
     });
   };

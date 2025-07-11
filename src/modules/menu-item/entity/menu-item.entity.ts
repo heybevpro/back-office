@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Venue } from '../../venue/entity/venue.entity';
 import { MenuItemIngredient } from './menu-item-ingredient.entity';
+import { ProductType } from '../../product-type/entity/product-type.entity';
 
 @Entity()
 export class MenuItem {
@@ -54,6 +55,12 @@ export class MenuItem {
 
   @OneToMany(() => MenuItemIngredient, (ingredient) => ingredient.menu_item)
   ingredients: Array<MenuItemIngredient>;
+
+  @ManyToOne(() => ProductType, (type) => type.menuItems, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  productType: ProductType;
 
   @CreateDateColumn()
   created_at: Date;

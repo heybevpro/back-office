@@ -1,16 +1,17 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Venue } from '../../venue/entity/venue.entity';
 import { Product } from '../../product/entity/product.entity';
 import { ServingSize } from '../../serving-size/entity/serving-size.entity';
+import { MenuItem } from '../../menu-item/entity/menu-item.entity';
 
 @Entity()
 export class ProductType {
@@ -25,6 +26,9 @@ export class ProductType {
 
   @OneToMany(() => Product, (product) => product.product_type)
   products: Product[];
+
+  @OneToMany(() => MenuItem, (menuItem) => menuItem.productType)
+  menuItems: Array<MenuItem>;
 
   @ManyToOne(() => ServingSize, (servingSize) => servingSize.product_types)
   @JoinColumn({ name: 'serving_size_id' })

@@ -4,4 +4,5 @@ export interface CreateMenuItemMultipartFormData {
   price: string;
   venue: string;
   ingredients: string;
+  productType?: string;
 }

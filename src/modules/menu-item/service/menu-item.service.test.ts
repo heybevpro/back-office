@@ -18,6 +18,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
+import { ProductType } from '../../product-type/entity/product-type.entity';
 
 describe('MenuItemService', () => {
   let service: MenuItemService;
@@ -34,6 +35,7 @@ describe('MenuItemService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     venue: { id: 1 } as Venue,
+    productType: {} as ProductType,
   };
 
   const mockMenuItemIngredient: MenuItemIngredient = {
@@ -117,6 +119,7 @@ describe('MenuItemService', () => {
         description: dto.description!,
         price: dto.price,
         ingredients: [],
+        productType: {} as ProductType,
       };
       const savedIngredients: MenuItemIngredient = {
         id: 1,
@@ -224,6 +227,7 @@ describe('MenuItemService', () => {
         description: dto.description!,
         price: dto.price,
         ingredients: [],
+        productType: {} as ProductType,
       };
 
       const menuItemRepositoryCreateSpy = jest.spyOn(
@@ -260,6 +264,7 @@ describe('MenuItemService', () => {
         description: dto.description!,
         price: dto.price,
         ingredients: [],
+        productType: {} as ProductType,
       };
 
       const savedIngredients: MenuItemIngredient = {
@@ -355,7 +360,7 @@ describe('MenuItemService', () => {
       expect(result).toEqual(mockMenuItems);
       expect(menuItemRepository.find).toHaveBeenCalledWith({
         where: { venue: { id: 1 } },
-        relations: { ingredients: { serving_size: true } },
+        relations: { ingredients: { serving_size: true }, productType: true },
         order: { name: 'ASC' },
       });
     });

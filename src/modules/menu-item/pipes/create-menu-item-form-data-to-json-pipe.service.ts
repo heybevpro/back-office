@@ -16,6 +16,7 @@ export class CreateMenuItemFormDataToJsonPipe implements PipeTransform {
       ) as Array<MenuItemIngredientDto>,
       price: Number(value.price),
       venue: Number(value.venue),
+      productType: value.productType,
     };
     const dtoObject = plainToInstance(CreateMenuItemDto, parsedBody);
     const errors = await validate(dtoObject);
