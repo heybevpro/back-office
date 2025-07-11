@@ -12,10 +12,38 @@ export class VoiceService {
       this.configService.get('LIVEKIT_API_SECRET'),
       {
         identity: `root-${userId}`,
+        metadata: `{"platform": "web"}`,
         ttl: '10m',
       },
     );
-    at.addGrant({ roomJoin: true, room: `bev-${userId}` });
+    at.addGrant({
+      roomJoin: true,
+      room: `bev-${userId}`,
+    });
+    const token = await at.toJwt();
+    return {
+      token,
+    };
+  }
+
+  async createTokenPOS(
+    userId: string,
+    venueId: number,
+  ): Promise<{ token: string }> {
+    const at = new AccessToken(
+      this.configService.get('LIVEKIT_API_KEY'),
+      this.configService.get('LIVEKIT_API_SECRET'),
+      {
+        identity: `pos-${userId}`,
+        metadata: `{"venue": "${venueId}", "platform": "pos"}`,
+        ttl: '10m',
+      },
+    );
+    at.addGrant({
+      roomJoin: true,
+      room: `bev-${userId}`,
+      roomRecord: false,
+    });
     const token = await at.toJwt();
     return {
       token,
