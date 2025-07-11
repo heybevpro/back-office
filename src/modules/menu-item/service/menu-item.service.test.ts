@@ -100,7 +100,7 @@ describe('MenuItemService', () => {
         description: 'Tasty',
         price: 10,
         venue: 1,
-        ingredients: [{ product: 'prod1', quantity: 1, servingSize: 'size1' }],
+        ingredients: [{ product: 'prod1', quantity: 1, serving_size: 'size1' }],
       };
 
       const mockMenuItem: MenuItem = {
@@ -251,7 +251,7 @@ describe('MenuItemService', () => {
         description: 'Nice',
         price: 12,
         venue: 1,
-        ingredients: [{ product: 'prod1', quantity: 1, servingSize: 'size1' }],
+        ingredients: [{ product: 'prod1', quantity: 1, serving_size: 'size1' }],
       };
 
       const mockMenuItem: MenuItem = {
@@ -318,7 +318,7 @@ describe('MenuItemService', () => {
         {
           product: 'PRODUCT-ID',
           quantity: 2,
-          servingSize: 'SERVING-SIZE-ID',
+          serving_size: 'SERVING-SIZE-ID',
         },
       ];
 
@@ -339,7 +339,7 @@ describe('MenuItemService', () => {
         {
           product: 'PRODUCT-ID',
           quantity: 2,
-          servingSize: 'SERVING-SIZE-ID',
+          serving_size: 'SERVING-SIZE-ID',
         },
       ];
 

@@ -8,5 +8,5 @@ export class MenuItemIngredientDto {
   quantity: number;
 
   @IsUUID()
-  servingSize: string;
+  serving_size: string;
 }

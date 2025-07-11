@@ -93,7 +93,7 @@ export class MenuItemService {
         this.menuItemIngredientRepository.create({
           product: { id: ingredientDto.product },
           quantity: ingredientDto.quantity,
-          serving_size: { id: ingredientDto.servingSize },
+          serving_size: { id: ingredientDto.serving_size },
           menu_item: { id: menuItemId },
         }),
       );
@@ -114,7 +114,7 @@ export class MenuItemService {
         runner.manager.create(MenuItemIngredient, {
           product: { id: ingredientDto.product },
           quantity: ingredientDto.quantity,
-          serving_size: { id: ingredientDto.servingSize },
+          serving_size: { id: ingredientDto.serving_size },
           menu_item: { id: menuItemId },
         }),
       );

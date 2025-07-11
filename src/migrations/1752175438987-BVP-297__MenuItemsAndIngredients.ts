@@ -42,7 +42,8 @@ export class BVP297_MenuItemsAndIngredients1752175438987
           },
           {
             name: 'image_url',
-            type: 'text',
+            type: 'varchar',
+            length: '500',
             isNullable: true,
             default: null,
           },
