@@ -1,8 +1,17 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { Device } from '../entity/device.entity';
 import { CreateDeviceDto } from '../dto/device.dto';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { DeviceService } from '../service/device.service';
+import { DeviceResponse } from '../../../config/device.configuration';
 
 @UseGuards(JwtAuthGuard)
 @Controller('device')
@@ -15,7 +24,10 @@ export class DeviceController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<Device> {
-    return await this.deviceService.findById(id);
+  async findById(
+    @Param('id') id: string,
+    @Request() request: { user: { id: string } },
+  ): Promise<DeviceResponse> {
+    return await this.deviceService.findById(id, request.user);
   }
 }
