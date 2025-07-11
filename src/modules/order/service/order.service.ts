@@ -6,6 +6,7 @@ import { OrderStatus } from '../../../utils/constants/order.constants';
 import { CreateTabDto } from '../dto/create-tab.dto';
 import { CreateClosedOrderDto } from '../dto/create-closed-order.dto';
 import { ProductService } from '../../product/service/product.service';
+import { UpdateTabDto } from '../dto/update-tab.dto';
 
 @Injectable()
 export class OrderService {
@@ -69,6 +70,15 @@ export class OrderService {
   async closeTab(id: string): Promise<Order> {
     const order = await this.getOpenOrderById(id);
     order.status = OrderStatus.CLOSED;
+    return await this.orderRepository.save(order);
+  }
+
+  async updateTabDetails(
+    id: string,
+    updateTabDto: UpdateTabDto,
+  ): Promise<Order> {
+    const order = await this.getOpenOrderById(id);
+    order.details = JSON.stringify(updateTabDto.details);
     return await this.orderRepository.save(order);
   }
 }
