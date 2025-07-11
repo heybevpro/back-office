@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { Employee } from '../entity/employee.entity';
@@ -18,8 +19,10 @@ export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @Get()
-  async findAll(): Promise<Employee[]> {
-    return this.employeeService.findAll();
+  async findAll(
+    @Request() request: { user: { organization: { id: number } } },
+  ): Promise<Employee[]> {
+    return this.employeeService.findAll(request.user.organization.id);
   }
 
   @Get(':id')

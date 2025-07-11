@@ -114,7 +114,7 @@ describe('EmployeeService', () => {
   describe('findAll', () => {
     it('should return all employees', async () => {
       jest.spyOn(employeeRepository, 'find').mockResolvedValue([mockEmployee]);
-      const result = await service.findAll();
+      const result = await service.findAll(1);
       expect(result).toEqual([mockEmployee]);
     });
   });
