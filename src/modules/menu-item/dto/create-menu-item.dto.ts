@@ -19,7 +19,7 @@ export class CreateMenuItemDto {
   @IsOptional()
   @IsString()
   @MaxLength(250)
-  description: string;
+  description?: string;
 
   @IsNotEmpty()
   @IsNumber({ maxDecimalPlaces: 2 })
@@ -27,6 +27,11 @@ export class CreateMenuItemDto {
 
   @IsPositive()
   venue: number;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  image_url?: string;
 
   @ValidateNested({ each: true })
   @Type(() => MenuItemIngredientDto)

@@ -35,9 +35,7 @@ export class ObjectStoreService {
 
   async uploadDocument(
     file: { buffer: Buffer; mimetype: string; originalname: string },
-    organizationId: string,
-    venueId: number,
-    invitationId: string,
+    baseUrl: string,
   ): Promise<string> {
     const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
 
@@ -46,7 +44,7 @@ export class ObjectStoreService {
     }
 
     const sanitizedFilename = this.sanitizeFilename(file.originalname);
-    const key = `documents/organization/${organizationId}/venue/${venueId}/invitations/${invitationId}/${uuidv4()}-${sanitizedFilename}`;
+    const key = `${baseUrl}/${uuidv4()}-${sanitizedFilename}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,
@@ -54,7 +52,6 @@ export class ObjectStoreService {
       Body: file.buffer,
       ContentType: file.mimetype,
     });
-
     try {
       await this.s3.send(command);
       const bucketName = process.env.S3_BUCKET_NAME;

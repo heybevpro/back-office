@@ -17,6 +17,7 @@ import {
   ImATeapotException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
 
 describe('MenuItemService', () => {
   let service: MenuItemService;
@@ -77,6 +78,10 @@ describe('MenuItemService', () => {
           provide: DataSource,
           useValue: mockDataSource,
         },
+        {
+          provide: ObjectStoreService,
+          useValue: {},
+        },
       ],
     }).compile();
 
@@ -109,7 +114,7 @@ describe('MenuItemService', () => {
         updated_at: new Date(),
         venue: { id: dto.venue } as Venue,
         name: dto.name,
-        description: dto.description,
+        description: dto.description!,
         price: dto.price,
         ingredients: [],
       };
@@ -139,7 +144,7 @@ describe('MenuItemService', () => {
         .mockResolvedValueOnce(mockMenuItem)
         .mockResolvedValueOnce(savedIngredients);
 
-      const result = await service.createMenuItemFromIngredients(dto);
+      const result = await service.createMenuItemFromIngredients(dto, 1);
 
       expect(result).toEqual(mockMenuItem);
       expect(queryRunner.startTransaction).toHaveBeenCalled();
@@ -160,7 +165,7 @@ describe('MenuItemService', () => {
       };
 
       await expect(
-        service.createMenuItemFromIngredients(createMenuItemDto),
+        service.createMenuItemFromIngredients(createMenuItemDto, 1),
       ).rejects.toThrow(UnprocessableEntityException);
     });
   });
@@ -216,7 +221,7 @@ describe('MenuItemService', () => {
         updated_at: new Date(),
         venue: { id: dto.venue } as Venue,
         name: dto.name,
-        description: dto.description,
+        description: dto.description!,
         price: dto.price,
         ingredients: [],
       };
@@ -231,7 +236,7 @@ describe('MenuItemService', () => {
       menuItemRepositorySaveSpy.mockRejectedValue(new ImATeapotException());
 
       await expect(
-        service.createMenuItemFromIngredients(dto),
+        service.createMenuItemFromIngredients(dto, 1),
       ).rejects.toThrow();
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
@@ -252,7 +257,7 @@ describe('MenuItemService', () => {
         updated_at: new Date(),
         venue: { id: dto.venue } as Venue,
         name: dto.name,
-        description: dto.description,
+        description: dto.description!,
         price: dto.price,
         ingredients: [],
       };
@@ -289,9 +294,9 @@ describe('MenuItemService', () => {
         .spyOn(queryRunner.manager, 'save')
         .mockRejectedValue(new FailedToCreateMenuItemIngredients({}));
 
-      await expect(service.createMenuItemFromIngredients(dto)).rejects.toThrow(
-        FailedToCreateMenuItemIngredients,
-      );
+      await expect(
+        service.createMenuItemFromIngredients(dto, 1),
+      ).rejects.toThrow(FailedToCreateMenuItemIngredients);
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
     });

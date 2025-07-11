@@ -9,6 +9,7 @@ import {
   FailedToCreateMenuItem,
   FailedToCreateMenuItemIngredients,
 } from '../../../exceptions/menu-item.exception';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
 
 @Injectable()
 export class MenuItemService {
@@ -18,11 +19,19 @@ export class MenuItemService {
     @InjectRepository(MenuItemIngredient)
     private readonly menuItemIngredientRepository: Repository<MenuItemIngredient>,
     private dataSource: DataSource,
+    private readonly objectStoreService: ObjectStoreService,
   ) {}
 
   async createMenuItemFromIngredients(
     createMenuItemDto: CreateMenuItemDto,
+    organizationId: number,
+    image?: Express.Multer.File,
   ): Promise<MenuItem> {
+    if (image) {
+      const baseUrl = `documents/organization/${organizationId}/venue/${createMenuItemDto.venue}/menuItem`;
+      createMenuItemDto.image_url =
+        await this.objectStoreService.uploadDocument(image, baseUrl);
+    }
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -77,6 +86,7 @@ export class MenuItemService {
           description: createMenuItemDto.description,
           price: createMenuItemDto.price,
           venue: { id: createMenuItemDto.venue },
+          image_url: createMenuItemDto.image_url,
         }),
       );
     } catch (error: unknown) {
