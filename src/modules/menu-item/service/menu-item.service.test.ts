@@ -126,26 +126,18 @@ describe('MenuItemService', () => {
         created_at: new Date(),
       };
 
-      const menuItemRepositoryCreateSpy = jest.spyOn(
+      const queryRunnerManagerCreateSpy = jest.spyOn(
         queryRunner.manager,
         'create',
       );
-      menuItemRepositoryCreateSpy.mockReturnValue([mockMenuItem]);
+      queryRunnerManagerCreateSpy
+        .mockReturnValueOnce([mockMenuItem]) // First call for menu item creation
+        .mockReturnValueOnce([savedIngredients]); // Second call for ingredient creation
 
-      const menuItemRepositorySaveSpy = jest.spyOn(queryRunner.manager, 'save');
-      menuItemRepositorySaveSpy.mockResolvedValue(mockMenuItem);
-
-      const menuItemIngredientRepositoryCreateSpy = jest.spyOn(
-        queryRunner.manager,
-        'create',
-      );
-      menuItemIngredientRepositoryCreateSpy.mockReturnValue([savedIngredients]);
-
-      const menuItemIngredientRepositorySaveSpy = jest.spyOn(
-        menuItemIngredientRepository,
-        'save',
-      );
-      menuItemIngredientRepositorySaveSpy.mockResolvedValue(savedIngredients);
+      const queryRunnerSaveSpy = jest.spyOn(queryRunner.manager, 'save');
+      queryRunnerSaveSpy
+        .mockResolvedValueOnce(mockMenuItem)
+        .mockResolvedValueOnce(savedIngredients);
 
       const result = await service.createMenuItemFromIngredients(dto);
 
