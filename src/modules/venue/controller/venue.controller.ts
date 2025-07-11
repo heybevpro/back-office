@@ -23,8 +23,9 @@ export class VenueController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('by-organization/:organization')
   async findByOrganization(
+    @Param('organization') organization: number,
     @Request()
     request: {
       user: { organization: { id: number } };
