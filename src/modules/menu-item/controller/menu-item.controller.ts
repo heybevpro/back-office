@@ -33,6 +33,7 @@ export class MenuItemController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+        fileIsRequired: false,
       }),
     )
     image?: Express.Multer.File,
