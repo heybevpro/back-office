@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { VenueService } from '../service/venue.service';
@@ -22,9 +23,16 @@ export class VenueController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('by-organization/:organization')
-  async findByOrganization(@Param('organization') organization: number) {
-    return await this.venueService.findAllByOrganization(organization);
+  @Get()
+  async findByOrganization(
+    @Request()
+    request: {
+      user: { organization: { id: number } };
+    },
+  ) {
+    return await this.venueService.findAllByOrganization(
+      request.user.organization.id,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

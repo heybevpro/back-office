@@ -12,7 +12,9 @@ export class VoiceService {
       this.configService.get('LIVEKIT_API_SECRET'),
       {
         identity: `root-${userId}`,
-        metadata: `{"platform": "web"}`,
+        attributes: {
+          platform: 'web',
+        },
         ttl: '10m',
       },
     );
@@ -35,7 +37,10 @@ export class VoiceService {
       this.configService.get('LIVEKIT_API_SECRET'),
       {
         identity: `pos-${userId}`,
-        metadata: `{"venue": "${venueId}", "platform": "pos"}`,
+        attributes: {
+          venue: venueId.toString(),
+          platform: 'web',
+        },
         ttl: '10m',
       },
     );
