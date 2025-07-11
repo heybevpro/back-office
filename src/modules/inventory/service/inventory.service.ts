@@ -39,4 +39,6 @@ export class InventoryService {
     inventory.quantity = updateInventoryDto.quantity;
     return await this.inventoryRepository.save(inventory);
   }
+
+  async findInventoryForProductsWithIds() {}
 }

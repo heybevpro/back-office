@@ -14,6 +14,7 @@ import {
   OutOfStockException,
 } from '../../../exceptions/order.exception';
 import { InventoryService } from '../../inventory/service/inventory.service';
+import { MenuItem } from '../../menu-item/entity/menu-item.entity';
 
 @Injectable()
 export class ProductService {
@@ -135,12 +136,21 @@ export class ProductService {
   }
 
   async validateAndUpdateItemQuantitiesFromOrder(
-    orderDetails: Array<Product | CustomCharge>,
+    orderDetails: Array<MenuItem | CustomCharge>,
   ): Promise<Array<Product>> {
     const productIdQuantityMap: Record<string, number> = {};
-    const productsIds: Array<string> = orderDetails.map((product: Product) => {
-      productIdQuantityMap[product.id] = product.quantity;
-      return product.id;
+    const productsIds: Array<string> = [];
+    orderDetails.forEach((item: MenuItem) => {
+      item.ingredients.forEach((ingredient) => {
+        if (!productIdQuantityMap[ingredient.product.id]) {
+          productIdQuantityMap[ingredient.product.id] =
+            ingredient.quantity * ingredient.serving_size.volume_in_ml;
+          productsIds.push(ingredient.product.id);
+        } else {
+          productIdQuantityMap[ingredient.product.id] +=
+            ingredient.quantity * ingredient.serving_size.volume_in_ml;
+        }
+      });
     });
     const productsToUpdate = await this.findAllWithIds(productsIds);
     productsToUpdate.forEach((product: Product) => {

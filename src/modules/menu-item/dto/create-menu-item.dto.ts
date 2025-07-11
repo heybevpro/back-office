@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsPositive,
   IsString,
-  IsUUID,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -34,7 +33,6 @@ export class CreateMenuItemDto {
   @IsOptional()
   image_url?: string;
 
-  @IsUUID()
   @IsOptional()
   productType?: string;
 

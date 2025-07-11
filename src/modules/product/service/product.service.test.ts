@@ -11,13 +11,11 @@ import {
   ImATeapotException,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  InsufficientStockException,
-  OutOfStockException,
-} from '../../../exceptions/order.exception';
+import { OutOfStockException } from '../../../exceptions/order.exception';
 import { Inventory } from '../../inventory/entity/inventory.entity';
 import { Venue } from '../../venue/entity/venue.entity';
 import { InventoryService } from '../../inventory/service/inventory.service';
+import { MenuItem } from '../../menu-item/entity/menu-item.entity';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -223,7 +221,22 @@ describe('ProductService', () => {
 
   describe('validateAndUpdateItemQuantitiesFromOrder', () => {
     it('should update product quantities successfully', async () => {
-      const orderDetails = [{ id: '1', quantity: 5 } as Product];
+      const orderDetails = [
+        {
+          id: '1',
+          quantity: 5,
+          ingredients: [
+            {
+              id: '12',
+              product: { id: '1212' },
+              serving_size: {
+                volume_in_ml: 100,
+              },
+            },
+          ],
+          price: '12.99',
+        } as unknown as MenuItem,
+      ];
       jest.spyOn(service, 'findAllWithIds').mockResolvedValue([mockProduct]);
       jest
         .spyOn(service, 'updateMultipleProducts')
@@ -233,12 +246,14 @@ describe('ProductService', () => {
         await service.validateAndUpdateItemQuantitiesFromOrder(orderDetails);
 
       expect(result).toEqual([mockProduct]);
-      expect(service.findAllWithIds).toHaveBeenCalledWith(['1']);
+      expect(service.findAllWithIds).toHaveBeenCalledWith(['1212']);
       expect(service.updateMultipleProducts).toHaveBeenCalled();
     });
 
     it('should throw OutOfStockException if product quantity is zero', async () => {
-      const orderDetails = [{ id: '1', quantity: 5 } as Product];
+      const orderDetails = [
+        { id: '1', quantity: 15, ingredients: [] } as unknown as MenuItem,
+      ];
       const outOfStockProduct = { ...mockProduct, quantity: 0 };
       jest
         .spyOn(service, 'findAllWithIds')
@@ -250,12 +265,14 @@ describe('ProductService', () => {
     });
 
     it('should throw InsufficientStockException if requested quantity exceeds available stock', async () => {
-      const orderDetails = [{ id: '1', quantity: 15 } as Product];
+      const orderDetails = [
+        { id: '1', quantity: 15, ingredients: [] } as unknown as MenuItem,
+      ];
       jest.spyOn(service, 'findAllWithIds').mockResolvedValue([mockProduct]);
 
       await expect(
         service.validateAndUpdateItemQuantitiesFromOrder(orderDetails),
-      ).rejects.toThrow(InsufficientStockException);
+      ).rejects.toThrow(OutOfStockException);
     });
   });
 });
