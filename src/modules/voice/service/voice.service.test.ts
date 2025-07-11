@@ -46,7 +46,9 @@ describe('VoiceService', () => {
         '<_MOCK-API-SECRET_>',
         {
           identity: `root-${mockUserId}`,
-          metadata: `{"platform": "web"}`,
+          attributes: {
+            platform: 'web',
+          },
           ttl: '10m',
         },
       );
