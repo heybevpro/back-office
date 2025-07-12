@@ -148,6 +148,7 @@ describe('OrderService', () => {
         status: OrderStatus.OPEN,
         created_at: new Date(),
         updated_at: new Date(),
+        orderItems: [],
       };
       const orderRepositoryCreateSpy = jest.spyOn(orderRepository, 'create');
       const orderRepositorySaveSpy = jest.spyOn(orderRepository, 'save');
@@ -207,6 +208,7 @@ describe('OrderService', () => {
         status: OrderStatus.CLOSED,
         created_at: new Date(),
         updated_at: new Date(),
+        orderItems: [],
       };
 
       const orderRepositoryCreateSpy = jest.spyOn(orderRepository, 'create');

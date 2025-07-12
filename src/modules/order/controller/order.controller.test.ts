@@ -42,6 +42,7 @@ describe('OrderController', () => {
     details: '',
     updated_at: new Date(),
     created_at: new Date(),
+    orderItems: [],
   };
 
   it('should be defined', () => {
@@ -112,6 +113,7 @@ describe('OrderController', () => {
         status: OrderStatus.CLOSED,
         created_at: new Date(),
         updated_at: new Date(),
+        orderItems: [],
       };
 
       orderService.createClosedOrder.mockResolvedValue(mockClosedOrder);

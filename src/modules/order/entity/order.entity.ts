@@ -2,10 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { OrderStatus } from '../../../utils/constants/order.constants';
+import { OrderItem } from '../../order-item/entity/order-item.entity';
 
 @Entity()
 export class Order {
@@ -20,6 +22,9 @@ export class Order {
 
   @Column({ type: 'json', nullable: false })
   details: string;
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  orderItems: Array<OrderItem>;
 
   @CreateDateColumn()
   created_at: Date;
