@@ -22,7 +22,6 @@ describe('AuthenticationController', () => {
     first_name: 'John',
     last_name: 'Doe',
     email: 'test@example.com',
-    created_at: new Date(),
   };
 
   const mockAuthenticationService = {

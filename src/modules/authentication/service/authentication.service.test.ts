@@ -44,7 +44,10 @@ describe('AuthenticationService', () => {
     ...mockUser,
   };
 
-  const sanitizedUserData: Omit<User, 'password' | 'updated_at'> = {
+  const sanitizedUserData: Omit<
+    User,
+    'password' | 'updated_at' | 'created_at'
+  > = {
     id: mockUser.id,
     first_name: mockUser.first_name,
     last_name: mockUser.last_name,
@@ -52,7 +55,6 @@ describe('AuthenticationService', () => {
     email_verified: mockUser.email_verified,
     onboarding_complete: mockUser.onboarding_complete,
     role: mockUser.role.role_name as unknown as Role,
-    created_at: mockUser.created_at,
     organization: mockUser.organization,
   };
 

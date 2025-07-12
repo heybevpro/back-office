@@ -9,12 +9,15 @@ import { Employee } from '../entity/employee.entity';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeInvitation } from 'src/modules/employee-invitation/entity/employee-invitation.entity';
 import { FailedToFetchEmployeesForVenueException } from '../../../exceptions/employee.exception';
+import { AuthenticationService } from '../../authentication/service/authentication.service';
+import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 
 @Injectable()
 export class EmployeeService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+    private readonly authenticationService: AuthenticationService,
   ) {}
 
   async create(
@@ -60,9 +63,12 @@ export class EmployeeService {
     }
   }
 
-  async findByUserPin(pin: string): Promise<Employee> {
+  async findByUserPin(pin: string): Promise<SuccessfulLoginResponse> {
     try {
-      return await this.employeeRepository.findOneByOrFail({ pin });
+      const employee = await this.employeeRepository.findOneByOrFail({ pin });
+      return await this.authenticationService.generateJwtTokenResponseForEmployeeClockIn(
+        employee.venue.organization.user.id,
+      );
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Employee not found for the provided PIN');

@@ -14,6 +14,11 @@ import { EmployeeInvitation } from '../../employee-invitation/entity/employee-in
 import { EmployeeInvitationStatus } from '../../../utils/constants/employee.constants';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { AuthenticationService } from '../../authentication/service/authentication.service';
+import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
+import { User } from '../../user/entity/user.entity';
+import { Role } from '../../role/entity/role.entity';
+import { Organization } from '../../organization/entity/organization.entity';
 
 describe('EmployeeService', () => {
   let service: EmployeeService;
@@ -54,13 +59,52 @@ describe('EmployeeService', () => {
     zip: '12345',
     email: 'john@example.com',
     phone: '+1234567890',
-    venue: {} as Venue,
+    venue: {
+      organization: { user: { id: 'USER_UUID' } },
+    } as Venue,
     pin: '123456',
     employee_verified: false,
     employee_invite: mockInvitation,
     document: 'https://example.com/test.pdf',
     created_at: new Date(),
     updated_at: new Date(),
+  };
+
+  const mockUser: User = {
+    id: 'VALID_ID',
+    first_name: 'John',
+    last_name: 'Doe',
+    password: '<_PASSWORD_>',
+    email: 'john@email.com',
+    email_verified: true,
+    onboarding_complete: true,
+    role: { id: 'ROLE_ID', role_name: 'ADMIN' } as unknown as Role,
+    created_at: new Date(),
+    updated_at: new Date(),
+    organization: { id: 1, name: 'VALID_ORGANIZATION_NAME' } as Organization,
+  };
+
+  const sanitizedUserData: Omit<
+    User,
+    'password' | 'updated_at' | 'created_at'
+  > = {
+    id: mockUser.id,
+    first_name: mockUser.first_name,
+    last_name: mockUser.last_name,
+    email: mockUser.email,
+    email_verified: mockUser.email_verified,
+    onboarding_complete: mockUser.onboarding_complete,
+    role: mockUser.role.role_name as unknown as Role,
+    organization: mockUser.organization,
+  };
+
+  const mockAuthenticationService = {
+    generateJwtTokenResponseForEmployeeClockIn: jest.fn(),
+  };
+
+  const mockClockInResponse: SuccessfulLoginResponse = {
+    access_token: 'ACCESS_TOKEN',
+    ...sanitizedUserData,
   };
 
   beforeEach(async () => {
@@ -74,6 +118,10 @@ describe('EmployeeService', () => {
         {
           provide: getRepositoryToken(Venue),
           useClass: Repository,
+        },
+        {
+          provide: AuthenticationService,
+          useValue: mockAuthenticationService,
         },
       ],
     }).compile();
@@ -143,8 +191,18 @@ describe('EmployeeService', () => {
         .spyOn(employeeRepository, 'findOneByOrFail')
         .mockResolvedValue(mockEmployee);
 
+      jest
+        .spyOn(
+          mockAuthenticationService,
+          'generateJwtTokenResponseForEmployeeClockIn',
+        )
+        .mockResolvedValue({
+          access_token: 'ACCESS_TOKEN',
+          ...sanitizedUserData,
+        });
+
       const result = await service.findByUserPin('123456');
-      expect(result).toEqual(mockEmployee);
+      expect(result).toEqual(mockClockInResponse);
     });
 
     it('should throw NotFoundException if pin not found', async () => {
