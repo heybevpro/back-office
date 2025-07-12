@@ -12,9 +12,6 @@ import {
   DeviceConflictException,
   VenueNotFoundException,
 } from '../../../exceptions/device.exception';
-import { AuthenticationService } from '../../authentication/service/authentication.service';
-import { UserService } from '../../user/service/user.service';
-import { DeviceResponse } from 'src/config/device.configuration';
 
 @Injectable()
 export class DeviceService {
@@ -22,8 +19,6 @@ export class DeviceService {
     @InjectRepository(Device)
     private readonly deviceRepository: Repository<Device>,
     private readonly venueService: VenueService,
-    private readonly authenticationService: AuthenticationService,
-    private readonly userService: UserService,
   ) {}
 
   async create(dto: CreateDeviceDto): Promise<Device> {
@@ -59,7 +54,7 @@ export class DeviceService {
     });
   }
 
-  async findById(id: string, user: { id: string }): Promise<DeviceResponse> {
+  async findById(id: string): Promise<Device> {
     const device = await this.deviceRepository.findOne({
       where: { id },
       relations: { venue: { organization: true } },
@@ -67,26 +62,6 @@ export class DeviceService {
     if (!device) {
       throw new NotFoundException('Device not found');
     }
-    const userDetails = await this.userService.findOneById(user.id);
-    const sanitizedUserData = {
-      id: userDetails.id,
-      first_name: userDetails.first_name,
-      last_name: userDetails.last_name,
-      email: userDetails.email,
-      role: userDetails.role?.role_name,
-      organization: userDetails.organization?.name ?? '',
-    };
-    const access_token =
-      await this.authenticationService.generateAccessToken(sanitizedUserData);
-    return {
-      device,
-      user: {
-        first_name: userDetails.first_name,
-        last_name: userDetails.last_name,
-        role: userDetails.role?.role_name ?? '',
-        email: userDetails.email,
-      },
-      access_token,
-    };
+    return device;
   }
 }
