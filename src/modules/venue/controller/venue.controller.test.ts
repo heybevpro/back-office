@@ -66,21 +66,19 @@ describe('VenueController', () => {
     });
   });
 
-  // describe('findByOrganization', () => {
-  //   const mockOrganizationId: number = 1;
-  //
-  //   it('should call the `findAllByOrganization` method from the Venue Service', async () => {
-  //     await controller.findByOrganization(mockOrganizationId, {
-  //       user: { organization: { id: 1 } },
-  //     });
-  //     expect(mockVenueService.findAllByOrganization).toHaveBeenCalled();
-  //   });
-  //   it('should return all venues associated with an `Organization`', async () => {
-  //     expect(
-  //       await controller.findByOrganization(mockOrganizationId, {
-  //         user: { organization: { id: 1 } },
-  //       }),
-  //     ).toEqual([mockVenue]);
-  //   });
-  // });
+  describe('findByOrganization', () => {
+    it('should call the `findAllByOrganization` method from the Venue Service', async () => {
+      await controller.findByOrganization({
+        user: { organization: { id: 1 } },
+      });
+      expect(mockVenueService.findAllByOrganization).toHaveBeenCalled();
+    });
+    it('should return all venues associated with an `Organization`', async () => {
+      expect(
+        await controller.findByOrganization({
+          user: { organization: { id: 1 } },
+        }),
+      ).toEqual([mockVenue]);
+    });
+  });
 });

@@ -1,7 +1,7 @@
 import { IsArray } from 'class-validator';
-import { MenuItem } from '../../menu-item/entity/menu-item.entity';
+import { Product } from '../../product/entity/product.entity';
 
 export class CreateClosedOrderDto {
   @IsArray()
-  details: Array<MenuItem>;
+  details: Array<Product>;
 }
