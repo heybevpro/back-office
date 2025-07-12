@@ -68,14 +68,14 @@ describe('VenueController', () => {
 
   describe('findByOrganization', () => {
     it('should call the `findAllByOrganization` method from the Venue Service', async () => {
-      await controller.findByOrganization({
+      await controller.findByOrganization(1, {
         user: { organization: { id: 1 } },
       });
       expect(mockVenueService.findAllByOrganization).toHaveBeenCalled();
     });
     it('should return all venues associated with an `Organization`', async () => {
       expect(
-        await controller.findByOrganization({
+        await controller.findByOrganization(1, {
           user: { organization: { id: 1 } },
         }),
       ).toEqual([mockVenue]);

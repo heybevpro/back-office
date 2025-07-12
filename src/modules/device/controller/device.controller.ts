@@ -14,11 +14,11 @@ import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { DeviceService } from '../service/device.service';
 import { DeviceResponse } from '../../../config/device.configuration';
 
-@UseGuards(JwtAuthGuard)
 @Controller('device')
 export class DeviceController {
   constructor(private readonly deviceService: DeviceService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('/register')
   async create(@Body() dto: CreateDeviceDto): Promise<Device> {
     return await this.deviceService.create(dto);
@@ -32,6 +32,7 @@ export class DeviceController {
     return await this.deviceService.findById(id, request.user);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('venue/:venueId')
   async findVenue(
     @Param('venueId', new ParseIntPipe()) venueId: number,
