@@ -88,6 +88,33 @@ export class EmployeeService {
     }
   }
 
+  async getEmployeeAuthToken(pin: string): Promise<string> {
+    try {
+      const employee = await this.employeeRepository.findOneOrFail({
+        where: { pin },
+        relations: {
+          venue: { organization: { user: true } },
+        },
+      });
+      if (!employee) {
+        throw new EntityNotFoundError(
+          Employee,
+          'Employee not found for the provided PIN',
+        );
+      }
+      const response =
+        await this.authenticationService.generateJwtTokenResponseForEmployeeClockIn(
+          employee.venue.organization.user.id,
+        );
+      return response.access_token;
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Employee not found for the provided PIN');
+      }
+      throw error;
+    }
+  }
+
   async findAllEmployeeByVenue(venueId?: number): Promise<Employee[]> {
     try {
       return this.employeeRepository.find({
