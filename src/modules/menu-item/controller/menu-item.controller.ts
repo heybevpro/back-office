@@ -49,4 +49,11 @@ export class MenuItemController {
   async getMenuItemsByVenue(@Param('venueId', ParseIntPipe) venueId: number) {
     return await this.menuItemService.getMenuItemsByVenue(venueId);
   }
+
+  @Get('/venue/:venueId/bev')
+  async getMenuItemsByVenueAgent(
+    @Param('venueId', ParseIntPipe) venueId: number,
+  ) {
+    return await this.menuItemService.getMenuItemsByVenueAgent(venueId);
+  }
 }
