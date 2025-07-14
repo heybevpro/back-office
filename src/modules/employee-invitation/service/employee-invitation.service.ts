@@ -217,7 +217,10 @@ export class EmployeeInvitationService {
           venue: { id: dto.venue },
         });
       if (invitation.status === EmployeeInvitationStatus.Accepted) {
-        return this.employeeService.findByUserPin(dto.pin);
+        const authToken = await this.employeeService.getEmployeeAuthToken(
+          invitation.pin,
+        );
+        return { ...invitation, access_token: authToken };
       }
       return invitation;
     } catch (error) {
