@@ -30,4 +30,9 @@ export class InventoryController {
       updateInventoryDto,
     );
   }
+
+  @Get('product/:productId')
+  async getProductInventory(@Param('productId') productId: string) {
+    return await this.inventoryService.getInventoryForProduct(productId);
+  }
 }

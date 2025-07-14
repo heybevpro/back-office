@@ -41,4 +41,11 @@ export class InventoryService {
   }
 
   async findInventoryForProductsWithIds() {}
+
+  async getInventoryForProduct(productId: string) {
+    return await this.inventoryRepository.findOneOrFail({
+      where: { product: { id: productId } },
+      relations: { product: true },
+    });
+  }
 }
