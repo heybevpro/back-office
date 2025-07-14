@@ -39,7 +39,7 @@ export class VoiceService {
         identity: `pos-${userId}`,
         attributes: {
           venue: venueId.toString(),
-          platform: 'web',
+          platform: 'pos',
         },
         ttl: '10m',
       },

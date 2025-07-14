@@ -65,7 +65,18 @@ export class EmployeeService {
 
   async findByUserPin(pin: string): Promise<SuccessfulLoginResponse> {
     try {
-      const employee = await this.employeeRepository.findOneByOrFail({ pin });
+      const employee = await this.employeeRepository.findOneOrFail({
+        where: { pin },
+        relations: {
+          venue: { organization: { user: true } },
+        },
+      });
+      if (!employee) {
+        throw new EntityNotFoundError(
+          Employee,
+          'Employee not found for the provided PIN',
+        );
+      }
       return await this.authenticationService.generateJwtTokenResponseForEmployeeClockIn(
         employee.venue.organization.user.id,
       );

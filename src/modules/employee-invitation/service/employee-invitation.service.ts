@@ -24,6 +24,7 @@ import {
   InvitationAlreadyExistsException,
   MissingDataException,
 } from '../../../exceptions/employee.exception';
+import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 
 @Injectable()
 export class EmployeeInvitationService {
@@ -206,12 +207,19 @@ export class EmployeeInvitationService {
     }
   }
 
-  async findByInvitationPin(dto: LoginDto): Promise<EmployeeInvitation> {
+  async findByInvitationPin(
+    dto: LoginDto,
+  ): Promise<EmployeeInvitation | SuccessfulLoginResponse> {
     try {
-      return await this.employeeInvitationRepository.findOneByOrFail({
-        pin: dto.pin,
-        venue: { id: dto.venue },
-      });
+      const invitation =
+        await this.employeeInvitationRepository.findOneByOrFail({
+          pin: dto.pin,
+          venue: { id: dto.venue },
+        });
+      if (invitation.status === EmployeeInvitationStatus.Accepted) {
+        return this.employeeService.findByUserPin(dto.pin);
+      }
+      return invitation;
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException(

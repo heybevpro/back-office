@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmployeeService } from './service/employee.service';
 import { RoleModule } from '../role/role.module';
@@ -10,7 +10,7 @@ import { AuthenticationModule } from '../authentication/authentication.module';
   imports: [
     TypeOrmModule.forFeature([Employee]),
     AuthenticationModule,
-    forwardRef(() => RoleModule),
+    RoleModule,
   ],
   providers: [EmployeeService],
   exports: [EmployeeService],

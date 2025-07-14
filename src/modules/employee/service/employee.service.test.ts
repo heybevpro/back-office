@@ -188,7 +188,7 @@ describe('EmployeeService', () => {
   describe('findByUserPin', () => {
     it('should return employee for valid pin', async () => {
       jest
-        .spyOn(employeeRepository, 'findOneByOrFail')
+        .spyOn(employeeRepository, 'findOneOrFail')
         .mockResolvedValue(mockEmployee);
 
       jest
@@ -207,7 +207,7 @@ describe('EmployeeService', () => {
 
     it('should throw NotFoundException if pin not found', async () => {
       jest
-        .spyOn(employeeRepository, 'findOneByOrFail')
+        .spyOn(employeeRepository, 'findOneOrFail')
         .mockRejectedValue(
           new EntityNotFoundError(Employee, { pin: '999999' }),
         );
@@ -219,7 +219,7 @@ describe('EmployeeService', () => {
 
     it('should rethrow unknown errors from findByUserPin', async () => {
       jest
-        .spyOn(employeeRepository, 'findOneByOrFail')
+        .spyOn(employeeRepository, 'findOneOrFail')
         .mockRejectedValue(new Error('Database crash'));
 
       await expect(service.findByUserPin('123456')).rejects.toThrow(
