@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
 import { EntityNotFoundError, Not, Repository } from 'typeorm';
-import { UserNotFoundException } from '../../../excpetions/credentials.exception';
+import { UserNotFoundException } from '../../../exceptions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { RoleService } from '../../role/service/role.service';
 import { Role } from '../../../utils/constants/role.constants';

@@ -48,7 +48,7 @@ export class Employee {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  venue?: Venue;
+  venue: Venue;
 
   @Exclude()
   @Column({ unique: true, nullable: false })

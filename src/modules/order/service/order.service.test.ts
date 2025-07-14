@@ -148,6 +148,7 @@ describe('OrderService', () => {
         status: OrderStatus.OPEN,
         created_at: new Date(),
         updated_at: new Date(),
+        orderItems: [],
       };
       const orderRepositoryCreateSpy = jest.spyOn(orderRepository, 'create');
       const orderRepositorySaveSpy = jest.spyOn(orderRepository, 'save');
@@ -207,6 +208,7 @@ describe('OrderService', () => {
         status: OrderStatus.CLOSED,
         created_at: new Date(),
         updated_at: new Date(),
+        orderItems: [],
       };
 
       const orderRepositoryCreateSpy = jest.spyOn(orderRepository, 'create');
@@ -225,6 +227,45 @@ describe('OrderService', () => {
         mockClosedOrderResponse,
       );
       expect(result).toEqual(mockClosedOrderResponse);
+    });
+  });
+
+  describe('updateTabDetails', () => {
+    it('should update the tab details and return the updated order', async () => {
+      const mockOrder = {
+        id: 'TAB-ID',
+        name: 'Test Tab',
+        details: '',
+        status: OrderStatus.OPEN,
+        created_at: new Date(),
+        updated_at: new Date(),
+      } as Order;
+
+      const orderServiceGetOpenOrderByIdSpy = jest.spyOn(
+        orderService,
+        'getOpenOrderById',
+      );
+      orderServiceGetOpenOrderByIdSpy.mockResolvedValue(mockOrder);
+
+      const orderRepositorySaveSpy = jest.spyOn(orderRepository, 'save');
+      orderRepositorySaveSpy.mockResolvedValue({
+        ...mockOrder,
+        details: 'VALID-DETAILS',
+      });
+
+      const result = await orderService.updateTabDetails('TAB-ID', {
+        details: 'VALID-DETAILS',
+      });
+
+      expect(orderServiceGetOpenOrderByIdSpy).toHaveBeenCalledWith('TAB-ID');
+      expect(orderRepositorySaveSpy).toHaveBeenCalledWith({
+        ...mockOrder,
+        details: '"VALID-DETAILS"',
+      });
+      expect(result).toEqual({
+        ...mockOrder,
+        details: 'VALID-DETAILS',
+      });
     });
   });
 });

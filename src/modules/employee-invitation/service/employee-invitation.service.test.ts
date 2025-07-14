@@ -15,13 +15,13 @@ import { Venue } from '../../venue/entity/venue.entity';
 import { Organization } from '../../organization/entity/organization.entity';
 import { ObjectStoreService } from '../../object-store/service/object-store.service';
 import { CreateEmployeeMetadataDtoWithDoc } from '../dto/employee-metadata.dto';
-import { S3UploadFailedException } from '../../../excpetions/objects.exception';
+import { S3UploadFailedException } from '../../../exceptions/objects.exception';
 import { EmployeeService } from '../../employee/service/employee.service';
 import { UpdateInvitationStatusDto } from '../dto/employee-invitation.dto';
 import {
   InvalidInvitationStatusException,
   InvitationAlreadyExistsException,
-} from '../../../excpetions/employee.exception';
+} from '../../../exceptions/employee.exception';
 
 describe('EmployeeInvitationService', () => {
   let service: EmployeeInvitationService;
@@ -50,6 +50,7 @@ describe('EmployeeInvitationService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     products: [],
+    menu_items: [],
   };
 
   const mockInvitation: EmployeeInvitation = {

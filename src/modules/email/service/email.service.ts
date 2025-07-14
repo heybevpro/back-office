@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SES } from '@aws-sdk/client-ses';
 import { ConfigService } from '@nestjs/config';
-import { FailedToSendEmailException } from '../../../excpetions/credentials.exception';
+import { FailedToSendEmailException } from '../../../exceptions/credentials.exception';
 import { EmailTemplates } from '../../../utils/constants/email.constants';
 
 @Injectable()

@@ -1,0 +1,146 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
+import { MenuItem } from '../entity/menu-item.entity';
+import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
+import { MenuItemIngredient } from '../entity/menu-item-ingredient.entity';
+import { MenuItemIngredientDto } from '../dto/menu-item-ingredient.dto';
+import {
+  FailedToCreateMenuItem,
+  FailedToCreateMenuItemIngredients,
+} from '../../../exceptions/menu-item.exception';
+import { ObjectStoreService } from '../../object-store/service/object-store.service';
+
+@Injectable()
+export class MenuItemService {
+  constructor(
+    @InjectRepository(MenuItem)
+    private readonly menuItemRepository: Repository<MenuItem>,
+    @InjectRepository(MenuItemIngredient)
+    private readonly menuItemIngredientRepository: Repository<MenuItemIngredient>,
+    private dataSource: DataSource,
+    private readonly objectStoreService: ObjectStoreService,
+  ) {}
+
+  async createMenuItemFromIngredients(
+    createMenuItemDto: CreateMenuItemDto,
+    organizationId: number,
+    image?: Express.Multer.File,
+  ): Promise<MenuItem> {
+    if (image) {
+      const baseUrl = `documents/organization/${organizationId}/venue/${createMenuItemDto.venue}/menuItem`;
+      createMenuItemDto.image_url =
+        await this.objectStoreService.uploadDocument(image, baseUrl);
+    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const savedMenuItem = await this.createMenuItemEntityUsingQueryRunner(
+        createMenuItemDto,
+        queryRunner,
+      );
+
+      await this.createMenuItemIngredientsUsingQueryRunner(
+        createMenuItemDto.ingredients,
+        savedMenuItem.id,
+        queryRunner,
+      );
+      await queryRunner.commitTransaction();
+
+      return savedMenuItem;
+    } catch (error: unknown) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async createMenuItemEntity(
+    createMenuItemDto: CreateMenuItemDto,
+  ): Promise<MenuItem> {
+    try {
+      return await this.menuItemRepository.save(
+        this.menuItemRepository.create({
+          name: createMenuItemDto.name,
+          description: createMenuItemDto.description,
+          price: createMenuItemDto.price,
+          venue: { id: createMenuItemDto.venue },
+        }),
+      );
+    } catch (error: unknown) {
+      throw new FailedToCreateMenuItem(error);
+    }
+  }
+
+  async createMenuItemEntityUsingQueryRunner(
+    createMenuItemDto: CreateMenuItemDto,
+    runner: QueryRunner,
+  ): Promise<MenuItem> {
+    try {
+      return await runner.manager.save(
+        runner.manager.create(MenuItem, {
+          name: createMenuItemDto.name,
+          description: createMenuItemDto.description,
+          price: createMenuItemDto.price,
+          venue: { id: createMenuItemDto.venue },
+          image_url: createMenuItemDto.image_url,
+          productType: { id: createMenuItemDto.productType },
+        }),
+      );
+    } catch (error: unknown) {
+      throw new FailedToCreateMenuItem(error);
+    }
+  }
+
+  async createMenuItemIngredients(
+    menuItemIngredients: Array<MenuItemIngredientDto>,
+    menuItemId: string,
+  ): Promise<Array<MenuItemIngredient>> {
+    try {
+      const ingredients = menuItemIngredients.map((ingredientDto) =>
+        this.menuItemIngredientRepository.create({
+          product: { id: ingredientDto.product },
+          quantity: ingredientDto.quantity,
+          serving_size: { id: ingredientDto.serving_size },
+          menu_item: { id: menuItemId },
+        }),
+      );
+
+      return await this.menuItemIngredientRepository.save(ingredients);
+    } catch (error: unknown) {
+      throw new FailedToCreateMenuItemIngredients(error);
+    }
+  }
+
+  async createMenuItemIngredientsUsingQueryRunner(
+    menuItemIngredients: Array<MenuItemIngredientDto>,
+    menuItemId: string,
+    runner: QueryRunner,
+  ): Promise<Array<MenuItemIngredient>> {
+    try {
+      const ingredients = menuItemIngredients.map((ingredientDto) =>
+        runner.manager.create(MenuItemIngredient, {
+          product: { id: ingredientDto.product },
+          quantity: ingredientDto.quantity,
+          serving_size: { id: ingredientDto.serving_size },
+          menu_item: { id: menuItemId },
+        }),
+      );
+
+      return await runner.manager.save(ingredients);
+    } catch (error: unknown) {
+      throw new FailedToCreateMenuItemIngredients(error);
+    }
+  }
+
+  getMenuItemsByVenue = async (venueId: number): Promise<Array<MenuItem>> => {
+    return this.menuItemRepository.find({
+      where: { venue: { id: venueId } },
+      relations: { ingredients: { serving_size: true }, productType: true },
+      order: { name: 'ASC' },
+    });
+  };
+}

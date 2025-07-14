@@ -3,7 +3,7 @@ import { AuthenticationService } from '../service/authentication.service';
 import { AuthenticationController } from './authentication.controller';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
-import { InvalidUserCredentialsException } from '../../../excpetions/credentials.exception';
+import { InvalidUserCredentialsException } from '../../../exceptions/credentials.exception';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -22,7 +22,6 @@ describe('AuthenticationController', () => {
     first_name: 'John',
     last_name: 'Doe',
     email: 'test@example.com',
-    created_at: new Date(),
   };
 
   const mockAuthenticationService = {

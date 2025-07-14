@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user/service/user.service';
 
 import * as bcrypt from 'bcrypt';
-import { InvalidUserCredentialsException } from '../../../excpetions/credentials.exception';
+import { InvalidUserCredentialsException } from '../../../exceptions/credentials.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { LoginRequestDto } from '../dto/login-request.dto';
@@ -47,7 +47,6 @@ export class AuthenticationService {
       onboarding_complete: user.onboarding_complete,
       role: user.role.role_name,
       organization: user.organization,
-      created_at: user.created_at,
     };
     return {
       access_token: await this.jwtService.signAsync(sanitizedUserData),
@@ -65,6 +64,29 @@ export class AuthenticationService {
     } catch (error: unknown) {
       throw new InvalidUserCredentialsException();
     }
+  }
+
+  async generateJwtTokenResponseForEmployeeClockIn(
+    userId: string,
+  ): Promise<SuccessfulLoginResponse> {
+    const user = await this.userService.findOneById(userId);
+    if (!user) {
+      throw new InvalidUserCredentialsException();
+    }
+    const sanitizedUserData = {
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      email_verified: user.email_verified,
+      onboarding_complete: user.onboarding_complete,
+      role: user.role.role_name,
+      organization: user.organization,
+    };
+    return {
+      access_token: await this.jwtService.signAsync(sanitizedUserData),
+      ...sanitizedUserData,
+    };
   }
 
   async validateTemporaryAccessJwt(
@@ -138,5 +160,16 @@ export class AuthenticationService {
 
   async onboard(userId: string, onboardDto: AccountOnboardingDto) {
     return await this.userService.onboardUser(userId, onboardDto);
+  }
+
+  public async generateAccessToken(user: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    role: string;
+    organization: string;
+  }): Promise<string> {
+    return this.jwtService.signAsync(user);
   }
 }

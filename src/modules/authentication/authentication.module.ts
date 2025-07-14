@@ -33,5 +33,6 @@ import { TemporaryAccessStrategy } from './strategy/temporary-access/temporary-a
     TemporaryAccessStrategy,
   ],
   controllers: [AuthenticationController],
+  exports: [AuthenticationService],
 })
 export class AuthenticationModule {}

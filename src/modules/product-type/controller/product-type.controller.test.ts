@@ -58,6 +58,7 @@ describe('ProductTypeController', () => {
         serving_size: mockServingSize,
         created_at: new Date(),
         updated_at: new Date(),
+        menuItems: [],
       };
 
       jest.spyOn(service, 'create').mockResolvedValue(createdProductType);
@@ -80,6 +81,7 @@ describe('ProductTypeController', () => {
           updated_at: new Date(),
           products: [],
           serving_size: mockServingSize,
+          menuItems: [],
         },
         {
           id: 'uuid2',
@@ -89,6 +91,7 @@ describe('ProductTypeController', () => {
           updated_at: new Date(),
           products: [],
           serving_size: mockServingSize,
+          menuItems: [],
         },
       ];
 
@@ -113,6 +116,7 @@ describe('ProductTypeController', () => {
           updated_at: new Date(),
           products: [],
           serving_size: mockServingSize,
+          menuItems: [],
         },
         {
           id: 'uuid2',
@@ -122,6 +126,7 @@ describe('ProductTypeController', () => {
           updated_at: new Date(),
           products: [],
           serving_size: mockServingSize,
+          menuItems: [],
         },
       ];
 

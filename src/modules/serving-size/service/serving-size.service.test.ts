@@ -7,7 +7,7 @@ import { OrganizationService } from '../../organization/service/organization.ser
 import { CreateServingSizeDto } from '../dto/create-serving-size.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Organization } from '../../organization/entity/organization.entity';
-import { ServingSizeConflictException } from '../../../excpetions/servingSize.exception';
+import { ServingSizeConflictException } from '../../../exceptions/servingSize.exception';
 
 const mockOrganization = { id: 1, name: 'Org 1' } as Organization;
 

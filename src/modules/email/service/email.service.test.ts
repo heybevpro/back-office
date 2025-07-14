@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { SES } from '@aws-sdk/client-ses';
 import { ConfigService } from '@nestjs/config';
-import { FailedToSendEmailException } from '../../../excpetions/credentials.exception';
+import { FailedToSendEmailException } from '../../../exceptions/credentials.exception';
 import { EmailTemplates } from '../../../utils/constants/email.constants';
 
 jest.mock('@aws-sdk/client-ses');

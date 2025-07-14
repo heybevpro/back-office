@@ -20,13 +20,13 @@ import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { CreateEmployeeMetadataDto } from '../dto/employee-metadata.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-@UseGuards(JwtAuthGuard)
 @Controller('employee-invitation')
 export class EmployeeInvitationController {
   constructor(
     private readonly employeeInvitationService: EmployeeInvitationService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('/send-invitation')
   async sendInvite(
     @Body() dto: CreateEmployeeInvitationDto,
@@ -34,6 +34,7 @@ export class EmployeeInvitationController {
     return await this.employeeInvitationService.create(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put('/onboard')
   @UseInterceptors(FileInterceptor('file'))
   async onboard(
@@ -44,6 +45,7 @@ export class EmployeeInvitationController {
     return await this.employeeInvitationService.onboard(dto, file);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('by-venue/:venueId')
   async findAllByVenueId(
     @Param('venueId') venueId: number,
@@ -51,6 +53,7 @@ export class EmployeeInvitationController {
     return await this.employeeInvitationService.findAllByVenueId(venueId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':invitationId')
   async findInvitationById(
     @Param('invitationId') invitationId: string,
@@ -58,6 +61,7 @@ export class EmployeeInvitationController {
     return await this.employeeInvitationService.findInvitationId(invitationId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put('/review-invitation')
   async updateStatus(@Body() dto: UpdateInvitationStatusDto) {
     return await this.employeeInvitationService.updateStatusUsingVerification(

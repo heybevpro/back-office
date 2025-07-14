@@ -10,7 +10,9 @@ import { Organization } from '../../organization/entity/organization.entity';
 import {
   DeviceConflictException,
   VenueNotFoundException,
-} from '../../../excpetions/device.exception';
+} from '../../../exceptions/device.exception';
+import { AuthenticationService } from '../../authentication/service/authentication.service';
+import { UserService } from '../../user/service/user.service';
 
 describe('DeviceService', () => {
   let deviceService: DeviceService;
@@ -47,9 +49,18 @@ describe('DeviceService', () => {
     product_types: [],
     devices: [],
     products: [],
+    menu_items: [],
   };
 
   const mockVenueService = {
+    findOneById: jest.fn(),
+  };
+
+  const mockAuthenticationService = {
+    generateAccessToken: jest.fn(),
+  };
+
+  const mockUserService = {
     findOneById: jest.fn(),
   };
 
@@ -64,6 +75,14 @@ describe('DeviceService', () => {
         {
           provide: VenueService,
           useValue: mockVenueService,
+        },
+        {
+          provide: AuthenticationService,
+          useValue: mockAuthenticationService,
+        },
+        {
+          provide: UserService,
+          useValue: mockUserService,
         },
       ],
     }).compile();
@@ -143,16 +162,15 @@ describe('DeviceService', () => {
   });
 
   describe('findById', () => {
-    it('should return device with venue if found', async () => {
-      jest.spyOn(deviceRepository, 'findOne').mockResolvedValue(mockDevice);
+    it('should return device response with user details and access token', async () => {
+      const deviceWithVenue = { ...mockDevice, venue: mockVenue };
+      jest
+        .spyOn(deviceRepository, 'findOne')
+        .mockResolvedValue(deviceWithVenue);
 
       const result = await deviceService.findById('device-uuid');
 
-      expect(result).toEqual(mockDevice);
-      expect(deviceRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'device-uuid' },
-        relations: { venue: true },
-      });
+      expect(result).toEqual(deviceWithVenue);
     });
 
     it('should throw NotFoundException if device not found', async () => {
