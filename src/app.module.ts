@@ -20,6 +20,7 @@ import { EmployeeModule } from './modules/employee/employee.module';
 import { DeviceModule } from './modules/device/device.module';
 import { EmployeeInvitationModule } from './modules/employee-invitation/employee-invitation.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
+import { MenuItemModule } from './modules/menu-item/menu-item.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
     DeviceModule,
     EmployeeInvitationModule,
     InventoryModule,
+    MenuItemModule,
   ],
   controllers: [AppController],
   providers: [AppService],

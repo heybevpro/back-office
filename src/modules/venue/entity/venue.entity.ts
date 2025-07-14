@@ -13,6 +13,7 @@ import { ProductType } from '../../product-type/entity/product-type.entity';
 import { Employee } from '../../employee/entity/employee.entity';
 import { Device } from '../../device/entity/device.entity';
 import { Product } from '../../product/entity/product.entity';
+import { MenuItem } from '../../menu-item/entity/menu-item.entity';
 
 @Entity()
 @Unique(['organization', 'name'])
@@ -52,6 +53,9 @@ export class Venue {
 
   @OneToMany(() => Device, (device) => device.venue)
   devices: Array<Device>;
+
+  @OneToMany(() => MenuItem, (menuItem) => menuItem.venue)
+  menu_items: Array<MenuItem>;
 
   @OneToMany(() => Product, (product) => product.venue)
   products: Array<Product>;

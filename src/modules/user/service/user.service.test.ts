@@ -9,7 +9,7 @@ import {
   ImATeapotException,
   NotFoundException,
 } from '@nestjs/common';
-import { UserNotFoundException } from '../../../excpetions/credentials.exception';
+import { UserNotFoundException } from '../../../exceptions/credentials.exception';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { Role } from '../../role/entity/role.entity';
 import { RoleService } from '../../role/service/role.service';

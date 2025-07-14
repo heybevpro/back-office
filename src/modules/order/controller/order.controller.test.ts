@@ -4,6 +4,7 @@ import { OrderService } from '../service/order.service';
 import { CreateTabDto } from '../dto/create-tab.dto';
 import { Order } from '../entity/order.entity';
 import { OrderStatus } from '../../../utils/constants/order.constants';
+import { UpdateTabDto } from '../dto/update-tab.dto';
 
 describe('OrderController', () => {
   let orderController: OrderController;
@@ -17,6 +18,7 @@ describe('OrderController', () => {
       createTab: jest.fn(),
       createClosedOrder: jest.fn(),
       closeTab: jest.fn(),
+      updateTabDetails: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -33,22 +35,23 @@ describe('OrderController', () => {
     orderService = module.get(OrderService);
   });
 
+  const mockOrder: Order = {
+    id: '1',
+    status: OrderStatus.OPEN,
+    name: 'VALID-NAME',
+    details: '',
+    updated_at: new Date(),
+    created_at: new Date(),
+    orderItems: [],
+  };
+
   it('should be defined', () => {
     expect(orderController).toBeDefined();
   });
 
   describe('getAllOrders', () => {
     it('should call OrderService.getAllOrders and return the result', async () => {
-      const mockOrders: Array<Order> = [
-        {
-          id: '1',
-          status: OrderStatus.OPEN,
-          name: 'VALID-NAME',
-          details: '',
-          updated_at: new Date(),
-          created_at: new Date(),
-        },
-      ];
+      const mockOrders: Array<Order> = [mockOrder];
       orderService.getAllOrders.mockResolvedValue(mockOrders);
 
       const result = await orderController.getAllOrders();
@@ -60,14 +63,6 @@ describe('OrderController', () => {
 
   describe('getOrderById', () => {
     it('should call OrderService.getOrderById with the correct ID and return the result', async () => {
-      const mockOrder: Order = {
-        id: '1',
-        status: OrderStatus.OPEN,
-        name: 'VALID-NAME',
-        details: '',
-        updated_at: new Date(),
-        created_at: new Date(),
-      };
       orderService.getOrderById.mockResolvedValue(mockOrder);
 
       const result = await orderController.getOrderById('1');
@@ -79,16 +74,7 @@ describe('OrderController', () => {
 
   describe('getAllClosedOrders', () => {
     it('should call OrderService.getAllClosedOrders and return the result', async () => {
-      const mockOrders: Array<Order> = [
-        {
-          id: '1',
-          status: OrderStatus.OPEN,
-          name: 'VALID-NAME',
-          details: '',
-          updated_at: new Date(),
-          created_at: new Date(),
-        },
-      ];
+      const mockOrders: Array<Order> = [mockOrder];
       orderService.getAllClosedOrders.mockResolvedValue(mockOrders);
 
       const result = await orderController.getAllClosedOrders();
@@ -104,14 +90,7 @@ describe('OrderController', () => {
         name: '<_VALID-TAB-NAME_>',
         details: '',
       };
-      const mockTab = {
-        id: 'TAB-ID',
-        name: createTabDto.name,
-        details: createTabDto.details,
-        status: OrderStatus.OPEN,
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
+      const mockTab = mockOrder;
       orderService.createTab.mockResolvedValue(mockTab);
 
       const result = await orderController.createTab(createTabDto);
@@ -134,6 +113,7 @@ describe('OrderController', () => {
         status: OrderStatus.CLOSED,
         created_at: new Date(),
         updated_at: new Date(),
+        orderItems: [],
       };
 
       orderService.createClosedOrder.mockResolvedValue(mockClosedOrder);
@@ -152,6 +132,27 @@ describe('OrderController', () => {
     it('should call OrderService.closeTab with the correct ID and return the result', async () => {
       await orderController.closeTab('TAB-ID');
       expect(orderService.closeTab).toHaveBeenCalledWith('TAB-ID');
+    });
+  });
+
+  describe('updateTabDetails', () => {
+    it('should call OrderService.updateTabDetails with the correct ID and return the result', async () => {
+      const updateTabDto: UpdateTabDto = {
+        details: 'VALID-DETAILS',
+      };
+      const mockTab = mockOrder;
+      orderService.updateTabDetails.mockResolvedValue(mockTab);
+
+      const result = await orderController.updateTabDetails(
+        'TAB-ID',
+        updateTabDto,
+      );
+
+      expect(orderService.updateTabDetails).toHaveBeenCalledWith(
+        'TAB-ID',
+        updateTabDto,
+      );
+      expect(result).toEqual(mockTab);
     });
   });
 });

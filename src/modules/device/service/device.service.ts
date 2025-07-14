@@ -11,14 +11,13 @@ import { VenueService } from '../../venue/service/venue.service';
 import {
   DeviceConflictException,
   VenueNotFoundException,
-} from '../../../excpetions/device.exception';
+} from '../../../exceptions/device.exception';
 
 @Injectable()
 export class DeviceService {
   constructor(
     @InjectRepository(Device)
     private readonly deviceRepository: Repository<Device>,
-
     private readonly venueService: VenueService,
   ) {}
 
@@ -48,10 +47,17 @@ export class DeviceService {
     }
   }
 
+  async findAllDevicesByVenue(venueId: number): Promise<Device[]> {
+    return await this.deviceRepository.find({
+      where: { venue: { id: venueId } },
+      relations: { venue: { organization: true } },
+    });
+  }
+
   async findById(id: string): Promise<Device> {
     const device = await this.deviceRepository.findOne({
       where: { id },
-      relations: { venue: true },
+      relations: { venue: { organization: true } },
     });
     if (!device) {
       throw new NotFoundException('Device not found');

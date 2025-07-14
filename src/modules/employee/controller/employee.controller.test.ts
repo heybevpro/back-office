@@ -5,6 +5,7 @@ import { Employee } from '../entity/employee.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Venue } from '../../venue/entity/venue.entity';
 import { EmployeeInvitation } from '../../employee-invitation/entity/employee-invitation.entity';
+import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 
 describe('EmployeeController', () => {
   let controller: EmployeeController;
@@ -29,6 +30,8 @@ describe('EmployeeController', () => {
     created_at: new Date(),
     updated_at: new Date(),
   };
+
+  const mockClockInResponse = {} as SuccessfulLoginResponse;
 
   const mockEmployeeService = {
     findAll: jest.fn(),
@@ -59,7 +62,9 @@ describe('EmployeeController', () => {
   describe('find all employees', () => {
     it('should return all employees', async () => {
       service.findAll.mockResolvedValue([mockEmployee]);
-      const result = await controller.findAll();
+      const result = await controller.findAll({
+        user: { organization: { id: 1 } },
+      });
 
       expect(service.findAll).toHaveBeenCalledTimes(1);
       expect(result).toEqual([mockEmployee]);
@@ -79,12 +84,12 @@ describe('EmployeeController', () => {
   describe('login', () => {
     it('should return employee if pin is correct', async () => {
       const loginDto = { pin: '123456' };
-      service.findByUserPin.mockResolvedValue(mockEmployee);
+      service.findByUserPin.mockResolvedValue(mockClockInResponse);
 
       const result = await controller.login(loginDto);
 
       expect(service.findByUserPin).toHaveBeenCalledWith('123456');
-      expect(result).toEqual(mockEmployee);
+      expect(result).toEqual(mockClockInResponse);
     });
 
     it('should return null if pin is invalid', async () => {

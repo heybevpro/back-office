@@ -5,7 +5,7 @@ import { Inventory } from '../entity/inventory.entity';
 import { Repository } from 'typeorm';
 import { UpdateInventoryDto } from '../dto/update-inventory.dto';
 import { Product } from '../../product/entity/product.entity';
-import { ProductNotFoundException } from '../../../excpetions/product.exception';
+import { ProductNotFoundException } from '../../../exceptions/product.exception';
 
 describe('InventoryService', () => {
   let service: InventoryService;

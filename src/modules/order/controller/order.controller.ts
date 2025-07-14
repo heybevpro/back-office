@@ -11,6 +11,7 @@ import { OrderService } from '../service/order.service';
 import { JwtAuthGuard } from '../../../guards/auth/jwt.guard';
 import { CreateTabDto } from '../dto/create-tab.dto';
 import { CreateClosedOrderDto } from '../dto/create-closed-order.dto';
+import { UpdateTabDto } from '../dto/update-tab.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('order')
@@ -45,5 +46,13 @@ export class OrderController {
   @Post('closed')
   createClosedOrder(@Body() createTabDto: CreateClosedOrderDto) {
     return this.orderService.createClosedOrder(createTabDto);
+  }
+
+  @Patch('update/tab/:id')
+  updateTabDetails(
+    @Param('id') id: string,
+    @Body() updateTabDto: UpdateTabDto,
+  ) {
+    return this.orderService.updateTabDetails(id, updateTabDto);
   }
 }

@@ -7,14 +7,13 @@ import { OrganizationService } from '../../organization/service/organization.ser
 import {
   ServingSizeConflictException,
   ServingSizeOrganizationNotFoundException,
-} from '../../../excpetions/servingSize.exception';
+} from '../../../exceptions/servingSize.exception';
 
 @Injectable()
 export class ServingSizeService {
   constructor(
     @InjectRepository(ServingSize)
     private readonly servingSizeRepository: Repository<ServingSize>,
-
     private readonly organizationService: OrganizationService,
   ) {}
 

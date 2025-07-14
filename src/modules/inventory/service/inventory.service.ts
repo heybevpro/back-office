@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Inventory } from '../entity/inventory.entity';
-import { ProductNotFoundException } from '../../../excpetions/product.exception';
+import { ProductNotFoundException } from '../../../exceptions/product.exception';
 import { UpdateInventoryDto } from '../dto/update-inventory.dto';
 
 @Injectable()
@@ -39,4 +39,6 @@ export class InventoryService {
     inventory.quantity = updateInventoryDto.quantity;
     return await this.inventoryRepository.save(inventory);
   }
+
+  async findInventoryForProductsWithIds() {}
 }
