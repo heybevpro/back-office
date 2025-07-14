@@ -143,4 +143,19 @@ export class MenuItemService {
       order: { name: 'ASC' },
     });
   };
+
+  getMenuItemsByVenueAgent = async (
+    venueId: number,
+  ): Promise<Array<MenuItem>> => {
+    return this.menuItemRepository.find({
+      where: { venue: { id: venueId } },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        description: true,
+      },
+      order: { name: 'ASC' },
+    });
+  };
 }
