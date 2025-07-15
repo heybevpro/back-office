@@ -360,7 +360,10 @@ describe('MenuItemService', () => {
       expect(result).toEqual(mockMenuItems);
       expect(menuItemRepository.find).toHaveBeenCalledWith({
         where: { venue: { id: 1 } },
-        relations: { ingredients: { serving_size: true }, productType: true },
+        relations: {
+          ingredients: { serving_size: true, product: true },
+          productType: true,
+        },
         order: { name: 'ASC' },
       });
     });

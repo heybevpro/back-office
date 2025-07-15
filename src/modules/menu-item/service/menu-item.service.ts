@@ -139,7 +139,10 @@ export class MenuItemService {
   getMenuItemsByVenue = async (venueId: number): Promise<Array<MenuItem>> => {
     return this.menuItemRepository.find({
       where: { venue: { id: venueId } },
-      relations: { ingredients: { serving_size: true }, productType: true },
+      relations: {
+        ingredients: { serving_size: true, product: true },
+        productType: true,
+      },
       order: { name: 'ASC' },
     });
   };
