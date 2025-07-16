@@ -27,3 +27,15 @@ export class FailedToSendEmailException extends HttpException {
     );
   }
 }
+
+export class PasswordUpdateException extends HttpException {
+  constructor() {
+    super(
+      {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Password does not match. Please try again.',
+      },
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+}

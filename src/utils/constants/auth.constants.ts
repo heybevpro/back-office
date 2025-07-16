@@ -21,6 +21,7 @@ export interface TemporaryAccessJwtPayload {
 export interface AuthorizedRequest extends Request {
   user: {
     id: string;
+    email: string;
     first_name: string;
     organization: {
       id: number;

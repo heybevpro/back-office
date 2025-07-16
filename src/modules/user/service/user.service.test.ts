@@ -293,4 +293,32 @@ describe('UserService', () => {
       );
     });
   });
+
+  describe('findUserByIdWithProtectedFields', () => {
+    it('should return the user with protected fields', async () => {
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOneOrFail');
+      findOneOrFailSpy.mockResolvedValue(mockUser);
+      expect(
+        await service.findUserByIdWithProtectedFields('<_USER_ID_>'),
+      ).toEqual(mockUser);
+    });
+
+    it('should throw UserNotFoundException if user is not found', async () => {
+      jest
+        .spyOn(userRepository, 'findOneOrFail')
+        .mockRejectedValue(new EntityNotFoundError(User, {}));
+      await expect(
+        service.findUserByIdWithProtectedFields('<_INVALID_USER_ID_>'),
+      ).rejects.toThrow(UserNotFoundException);
+    });
+
+    it('should throw an error if an unexpected error occurs', async () => {
+      jest
+        .spyOn(userRepository, 'findOneOrFail')
+        .mockRejectedValue(new ImATeapotException());
+      await expect(
+        service.findUserByIdWithProtectedFields('<_USER_ID_>'),
+      ).rejects.toThrow(ImATeapotException);
+    });
+  });
 });

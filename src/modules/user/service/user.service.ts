@@ -138,4 +138,25 @@ export class UserService {
     user.onboarding_complete = true;
     return await this.userRepository.save(user);
   }
+
+  async findUserByIdWithProtectedFields(userId: string): Promise<User> {
+    try {
+      return await this.userRepository.findOneOrFail({
+        where: { id: userId },
+        relations: { role: true, organization: true },
+        select: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          email: true,
+          password: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new UserNotFoundException();
+      }
+      throw error;
+    }
+  }
 }

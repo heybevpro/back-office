@@ -44,10 +44,7 @@ describe('AuthenticationService', () => {
     ...mockUser,
   };
 
-  const sanitizedUserData: Omit<
-    User,
-    'password' | 'updated_at' | 'created_at'
-  > = {
+  const sanitizedUserData: Omit<User, 'updated_at' | 'created_at'> = {
     id: mockUser.id,
     first_name: mockUser.first_name,
     last_name: mockUser.last_name,
@@ -56,6 +53,7 @@ describe('AuthenticationService', () => {
     onboarding_complete: mockUser.onboarding_complete,
     role: mockUser.role.role_name as unknown as Role,
     organization: mockUser.organization,
+    password: mockUser.password,
   };
 
   const mockUserService = {
@@ -80,6 +78,7 @@ describe('AuthenticationService', () => {
     findOneByIdAndRole: jest.fn(),
     updateUserPasswordHash: jest.fn(),
     onboardUser: jest.fn(),
+    findUserByIdWithProtectedFields: jest.fn(),
   };
 
   const mockVerificationService = {
@@ -452,6 +451,48 @@ describe('AuthenticationService', () => {
         userId,
         onboardingDto,
       );
+    });
+  });
+
+  describe('updatePassword', () => {
+    const mockUserWithPassword: User = {
+      ...mockUser,
+      password: 'HASHED_OLD_PASSWORD',
+    };
+
+    it('should update the user password when the old password matches', async () => {
+      const userId = 'VALID_ID';
+      const updatePasswordDto = {
+        old_password: 'OLD_PASSWORD',
+        new_password: 'NEW_PASSWORD',
+      };
+      const hashedPassword = 'HASHED_NEW_PASSWORD';
+
+      const compareHashSpy = jest.spyOn(bcrypt, 'compare');
+      const hashTextSpy = jest.spyOn(bcrypt, 'hash');
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+      jest
+        .spyOn(mockUserService, 'findUserByIdWithProtectedFields')
+        .mockResolvedValue(mockUserWithPassword);
+      jest
+        .spyOn(mockUserService, 'updateUserPasswordHash')
+        .mockResolvedValue(true);
+
+      const result = await service.updatePassword(userId, updatePasswordDto);
+
+      expect(compareHashSpy).toHaveBeenCalledWith(
+        'OLD_PASSWORD',
+        'HASHED_OLD_PASSWORD',
+      );
+      expect(hashTextSpy).toHaveBeenCalledWith('NEW_PASSWORD', 13);
+
+      expect(mockUserService.updateUserPasswordHash).toHaveBeenCalledWith(
+        userId,
+        hashedPassword,
+      );
+      expect(result).toBe(true);
     });
   });
 });
