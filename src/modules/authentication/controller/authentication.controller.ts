@@ -23,6 +23,8 @@ import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { ValidatePasswordResetDTO } from '../dto/validate-password-reset.dto';
 import { TemporaryJwtGuard } from '../../../guards/auth/temporary-jwt.guard';
 import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
+import { UpdatePasswordDto } from '../dto/update-password.dto';
+import { AuthorizedRequest } from 'src/utils/constants/auth.constants';
 
 @Controller('auth')
 @UseFilters(DatabaseClientExceptionFilter)
@@ -89,5 +91,17 @@ export class AuthenticationController {
     @Body() onboardingDto: AccountOnboardingDto,
   ) {
     return this.authenticationService.onboard(request.user.id, onboardingDto);
+  }
+
+  @UseGuards(TemporaryJwtGuard)
+  @Post('update-password')
+  changePassword(
+    @Request() request: AuthorizedRequest,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.authenticationService.updatePassword(
+      request.user.id,
+      updatePasswordDto,
+    );
   }
 }

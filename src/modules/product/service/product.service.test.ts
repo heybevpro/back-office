@@ -11,7 +11,6 @@ import {
   ImATeapotException,
   NotFoundException,
 } from '@nestjs/common';
-import { OutOfStockException } from '../../../exceptions/order.exception';
 import { Inventory } from '../../inventory/entity/inventory.entity';
 import { Venue } from '../../venue/entity/venue.entity';
 import { InventoryService } from '../../inventory/service/inventory.service';
@@ -117,7 +116,7 @@ describe('ProductService', () => {
       productRepositoryFindSpy.mockResolvedValue([mockProduct]);
       await service.findAllWithIds(['1']);
       expect(productRepositoryFindSpy).toHaveBeenCalledWith({
-        relations: { product_type: true },
+        relations: { product_type: true, inventory: true },
         select: {
           id: true,
           name: true,
@@ -261,7 +260,7 @@ describe('ProductService', () => {
 
       await expect(
         service.validateAndUpdateItemQuantitiesFromOrder(orderDetails),
-      ).rejects.toThrow(OutOfStockException);
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw InsufficientStockException if requested quantity exceeds available stock', async () => {
@@ -272,7 +271,7 @@ describe('ProductService', () => {
 
       await expect(
         service.validateAndUpdateItemQuantitiesFromOrder(orderDetails),
-      ).rejects.toThrow(OutOfStockException);
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

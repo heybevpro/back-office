@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user/service/user.service';
 
 import * as bcrypt from 'bcrypt';
-import { InvalidUserCredentialsException } from '../../../exceptions/credentials.exception';
+import {
+  InvalidUserCredentialsException,
+  PasswordUpdateException,
+} from '../../../exceptions/credentials.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SuccessfulLoginResponse } from '../../../interfaces/api/response/api.response';
 import { LoginRequestDto } from '../dto/login-request.dto';
@@ -16,6 +19,7 @@ import { VerificationService } from '../../verification/service/verification.ser
 import { instanceToPlain } from 'class-transformer';
 import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
 import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
+import { UpdatePasswordDto } from '../dto/update-password.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -47,6 +51,7 @@ export class AuthenticationService {
       onboarding_complete: user.onboarding_complete,
       role: user.role.role_name,
       organization: user.organization,
+      password: user.password,
     };
     return {
       access_token: await this.jwtService.signAsync(sanitizedUserData),
@@ -160,6 +165,28 @@ export class AuthenticationService {
 
   async onboard(userId: string, onboardDto: AccountOnboardingDto) {
     return await this.userService.onboardUser(userId, onboardDto);
+  }
+
+  async updatePassword(
+    userId: string,
+    UpdatePasswordDto: UpdatePasswordDto,
+  ): Promise<User> {
+    const user = await this.userService.findUserByIdWithProtectedFields(userId);
+    const isPasswordMatched = await this.compareHash(
+      UpdatePasswordDto.old_password,
+      user.password,
+    );
+    if (!isPasswordMatched) {
+      throw new PasswordUpdateException();
+    }
+    const newPasswordHash = await bcrypt.hash(
+      UpdatePasswordDto.new_password,
+      AuthenticationService.SALT_ROUNDS,
+    );
+    return await this.userService.updateUserPasswordHash(
+      user.id,
+      newPasswordHash,
+    );
   }
 
   public async generateAccessToken(user: {

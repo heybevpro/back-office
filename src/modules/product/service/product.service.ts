@@ -77,11 +77,11 @@ export class ProductService {
 
   async findAllWithIds(ids: Array<string>): Promise<Array<Product>> {
     return await this.productRepository.find({
-      relations: { product_type: true },
+      relations: { product_type: true, inventory: true },
       select: {
         id: true,
-        name: true,
         price: true,
+        name: true,
         quantity: true,
         description: true,
         created_at: true,
@@ -158,7 +158,8 @@ export class ProductService {
         product,
         productIdQuantityMap[product.id],
       );
-      product.quantity = product.quantity - productIdQuantityMap[product.id];
+      product.inventory.quantity =
+        product.inventory.quantity - productIdQuantityMap[product.id];
     });
     return await this.updateMultipleProducts(productsToUpdate);
   }
@@ -167,8 +168,9 @@ export class ProductService {
     product: Product,
     requestedQuantity: number,
   ) {
-    if (!product.quantity) throw new OutOfStockException(product.name);
-    if (product.quantity < requestedQuantity)
+    if (product.inventory.quantity === 0)
+      throw new OutOfStockException(product.name);
+    if (product.inventory.quantity < requestedQuantity)
       throw new InsufficientStockException(product.name);
   }
 }

@@ -12,6 +12,7 @@ import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
 import { PasswordResetEmailSentSuccessResponse } from '../../../utils/constants/api-response.constants';
 import { AccountOnboardingDto } from '../dto/account-onboarding.dto';
 import { OrganizationSize } from '../../../utils/constants/organization.constants';
+import { AuthorizedRequest } from 'src/utils/constants/auth.constants';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -48,6 +49,7 @@ describe('AuthenticationController', () => {
     validateResetPassword: jest.fn(),
     resetPassword: jest.fn(),
     onboard: jest.fn(),
+    updatePassword: jest.fn(),
   };
 
   const mockAuthGuard = {
@@ -194,6 +196,25 @@ describe('AuthenticationController', () => {
       expect(mockAuthenticationService.onboard).toHaveBeenCalledWith(
         mockRequest.user.id,
         mockOnboardDto,
+      );
+    });
+  });
+
+  describe('change password', () => {
+    it('should call AuthenticationService.changePassword with correct parameters', async () => {
+      const mockRequest = {
+        user: {
+          id: 'VALID-USER-ID',
+        },
+      } as AuthorizedRequest;
+      const mockChangePasswordDto = {
+        old_password: 'OLD_PASSWORD',
+        new_password: 'NEW_PASSWORD',
+      };
+      await controller.changePassword(mockRequest, mockChangePasswordDto);
+      expect(mockAuthenticationService.updatePassword).toHaveBeenCalledWith(
+        mockRequest.user.id,
+        mockChangePasswordDto,
       );
     });
   });
